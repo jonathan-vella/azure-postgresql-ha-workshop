@@ -99,11 +99,10 @@ module apiAppService 'modules/appService.bicep' = {
   params: {
     appServiceName: apiAppServiceName
     location: location
-    appServicePlanId: appServicePlan.outputs.appServicePlanId
-    containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest'
+    appServicePlanId: appServicePlan.outputs.appServicePlanId    containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').username
-    containerRegistryPassword: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').passwords[0].value
+    containerRegistryUsername: containerRegistry.outputs.adminUsername
+    containerRegistryPassword: containerRegistry.outputs.adminPassword
     environmentVariables: [      
       {
         name: 'SQL_SERVER'
@@ -140,11 +139,10 @@ module webAppService 'modules/appService.bicep' = {
   params: {
     appServiceName: webAppServiceName
     location: location
-    appServicePlanId: appServicePlan.outputs.appServicePlanId
-    containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest'
+    appServicePlanId: appServicePlan.outputs.appServicePlanId    containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').username
-    containerRegistryPassword: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').passwords[0].value
+    containerRegistryUsername: containerRegistry.outputs.adminUsername
+    containerRegistryPassword: containerRegistry.outputs.adminPassword
     environmentVariables: [
       {
         name: 'API_URL'
