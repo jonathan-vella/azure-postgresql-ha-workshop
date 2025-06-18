@@ -418,18 +418,19 @@ try {
     }
     
     Write-Host "`r✓ Bicep deployment completed successfully             " -ForegroundColor Green
-    
-    # Extract information from deployment outputs
+      # Extract information from deployment outputs
     Write-Host "Extracting deployment outputs..." -ForegroundColor DarkGray
     $acrLoginServer = $deployment.properties.outputs.acrLoginServer.value
     $acrName = $deployment.properties.outputs.acrName.value
     $apiAppServiceName = $deployment.properties.outputs.apiAppServiceName.value
     $webAppServiceName = $deployment.properties.outputs.webAppServiceName.value
+    $keyVaultName = $deployment.properties.outputs.keyVaultName.value
     
     Write-Host "  - ACR Name: $acrName" -ForegroundColor DarkGray
     Write-Host "  - ACR Login Server: $acrLoginServer" -ForegroundColor DarkGray
     Write-Host "  - API App Service: $apiAppServiceName" -ForegroundColor DarkGray
     Write-Host "  - Web App Service: $webAppServiceName" -ForegroundColor DarkGray
+    Write-Host "  - Key Vault: $keyVaultName" -ForegroundColor DarkGray
 }
 catch {
     Write-Host "`r✗ Bicep deployment failed                            " -ForegroundColor Red
@@ -595,6 +596,8 @@ Write-Host "Resource Group:" -ForegroundColor White -NoNewline
 Write-Host " $resourceGroupName" -ForegroundColor Cyan
 Write-Host "Region:        " -ForegroundColor White -NoNewline
 Write-Host "$location" -ForegroundColor Cyan
+Write-Host "Key Vault:     " -ForegroundColor White -NoNewline
+Write-Host "$keyVaultName" -ForegroundColor Cyan
 
 Write-Host "`nApplication Endpoints:" -ForegroundColor Green
 Write-Host "-------------------" -ForegroundColor DarkGray
@@ -609,6 +612,8 @@ Write-Host "1. Wait a few minutes for container initialization" -ForegroundColor
 Write-Host "2. Visit the Web URL to access the SAIF application" -ForegroundColor White
 Write-Host "3. Test the API endpoint for proper functionality" -ForegroundColor White
 Write-Host "4. Configure monitoring and alerts in Azure Portal" -ForegroundColor White
+Write-Host "5. Review Key Vault permissions for app services" -ForegroundColor White
+Write-Host "6. Update application security settings as needed" -ForegroundColor White
 
 Write-Host "`nNote: " -ForegroundColor Yellow -NoNewline
 Write-Host "It may take up to 5 minutes for the containers to fully start." -ForegroundColor Cyan

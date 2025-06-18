@@ -40,12 +40,16 @@ var webAppServiceName = '${environmentName}-web-${randomSuffix}'
 var sqlServerName = '${environmentName}-sql-${randomSuffix}'
 var sqlDatabaseName = 'saif'
 var logAnalyticsName = '${environmentName}-logs-${randomSuffix}'
+var keyVaultName = 'kv-${environmentName}-${randomSuffix}'
 
 // Default tags that are applied to all resources
 var defaultTags = union(tags, {
   Environment: environmentName
   Owner: 'SAIF Team'
   Application: 'SAIF'
+  DeploymentDate: utcNow('yyyy-MM-dd')  // Using utcNow is allowed for parameter default values
+  SecurityLevel: 'High'
+  CostCenter: 'IT-Security'
 })
 
 // Create container registry
@@ -64,6 +68,18 @@ module monitoring 'modules/monitoring.bicep' = {
   params: {
     logAnalyticsName: logAnalyticsName
     location: location
+    tags: defaultTags
+  }
+}
+
+// Create Key Vault for secure secrets storage
+module keyVault 'modules/keyVault.bicep' = {
+  name: 'keyVault'
+  params: {
+    keyVaultName: keyVaultName
+    location: location
+    sqlAdminPassword: sqlAdminPassword
+    secretUserPrincipalIds: [] // Will be updated after app services are created
     tags: defaultTags
   }
 }
@@ -99,10 +115,12 @@ module apiAppService 'modules/appService.bicep' = {
   params: {
     appServiceName: apiAppServiceName
     location: location
-    appServicePlanId: appServicePlan.outputs.appServicePlanId    containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest'
+    appServicePlanId: appServicePlan.outputs.appServicePlanId
+    enableManagedIdentity: true
+    containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: containerRegistry.outputs.adminUsername
-    containerRegistryPassword: containerRegistry.outputs.adminPassword
+    containerRegistryUsername: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').username
+    containerRegistryPassword: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').passwords[0].value
     environmentVariables: [      
       {
         name: 'SQL_SERVER'
@@ -118,7 +136,7 @@ module apiAppService 'modules/appService.bicep' = {
       }
       {
         name: 'SQL_PASSWORD'
-        value: sqlAdminPassword
+        value: '@Microsoft.KeyVault(SecretUri=${keyVault.outputs.keyVaultUri}secrets/sql-password/)'  // Key Vault reference
       }
       {
         name: 'API_KEY'
@@ -139,10 +157,12 @@ module webAppService 'modules/appService.bicep' = {
   params: {
     appServiceName: webAppServiceName
     location: location
-    appServicePlanId: appServicePlan.outputs.appServicePlanId    containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest'
+    appServicePlanId: appServicePlan.outputs.appServicePlanId
+    enableManagedIdentity: true
+    containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: containerRegistry.outputs.adminUsername
-    containerRegistryPassword: containerRegistry.outputs.adminPassword
+    containerRegistryUsername: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').username
+    containerRegistryPassword: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').passwords[0].value
     environmentVariables: [
       {
         name: 'API_URL'
@@ -161,6 +181,23 @@ module webAppService 'modules/appService.bicep' = {
   }
 }
 
+// Add access policies to Key Vault for app services
+module keyVaultAccess 'modules/keyVaultAccess.bicep' = {
+  name: 'keyVaultAccess'
+  params: {
+    keyVaultName: keyVaultName
+    secretUserPrincipalIds: [
+      apiAppService.outputs.principalId
+      webAppService.outputs.principalId
+    ]
+  }
+  dependsOn: [
+    keyVault
+    apiAppService
+    webAppService
+  ]
+}
+
 // Outputs
 output apiUrl string = 'https://${apiAppService.outputs.defaultHostname}'
 output webUrl string = 'https://${webAppService.outputs.defaultHostname}'
@@ -169,3 +206,5 @@ output sqlDatabaseName string = sqlDatabase.outputs.sqlDatabaseName
 output sqlServerFqdn string = sqlDatabase.outputs.sqlServerFqdn
 output acrName string = containerRegistry.outputs.acrName
 output acrLoginServer string = containerRegistry.outputs.loginServer
+output keyVaultName string = keyVault.outputs.keyVaultName
+output keyVaultUri string = keyVault.outputs.keyVaultUri

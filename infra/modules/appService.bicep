@@ -30,6 +30,9 @@ param containerRegistryPassword string
 @description('Environment variables for the container')
 param environmentVariables array = []
 
+@description('Enable system-assigned managed identity')
+param enableManagedIdentity bool = true
+
 @description('Tags for the resources')
 param tags object = {}
 
@@ -37,6 +40,9 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
   name: appServiceName
   location: location
   tags: tags
+  identity: enableManagedIdentity ? {
+    type: 'SystemAssigned'
+  } : null
   properties: {
     serverFarmId: appServicePlanId
     siteConfig: {
@@ -80,3 +86,4 @@ resource appServiceConfig 'Microsoft.Web/sites/config@2022-03-01' = {
 
 output appServiceName string = appService.name
 output defaultHostname string = appService.properties.defaultHostName
+output principalId string = enableManagedIdentity ? appService.identity.principalId : ''

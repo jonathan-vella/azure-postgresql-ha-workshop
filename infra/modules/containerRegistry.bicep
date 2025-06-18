@@ -26,5 +26,5 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
 output loginServer string = acr.properties.loginServer
 output acrName string = acr.name
 output acrId string = acr.id
-output adminUsername string = acr.listCredentials().username
-output adminPassword string = acr.listCredentials().passwords[0].value
+
+// Removed adminUsername and adminPassword outputs for security
