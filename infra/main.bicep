@@ -31,6 +31,9 @@ param sqlAdminPassword string
 @description('Tags for the resources')
 param tags object = {}
 
+@description('Deployment date - automatically set by default')
+param deploymentDate string = utcNow('yyyy-MM-dd')
+
 // Variables
 var randomSuffix = substring(uniqueString(resourceGroup().id), 0, 6)
 var acrName = 'saifacr${randomSuffix}'
@@ -47,7 +50,7 @@ var defaultTags = union(tags, {
   Environment: environmentName
   Owner: 'SAIF Team'
   Application: 'SAIF'
-  DeploymentDate: utcNow('yyyy-MM-dd')  // Using utcNow is allowed for parameter default values
+  DeploymentDate: deploymentDate
   SecurityLevel: 'High'
   CostCenter: 'IT-Security'
 })
@@ -79,7 +82,6 @@ module keyVault 'modules/keyVault.bicep' = {
     keyVaultName: keyVaultName
     location: location
     sqlAdminPassword: sqlAdminPassword
-    secretUserPrincipalIds: [] // Will be updated after app services are created
     tags: defaultTags
   }
 }
@@ -191,11 +193,7 @@ module keyVaultAccess 'modules/keyVaultAccess.bicep' = {
       webAppService.outputs.principalId
     ]
   }
-  dependsOn: [
-    keyVault
-    apiAppService
-    webAppService
-  ]
+  // Dependencies are implicit through parameter references
 }
 
 // Outputs

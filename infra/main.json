@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.1.42791",
-      "templateHash": "13177440086148225439"
+      "templateHash": "10652068885040204041"
     },
     "name": "SAIF Infrastructure",
     "description": "Deploys the infrastructure for SAIF (Secure AI Foundations)",
@@ -56,6 +56,13 @@
       "metadata": {
         "description": "Tags for the resources"
       }
+    },
+    "deploymentDate": {
+      "type": "string",
+      "defaultValue": "[utcNow('yyyy-MM-dd')]",
+      "metadata": {
+        "description": "Deployment date - automatically set by default"
+      }
     }
   },
   "variables": {
@@ -67,7 +74,8 @@
     "sqlServerName": "[format('{0}-sql-{1}', parameters('environmentName'), variables('randomSuffix'))]",
     "sqlDatabaseName": "saif",
     "logAnalyticsName": "[format('{0}-logs-{1}', parameters('environmentName'), variables('randomSuffix'))]",
-    "defaultTags": "[union(parameters('tags'), createObject('Environment', parameters('environmentName'), 'Owner', 'SAIF Team', 'Application', 'SAIF'))]"
+    "keyVaultName": "[format('kv-{0}-{1}', parameters('environmentName'), variables('randomSuffix'))]",
+    "defaultTags": "[union(parameters('tags'), createObject('Environment', parameters('environmentName'), 'Owner', 'SAIF Team', 'Application', 'SAIF', 'DeploymentDate', parameters('deploymentDate'), 'SecurityLevel', 'High', 'CostCenter', 'IT-Security'))]"
   },
   "resources": [
     {
@@ -87,7 +95,7 @@
             "value": "[parameters('location')]"
           },
           "tags": {
-            "value": "[parameters('tags')]"
+            "value": "[variables('defaultTags')]"
           }
         },
         "template": {
@@ -97,7 +105,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.1.42791",
-              "templateHash": "15252372501947623968"
+              "templateHash": "5389002087612289858"
             }
           },
           "parameters": {
@@ -155,6 +163,10 @@
             "acrName": {
               "type": "string",
               "value": "[parameters('acrName')]"
+            },
+            "acrId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]"
             }
           }
         }
@@ -177,7 +189,7 @@
             "value": "[parameters('location')]"
           },
           "tags": {
-            "value": "[parameters('tags')]"
+            "value": "[variables('defaultTags')]"
           }
         },
         "template": {
@@ -266,6 +278,129 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
+      "name": "keyVault",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sqlAdminPassword": {
+            "value": "[parameters('sqlAdminPassword')]"
+          },
+          "tags": {
+            "value": "[variables('defaultTags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "7855567990937962455"
+            },
+            "name": "Key Vault",
+            "description": "Creates an Azure Key Vault for secure storage of secrets",
+            "owner": "SAIF Team",
+            "version": "1.0.0",
+            "lastUpdated": "2025-06-22",
+            "documentation": "https://github.com/your-org/saif/blob/main/docs/modules.md"
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the Key Vault"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "The Azure region where resources will be deployed"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags for the resources"
+              }
+            },
+            "tenantId": {
+              "type": "string",
+              "defaultValue": "[subscription().tenantId]",
+              "metadata": {
+                "description": "The tenant ID for the Azure AD tenant"
+              }
+            },
+            "sqlAdminPassword": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "SQL Administrator password to store in Key Vault"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2023-02-01",
+              "name": "[parameters('keyVaultName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "family": "A",
+                  "name": "standard"
+                },
+                "tenantId": "[parameters('tenantId')]",
+                "enableRbacAuthorization": true,
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 90,
+                "networkAcls": {
+                  "defaultAction": "Allow",
+                  "bypass": "AzureServices"
+                }
+              }
+            },
+            {
+              "condition": "[not(empty(parameters('sqlAdminPassword')))]",
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-02-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), 'sql-password')]",
+              "properties": {
+                "value": "[parameters('sqlAdminPassword')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "keyVaultName": {
+              "type": "string",
+              "value": "[parameters('keyVaultName')]"
+            },
+            "keyVaultUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-02-01').vaultUri]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
       "name": "sqlDatabase",
       "properties": {
         "expressionEvaluationOptions": {
@@ -289,7 +424,7 @@
             "value": "[parameters('location')]"
           },
           "tags": {
-            "value": "[parameters('tags')]"
+            "value": "[variables('defaultTags')]"
           }
         },
         "template": {
@@ -423,7 +558,7 @@
             "value": "Basic"
           },
           "tags": {
-            "value": "[parameters('tags')]"
+            "value": "[variables('defaultTags')]"
           }
         },
         "template": {
@@ -517,6 +652,9 @@
           "appServicePlanId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appServicePlan'), '2022-09-01').outputs.appServicePlanId.value]"
           },
+          "enableManagedIdentity": {
+            "value": true
+          },
           "containerImage": {
             "value": "[format('{0}/saif/api:latest', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
           },
@@ -524,10 +662,10 @@
             "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
           },
           "containerRegistryUsername": {
-            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').username]"
+            "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-01-01-preview').username]"
           },
           "containerRegistryPassword": {
-            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').passwords[0].value]"
+            "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-01-01-preview').passwords[0].value]"
           },
           "environmentVariables": {
             "value": [
@@ -545,7 +683,7 @@
               },
               {
                 "name": "SQL_PASSWORD",
-                "value": "[parameters('sqlAdminPassword')]"
+                "value": "[format('@Microsoft.KeyVault(SecretUri={0}secrets/sql-password/)', reference(resourceId('Microsoft.Resources/deployments', 'keyVault'), '2022-09-01').outputs.keyVaultUri.value)]"
               },
               {
                 "name": "API_KEY",
@@ -558,7 +696,7 @@
             ]
           },
           "tags": {
-            "value": "[parameters('tags')]"
+            "value": "[variables('defaultTags')]"
           }
         },
         "template": {
@@ -568,7 +706,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.1.42791",
-              "templateHash": "7511729472772152247"
+              "templateHash": "10664647356028482396"
             },
             "name": "App Service",
             "description": "Creates an App Service instance for container deployments",
@@ -627,6 +765,13 @@
                 "description": "Environment variables for the container"
               }
             },
+            "enableManagedIdentity": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Enable system-assigned managed identity"
+              }
+            },
             "tags": {
               "type": "object",
               "defaultValue": {},
@@ -635,6 +780,22 @@
               }
             }
           },
+          "variables": {
+            "containerSettings": [
+              {
+                "name": "DOCKER_REGISTRY_SERVER_URL",
+                "value": "[parameters('containerRegistryUrl')]"
+              },
+              {
+                "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                "value": "[parameters('containerRegistryUsername')]"
+              },
+              {
+                "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                "value": "[parameters('containerRegistryPassword')]"
+              }
+            ]
+          },
           "resources": [
             {
               "type": "Microsoft.Web/sites",
@@ -642,10 +803,11 @@
               "name": "[parameters('appServiceName')]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
+              "identity": "[if(parameters('enableManagedIdentity'), createObject('type', 'SystemAssigned'), null())]",
               "properties": {
                 "serverFarmId": "[parameters('appServicePlanId')]",
                 "siteConfig": {
-                  "appSettings": "[parameters('environmentVariables')]",
+                  "appSettings": "[concat(parameters('environmentVariables'), variables('containerSettings'))]",
                   "linuxFxVersion": "[format('DOCKER|{0}', parameters('containerImage'))]",
                   "alwaysOn": true,
                   "cors": {
@@ -663,10 +825,7 @@
               "apiVersion": "2022-03-01",
               "name": "[format('{0}/{1}', parameters('appServiceName'), 'web')]",
               "properties": {
-                "appCommandLine": "",
-                "dockerRegistryUrl": "[parameters('containerRegistryUrl')]",
-                "dockerRegistryUsername": "[parameters('containerRegistryUsername')]",
-                "dockerRegistryPassword": "[parameters('containerRegistryPassword')]"
+                "appCommandLine": ""
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', parameters('appServiceName'))]"
@@ -681,6 +840,10 @@
             "defaultHostname": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Web/sites', parameters('appServiceName')), '2022-03-01').defaultHostName]"
+            },
+            "principalId": {
+              "type": "string",
+              "value": "[if(parameters('enableManagedIdentity'), reference(resourceId('Microsoft.Web/sites', parameters('appServiceName')), '2022-03-01', 'full').identity.principalId, '')]"
             }
           }
         }
@@ -688,6 +851,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'appServicePlan')]",
         "[resourceId('Microsoft.Resources/deployments', 'containerRegistry')]",
+        "[resourceId('Microsoft.Resources/deployments', 'keyVault')]",
         "[resourceId('Microsoft.Resources/deployments', 'monitoring')]",
         "[resourceId('Microsoft.Resources/deployments', 'sqlDatabase')]"
       ]
@@ -711,6 +875,9 @@
           "appServicePlanId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appServicePlan'), '2022-09-01').outputs.appServicePlanId.value]"
           },
+          "enableManagedIdentity": {
+            "value": true
+          },
           "containerImage": {
             "value": "[format('{0}/saif/web:latest', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
           },
@@ -718,10 +885,10 @@
             "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
           },
           "containerRegistryUsername": {
-            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').username]"
+            "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-01-01-preview').username]"
           },
           "containerRegistryPassword": {
-            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').passwords[0].value]"
+            "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-01-01-preview').passwords[0].value]"
           },
           "environmentVariables": {
             "value": [
@@ -740,7 +907,7 @@
             ]
           },
           "tags": {
-            "value": "[parameters('tags')]"
+            "value": "[variables('defaultTags')]"
           }
         },
         "template": {
@@ -750,7 +917,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.1.42791",
-              "templateHash": "7511729472772152247"
+              "templateHash": "10664647356028482396"
             },
             "name": "App Service",
             "description": "Creates an App Service instance for container deployments",
@@ -809,6 +976,13 @@
                 "description": "Environment variables for the container"
               }
             },
+            "enableManagedIdentity": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Enable system-assigned managed identity"
+              }
+            },
             "tags": {
               "type": "object",
               "defaultValue": {},
@@ -817,6 +991,22 @@
               }
             }
           },
+          "variables": {
+            "containerSettings": [
+              {
+                "name": "DOCKER_REGISTRY_SERVER_URL",
+                "value": "[parameters('containerRegistryUrl')]"
+              },
+              {
+                "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                "value": "[parameters('containerRegistryUsername')]"
+              },
+              {
+                "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                "value": "[parameters('containerRegistryPassword')]"
+              }
+            ]
+          },
           "resources": [
             {
               "type": "Microsoft.Web/sites",
@@ -824,10 +1014,11 @@
               "name": "[parameters('appServiceName')]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
+              "identity": "[if(parameters('enableManagedIdentity'), createObject('type', 'SystemAssigned'), null())]",
               "properties": {
                 "serverFarmId": "[parameters('appServicePlanId')]",
                 "siteConfig": {
-                  "appSettings": "[parameters('environmentVariables')]",
+                  "appSettings": "[concat(parameters('environmentVariables'), variables('containerSettings'))]",
                   "linuxFxVersion": "[format('DOCKER|{0}', parameters('containerImage'))]",
                   "alwaysOn": true,
                   "cors": {
@@ -845,10 +1036,7 @@
               "apiVersion": "2022-03-01",
               "name": "[format('{0}/{1}', parameters('appServiceName'), 'web')]",
               "properties": {
-                "appCommandLine": "",
-                "dockerRegistryUrl": "[parameters('containerRegistryUrl')]",
-                "dockerRegistryUsername": "[parameters('containerRegistryUsername')]",
-                "dockerRegistryPassword": "[parameters('containerRegistryPassword')]"
+                "appCommandLine": ""
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', parameters('appServiceName'))]"
@@ -863,6 +1051,10 @@
             "defaultHostname": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Web/sites', parameters('appServiceName')), '2022-03-01').defaultHostName]"
+            },
+            "principalId": {
+              "type": "string",
+              "value": "[if(parameters('enableManagedIdentity'), reference(resourceId('Microsoft.Web/sites', parameters('appServiceName')), '2022-03-01', 'full').identity.principalId, '')]"
             }
           }
         }
@@ -872,6 +1064,83 @@
         "[resourceId('Microsoft.Resources/deployments', 'appServicePlan')]",
         "[resourceId('Microsoft.Resources/deployments', 'containerRegistry')]",
         "[resourceId('Microsoft.Resources/deployments', 'monitoring')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "keyVaultAccess",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "secretUserPrincipalIds": {
+            "value": [
+              "[reference(resourceId('Microsoft.Resources/deployments', 'apiAppService'), '2022-09-01').outputs.principalId.value]",
+              "[reference(resourceId('Microsoft.Resources/deployments', 'webAppService'), '2022-09-01').outputs.principalId.value]"
+            ]
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "8336023968314731135"
+            },
+            "name": "Key Vault Access Policy",
+            "description": "Updates Key Vault access policies for app services",
+            "owner": "SAIF Team",
+            "version": "1.0.0",
+            "lastUpdated": "2025-06-22"
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the Key Vault"
+              }
+            },
+            "secretUserPrincipalIds": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Array of principal IDs to grant Secret User access to"
+              }
+            }
+          },
+          "variables": {
+            "secretUserRoleId": "4633458b-17de-408a-b874-0445c86b69e6"
+          },
+          "resources": [
+            {
+              "copy": {
+                "name": "roleAssignments",
+                "count": "[length(parameters('secretUserPrincipalIds'))]"
+              },
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.KeyVault/vaults/{0}', parameters('keyVaultName'))]",
+              "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), parameters('secretUserPrincipalIds')[copyIndex()], variables('secretUserRoleId'))]",
+              "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('secretUserRoleId'))]",
+                "principalId": "[parameters('secretUserPrincipalIds')[copyIndex()]]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'apiAppService')]",
+        "[resourceId('Microsoft.Resources/deployments', 'webAppService')]"
       ]
     }
   ],
@@ -899,6 +1168,18 @@
     "acrName": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.acrName.value]"
+    },
+    "acrLoginServer": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value]"
+    },
+    "keyVaultName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault'), '2022-09-01').outputs.keyVaultName.value]"
+    },
+    "keyVaultUri": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault'), '2022-09-01').outputs.keyVaultUri.value]"
     }
   }
 }

@@ -92,15 +92,26 @@ metadata documentation = 'Link to docs'
 - Use `@allowed`, `@minLength`/`@maxLength` and `@minValue`/`@maxValue` where applicable.
 - Provide sensible defaults and conditional values based on environment.
 - NEVER provide default values for secure parameters (except empty strings or newGuid()).
+- When referencing parameters between modules, ensure they're actually defined in the target module.
+- Check parameter definitions in module files before passing values.
 
 **Function Restrictions**:
-- Function `utcNow()` can ONLY be used as parameter default values, never in variable declarations.
+- Function `utcNow()` can ONLY be used as parameter default values, never in variable declarations or resource properties.
+- Examples of correct usage: `param deploymentDate string = utcNow('yyyy-MM-dd')`
+- Examples of incorrect usage: `var currentDate = utcNow('yyyy-MM-dd')` or `tags: { deployedOn: utcNow() }`
 - Use `environment().suffixes` for service hostnames (like database.windows.net) to ensure cloud portability.
 
 **Resource Declarations**:
 - Use parent/child relationships with the `parent` property, not string formatting like `'${parent.name}/childName'`.
 - Avoid unnecessary string interpolation like `'${singleVariable}'` (use the variable directly).
 - Remove all unused variables and resources.
+- Avoid unnecessary `dependsOn` arrays - Bicep automatically handles most dependencies through property references.
+
+**Module References**:
+- When calling a module, verify all parameters exist in the target module.
+- Use IDE features (if available) to validate parameter names before deployment.
+- When updating module interfaces, ensure all calling code is updated accordingly.
+- For complex integrations like Key Vault access policies, prefer separate modules with specific responsibilities.
 
 **Tagging and Defaults**:
 ```bicep
@@ -112,9 +123,10 @@ var defaultTags = union(tags, {
 ```
 
 **Deployment Validation**:
-- Always run `az bicep build --file main.bicep` to catch errors before deployment.
+- Always run `az bicep build --file main.bicep --diagnostics` to catch errors before deployment.
 - Review all linter warnings, even if they don't block compilation.
-- Address all "no-unused-vars", "no-hardcoded-env-urls", and "secure-parameter-default" warnings.
+- Address all "no-unused-vars", "no-hardcoded-env-urls", "no-unnecessary-dependson", and "secure-parameter-default" warnings.
+- Run a what-if deployment before actual deployment: `az deployment group what-if --resource-group <rg> --template-file main.bicep`
 
 #### 3.3 Terraform Guidelines
 - Use Terraform v1.9+ features.
@@ -161,4 +173,10 @@ var defaultTags = union(tags, {
 - **Performance**: Are any obvious bottlenecks addressed?
 - **Documentation**: Are public interfaces and modules documented?
 - **Compliance**: Does it follow the guidelines above?
+- **Bicep Validation**: 
+  - Run `az bicep build --file main.bicep --diagnostics` to catch all errors and warnings
+  - Verify all module parameter references match the actual module parameters
+  - Ensure `utcNow()` is only used in parameter default values
+  - Remove unnecessary dependsOn entries 
+  - Check that Key Vault references and permission assignments are properly configured
 
