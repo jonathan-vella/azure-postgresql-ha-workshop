@@ -1,0 +1,48 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - SQL_SERVER=db
+      - SQL_DATABASE=saif
+      - SQL_USERNAME=sa
+      - SQL_PASSWORD=ComplexP@ss123
+      - API_KEY=insecure_api_key_12345
+    volumes:
+      - ./api:/app
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - API_URL=http://api:8000
+      - API_KEY=insecure_api_key_12345
+    volumes:
+      - ./web:/var/www/html
+    depends_on:
+      - api
+    restart: unless-stopped
+    
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=ComplexP@ss123
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - saif-sqldata:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  saif-sqldata:
