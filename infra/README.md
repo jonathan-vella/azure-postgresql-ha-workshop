@@ -2,6 +2,29 @@
 
 This document outlines how to deploy the SAIF application using containers with Docker and Azure Container Apps.
 
+```mermaid
+flowchart TD
+    subgraph "Development Environment"
+        A[Clone Repository] --> B[Create .env File]
+        B --> C[Docker Compose Build]
+        C --> D[Docker Compose Up]
+    end
+    
+    subgraph "Azure Deployment"
+        E[Azure CLI Login] --> F[Run Deployment Script]
+        F --> G[Deploy Bicep Template]
+        G --> H[Build & Push Images]
+        H --> I[Configure App Settings]
+    end
+    
+    D --> E
+    
+    classDef dev fill:#6CBF84,stroke:#333,color:black;
+    classDef azure fill:#0078D4,stroke:#333,color:white;
+    class A,B,C,D dev;
+    class E,F,G,H,I azure;
+```
+
 ## Local Development with Docker
 
 ### Prerequisites

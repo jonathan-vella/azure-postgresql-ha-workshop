@@ -4,6 +4,30 @@
 
 This document outlines the security challenges integrated into the SAIF (Secure AI Foundations) application. These vulnerabilities are deliberately included for educational purposes to help students learn about security concepts in AI applications.
 
+```mermaid
+mindmap
+  root((SAIF Security<br>Challenges))
+    Identity & Access
+      Insecure API Keys
+      Weak Authentication
+      Missing Authorization
+    Network Security
+      Permissive CORS
+      Open Firewall Rules
+      Lack of TLS
+    Application Security
+      SQL Injection
+      Command Injection
+      XSS Vulnerabilities
+    Data Protection
+      Hardcoded Credentials
+      Sensitive Data Exposure
+    AI-Specific
+      Prompt Injection
+      Input Validation
+      Output Safety
+```
+
 ## Security Challenge Categories
 
 ### 1. Identity and Access Management
@@ -66,7 +90,28 @@ This document outlines the security challenges integrated into the SAIF (Secure 
   - No filtering or sanitization of AI-generated outputs
   - Lack of monitoring for harmful content
 
-## Security Challenge Discovery
+## Security Challenge Discovery and Remediation
+
+```mermaid
+graph TD
+    subgraph "Discovery Phase"
+        A[Reconnaissance] --> B[Vulnerability Analysis]
+        B --> C[Exploitation]
+        C --> D[Documentation]
+    end
+    
+    subgraph "Remediation Phase"
+        D --> E[Implement Fixes]
+        E --> F[Test Remediation]
+        F --> G[Verify Security]
+        G --> H[Document Changes]
+    end
+    
+    classDef discovery fill:#f96,stroke:#333,stroke-width:2px;
+    classDef remediation fill:#9cf,stroke:#333,stroke-width:2px;
+    class A,B,C,D discovery;
+    class E,F,G,H remediation;
+```
 
 Students should follow these steps to discover security issues:
 

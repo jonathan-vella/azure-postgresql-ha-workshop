@@ -2,6 +2,29 @@
 
 PHP-based web interface that provides a user-friendly way to interact with the SAIF API endpoints.
 
+```mermaid
+graph LR
+    User((User)) --> Web[Web Frontend]
+    Web --> API[API Backend]
+    
+    subgraph "Web Components"
+        Dashboard[Dashboard]
+        Tools[Diagnostic Tools]
+        Results[Results Display]
+    end
+    
+    Web --> Dashboard
+    Web --> Tools
+    Tools --> Results
+    
+    classDef frontend fill:#4CAF50,stroke:#333,color:white;
+    classDef component fill:#2196F3,stroke:#333,color:white;
+    classDef user fill:#5C5C5C,stroke:#5C5C5C,color:white;
+    class Web frontend;
+    class Dashboard,Tools,Results component;
+    class User,API user;
+```
+
 ## Features
 
 The web interface provides access to all API endpoints, including:

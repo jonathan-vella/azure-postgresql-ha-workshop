@@ -8,6 +8,37 @@ This document provides detailed instructions for deploying the SAIF (Secure AI F
 
 SAIF can be deployed in two ways:
 
+```mermaid
+graph TD
+    Start((Start)) --> Local[Local Development]
+    Start --> Cloud[Azure Deployment]
+    
+    subgraph "Local Path"
+        Local --> DockerCompose[Docker Compose]
+        DockerCompose --> LocalWeb[Web Container]
+        DockerCompose --> LocalAPI[API Container]
+        DockerCompose --> LocalDB[DB Container]
+        LocalWeb & LocalAPI & LocalDB --> Test[Test Application]
+    end
+    
+    subgraph "Azure Path"
+        Cloud --> Script[Run Deploy-SAIF.ps1]
+        Script --> Infrastructure[Deploy Infrastructure]
+        Infrastructure --> BuildImages[Build Container Images]
+        BuildImages --> PushImages[Push to Azure Container Registry]
+        PushImages --> DeployWebApp[Deploy Web App]
+        PushImages --> DeployAPIApp[Deploy API App]
+        DeployWebApp & DeployAPIApp --> ConfigureSettings[Configure App Settings]
+    end
+    
+    classDef start fill:#f96,stroke:#333,color:black;
+    classDef local fill:#9ff,stroke:#333,color:black;
+    classDef cloud fill:#9cf,stroke:#333,color:black;
+    class Start start;
+    class Local,DockerCompose,LocalWeb,LocalAPI,LocalDB,Test local;
+    class Cloud,Script,Infrastructure,BuildImages,PushImages,DeployWebApp,DeployAPIApp,ConfigureSettings cloud;
+```
+
 1. **Local Development**: Using Docker for local testing
 2. **Azure Deployment**: Using Azure App Services and Azure Container Registry
 
@@ -84,12 +115,25 @@ cd scripts
 
 SAIF is a 3-tier application with the following components:
 
-```
-┌───────────┐     ┌───────────┐     ┌───────────┐
-│           │     │           │     │           │
-│    Web    │────▶│    API    │────▶│    DB     │
-│           │     │           │     │           │
-└───────────┘     └───────────┘     └───────────┘
+```mermaid
+graph LR
+    subgraph "Front End"
+        Web["Web Frontend<br/>(PHP 8.2)"]
+    end
+    subgraph "Middle Tier"
+        API["API Backend<br/>(Python FastAPI)"]
+    end
+    subgraph "Data Tier"
+        DB["Database<br/>(SQL Server)"]
+    end
+    User((User)) --> Web
+    Web --> API
+    API --> DB
+    
+    classDef azure fill:#0072C6,stroke:#0072C6,color:white;
+    classDef user fill:#5C5C5C,stroke:#5C5C5C,color:white;
+    class Web,API,DB azure;
+    class User user;
 ```
 
 - **Web Frontend**: PHP 8.2 container running on Azure App Service (B1)
@@ -98,15 +142,37 @@ SAIF is a 3-tier application with the following components:
 
 ## Azure Resources
 
-The deployment creates the following resources:
+The deployment creates the following Azure resources:
 
-- Resource Group
-- Azure Container Registry (Basic tier)
-- App Service Plan (B1)
-- Two App Services (Web and API)
-- SQL Server and Database
-- Log Analytics Workspace
-- Application Insights
+```mermaid
+flowchart TD
+    RG[Resource Group] --> ACR[Azure Container Registry]
+    RG --> ASP[App Service Plan]
+    RG --> SQL[Azure SQL Server]
+    SQL --> SQLDB[SQL Database]
+    RG --> LAW[Log Analytics Workspace]
+    ASP --> WebApp[Web App Service]
+    ASP --> ApiApp[API App Service]
+    LAW --> AppInsights[Application Insights]
+    ACR --> WebApp
+    ACR --> ApiApp
+    WebApp --> AppInsights
+    ApiApp --> AppInsights
+    WebApp --> ApiApp
+    ApiApp --> SQLDB
+
+    classDef azureResource fill:#0078D4,stroke:#0078D4,color:white,rx:5px,ry:5px;
+    class RG,ACR,ASP,SQL,SQLDB,LAW,WebApp,ApiApp,AppInsights azureResource;
+```
+
+- **Resource Group**: Contains all deployment resources
+- **Azure Container Registry (Basic tier)**: Stores container images
+- **App Service Plan (B1)**: Hosts the App Services
+- **Web App Service**: Runs the PHP web frontend
+- **API App Service**: Runs the Python FastAPI backend
+- **SQL Server and Database**: Stores application data
+- **Log Analytics Workspace**: Central log collection
+- **Application Insights**: Application monitoring and diagnostics
 
 ## Resource Naming Convention
 

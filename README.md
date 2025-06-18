@@ -12,27 +12,41 @@ SAIF is an intentionally insecure application that provides a platform for stude
 
 ## Architecture
 
-```
-┌───────────┐     ┌───────────┐     ┌───────────┐
-│           │     │           │     │           │
-│    Web    │────▶│    API    │────▶│    DB     │
-│           │     │           │     │           │
-└───────────┘     └───────────┘     └───────────┘
+```mermaid
+graph LR
+    User((User)) --> Web
+    Web --> API
+    API --> DB
+    
+    subgraph "SAIF Application"
+        Web["Web Frontend<br/>(PHP 8.2)"]
+        API["API Backend<br/>(Python FastAPI)"]
+        DB[(Database<br/>SQL Server)]
+    end
+    
+    classDef component fill:#0078D4,stroke:#005A9E,color:white,rx:5px,ry:5px;
+    classDef database fill:#0078D4,stroke:#005A9E,color:white,rx:10px,ry:10px;
+    classDef user fill:#5C5C5C,stroke:#5C5C5C,color:white;
+    class Web,API component;
+    class DB database;
+    class User user;
 ```
 
 ### Containerized Architecture
 
-The application can be deployed using either traditional App Services or containerized using:
+The application uses Docker containers for all components:
 
-- Web Frontend: PHP 8.2 container
-- API Backend: Python FastAPI container in Azure Container Apps
-- Database: Azure SQL Database
+- **Web Frontend**: PHP 8.2 container
+- **API Backend**: Python FastAPI container
+- **Database**: SQL Server container (development) / Azure SQL Database (production)
 
-### Traditional Architecture
+### Azure Deployment Options
 
-- Web Frontend: PHP 8.2 on App Service
-- API Backend: Python FastAPI on App Service
-- Database: Azure SQL Database
+When deployed to Azure, the application can use:
+
+- **Web Frontend**: Containerized App Service or Azure Container Apps
+- **API Backend**: Containerized App Service or Azure Container Apps
+- **Database**: Azure SQL Database
 
 ## Deployment
 
@@ -89,6 +103,39 @@ This application contains multiple security vulnerabilities for students to iden
 4. **Verification**: Confirm that the security improvements are effective
 
 ## Repository Structure
+
+```mermaid
+graph TD
+    Root[SAIF Repository] --> API[/api]
+    Root --> Web[/web]
+    Root --> Infra[/infra]
+    Root --> Scripts[/scripts]
+    Root --> Docs[/docs]
+    Root --> DockerCompose[docker-compose.yml]
+    
+    API --> APICode[Python FastAPI Code]
+    API --> Requirements[requirements.txt]
+    
+    Web --> WebCode[PHP Frontend]
+    Web --> Assets[/assets]
+    
+    Infra --> BicepTemplates[Bicep Templates]
+    Infra --> Modules[/modules]
+    
+    Scripts --> DeployScript[Deploy-SAIF.ps1]
+    Scripts --> TestScript[Test-SAIFLocal.ps1]
+    
+    Docs --> DeploymentDoc[deployment.md]
+    Docs --> SecurityDoc[security-challenges.md]
+    
+    classDef folder fill:#f9d75e,stroke:#333,color:black;
+    classDef file fill:#78b2f2,stroke:#333,color:black;
+    classDef component fill:#91ca76,stroke:#333,color:black;
+    
+    class API,Web,Infra,Scripts,Docs,Modules folder;
+    class DockerCompose,Requirements,DeployScript,TestScript,DeploymentDoc,SecurityDoc file;
+    class APICode,WebCode,Assets,BicepTemplates component;
+```
 
 - `/api`: Python FastAPI backend
 - `/web`: PHP web frontend

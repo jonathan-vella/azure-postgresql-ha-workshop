@@ -2,6 +2,31 @@
 
 Python-based API that provides various diagnostic endpoints for testing and learning about security concepts.
 
+```mermaid
+classDiagram
+    class SAIFApi {
+        +healthcheck() : Status
+        +ip() : IPInfo
+        +sqlversion() : Version
+        +sqlsrcip() : IPAddress
+        +dns(hostname) : Resolution
+        +reversedns(ip) : Hostname
+        +curl(url) : Response
+        +printenv() : Variables
+        +pi(digits) : Calculation
+    }
+    
+    class Endpoint {
+        <<interface>>
+        +path : string
+        +method : string
+        +description : string
+        +vulnerabilities : string[]
+    }
+    
+    SAIFApi --> Endpoint
+```
+
 ## Endpoints
 
 The API provides the following endpoints:
