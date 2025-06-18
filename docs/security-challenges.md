@@ -1,5 +1,10 @@
 # SAIF: Security Challenges
 
+[![Security](https://img.shields.io/badge/Security-Vulnerable-red)](https://owasp.org/www-project-top-ten/)
+[![OWASP](https://img.shields.io/badge/OWASP-Top%2010-black)](https://owasp.org/www-project-top-ten/)
+[![Educational](https://img.shields.io/badge/Purpose-Educational-blue)](https://www.microsoft.com/en-us/security/business/security-101/what-is-cybersecurity)
+[![AI Security](https://img.shields.io/badge/AI-Security-9cf)](https://owasp.org/www-project-ai-security-and-privacy-guide/)
+
 ## Overview
 
 This document outlines the security challenges integrated into the SAIF (Secure AI Foundations) application. These vulnerabilities are deliberately included for educational purposes to help students learn about security concepts in AI applications.

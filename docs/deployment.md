@@ -1,5 +1,10 @@
 # SAIF: Deployment Guide
 
+[![Azure](https://img.shields.io/badge/Azure-Cloud-0078D4?logo=microsoft-azure&logoColor=white)](https://azure.microsoft.com/)
+[![Docker](https://img.shields.io/badge/Docker-24.0.6-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![PowerShell](https://img.shields.io/badge/PowerShell-7.0+-5391FE?logo=powershell&logoColor=white)](https://github.com/PowerShell/PowerShell)
+[![Bicep](https://img.shields.io/badge/Bicep-IaC-000000?logo=microsoft-azure&logoColor=white)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview)
+
 ## Overview
 
 This document provides detailed instructions for deploying the SAIF (Secure AI Foundations) application to Azure. SAIF is a 3-tier application designed for hands-on learning about securing AI systems across identity, network, application, and content safety domains.

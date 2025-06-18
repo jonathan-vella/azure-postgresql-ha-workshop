@@ -1,5 +1,10 @@
 # SAIF Container Deployment
 
+[![Infrastructure](https://img.shields.io/badge/Infrastructure-as%20Code-blue)](https://learn.microsoft.com/en-us/devops/deliver/what-is-infrastructure-as-code)
+[![Azure](https://img.shields.io/badge/Azure-Container%20Apps-0078D4?logo=microsoft-azure&logoColor=white)](https://azure.microsoft.com/en-us/products/container-apps/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![Bicep](https://img.shields.io/badge/Bicep-Templates-black)](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview)
+
 This document outlines how to deploy the SAIF application using containers with Docker and Azure Container Apps.
 
 ```mermaid

@@ -1,8 +1,22 @@
 # SAIF: Secure AI Foundations
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/SAIF)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Deployment Status](https://img.shields.io/badge/deployment-ready-success.svg)](docs/deployment.md)
+[![Security Challenges](https://img.shields.io/badge/security%20challenges-15%2B-orange.svg)](docs/security-challenges.md)
+[![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)](docker-compose.yml)
+![GitHub stars](https://img.shields.io/github/stars/yourusername/SAIF?style=social)
+
 A 3-tier diagnostic application designed for hands-on learning about securing AI systems across identity, network, application, and content safety domains.
 
 ## Project Overview
+
+![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.103.1-009688?logo=fastapi&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL%20Server-2019-CC2927?logo=microsoft-sql-server&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-24.0.6-2496ED?logo=docker&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-Cloud-0078D4?logo=microsoft-azure&logoColor=white)
 
 SAIF is an intentionally insecure application that provides a platform for students to identify security gaps and implement remediation strategies. The application consists of:
 
