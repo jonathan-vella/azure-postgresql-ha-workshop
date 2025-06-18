@@ -91,15 +91,30 @@ metadata documentation = 'Link to docs'
 - Include `@description` for each parameter.
 - Use `@allowed`, `@minLength`/`@maxLength` and `@minValue`/`@maxValue` where applicable.
 - Provide sensible defaults and conditional values based on environment.
+- NEVER provide default values for secure parameters (except empty strings or newGuid()).
+
+**Function Restrictions**:
+- Function `utcNow()` can ONLY be used as parameter default values, never in variable declarations.
+- Use `environment().suffixes` for service hostnames (like database.windows.net) to ensure cloud portability.
+
+**Resource Declarations**:
+- Use parent/child relationships with the `parent` property, not string formatting like `'${parent.name}/childName'`.
+- Avoid unnecessary string interpolation like `'${singleVariable}'` (use the variable directly).
+- Remove all unused variables and resources.
 
 **Tagging and Defaults**:
 ```bicep
 var defaultTags = union(tags, {
   Environment: environment
   Owner: 'TeamName'
-  DeploymentTime: utcNow('yyyy-MM-dd')
+  Application: 'AppName'
 })
 ```
+
+**Deployment Validation**:
+- Always run `az bicep build --file main.bicep` to catch errors before deployment.
+- Review all linter warnings, even if they don't block compilation.
+- Address all "no-unused-vars", "no-hardcoded-env-urls", and "secure-parameter-default" warnings.
 
 #### 3.3 Terraform Guidelines
 - Use Terraform v1.9+ features.
@@ -116,6 +131,18 @@ var defaultTags = union(tags, {
 - Include `lint`, `format`, `validate`, `test`, and `security scan` steps.
 - Implement safe deployment strategies: canary, blue‑green, or ring deployments.
 - Use feature flags for incremental rollouts and easy rollback.
+
+#### 4.1 Secure Parameter Handling
+- Never hardcode secrets or passwords in scripts or templates.
+- For PowerShell scripts that require passwords:
+  - Use `Read-Host -AsSecureString` to capture passwords securely.
+  - Validate password complexity requirements without storing plaintext.
+  - Use SecureString conversion only when absolutely necessary and clear variables immediately.
+  - Consider using KeyVault references when possible instead of direct password input.
+- For Bicep templates:
+  - Use `@secure()` annotation for all password and secret parameters.
+  - Never provide defaults for secure parameters.
+  - Consider using KeyVault references for production deployments.
 
 ---
 

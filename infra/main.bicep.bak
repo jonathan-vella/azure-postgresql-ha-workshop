@@ -89,7 +89,7 @@ module appServicePlan 'modules/appServicePlan.bicep' = {
     location: location
     skuName: 'B1'
     skuTier: 'Basic'
-    tags: defaultTags
+    tags: tags
   }
 }
 
@@ -102,10 +102,9 @@ module apiAppService 'modules/appService.bicep' = {
     appServicePlanId: appServicePlan.outputs.appServicePlanId
     containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').username
-    containerRegistryPassword: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').passwords[0].value
-    environmentVariables: [      
-      {
+    containerRegistryUsername: listCredentials('Microsoft.ContainerRegistry/registries/${acrName}', '2023-01-01-preview').username
+    containerRegistryPassword: listCredentials('Microsoft.ContainerRegistry/registries/${acrName}', '2023-01-01-preview').passwords[0].value
+    environmentVariables: [      {
         name: 'SQL_SERVER'
         value: sqlDatabase.outputs.sqlServerFqdn
       }
@@ -130,7 +129,7 @@ module apiAppService 'modules/appService.bicep' = {
         value: monitoring.outputs.appInsightsConnectionString
       }
     ]
-    tags: defaultTags
+    tags: tags
   }
 }
 
@@ -143,8 +142,8 @@ module webAppService 'modules/appService.bicep' = {
     appServicePlanId: appServicePlan.outputs.appServicePlanId
     containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').username
-    containerRegistryPassword: listCredentials(containerRegistry.outputs.acrId, '2023-01-01-preview').passwords[0].value
+    containerRegistryUsername: listCredentials('Microsoft.ContainerRegistry/registries/${acrName}', '2023-01-01-preview').username
+    containerRegistryPassword: listCredentials('Microsoft.ContainerRegistry/registries/${acrName}', '2023-01-01-preview').passwords[0].value
     environmentVariables: [
       {
         name: 'API_URL'
@@ -159,7 +158,7 @@ module webAppService 'modules/appService.bicep' = {
         value: monitoring.outputs.appInsightsConnectionString
       }
     ]
-    tags: defaultTags
+    tags: tags
   }
 }
 
@@ -170,4 +169,3 @@ output sqlServerName string = sqlDatabase.outputs.sqlServerName
 output sqlDatabaseName string = sqlDatabase.outputs.sqlDatabaseName
 output sqlServerFqdn string = sqlDatabase.outputs.sqlServerFqdn
 output acrName string = containerRegistry.outputs.acrName
-output acrLoginServer string = containerRegistry.outputs.loginServer

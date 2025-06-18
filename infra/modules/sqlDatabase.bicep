@@ -53,5 +53,5 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
 }
 
 output sqlServerName string = sqlServer.name
-output sqlServerFqdn string = '${sqlServer.name}.database.windows.net'
+output sqlServerFqdn string = '${sqlServer.name}${environment().suffixes.sqlServerHostname}'
 output sqlDatabaseName string = sqlDatabaseName

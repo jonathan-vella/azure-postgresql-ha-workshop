@@ -40,7 +40,7 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
   properties: {
     serverFarmId: appServicePlanId
     siteConfig: {
-      appSettings: environmentVariables
+      appSettings: concat(environmentVariables, containerSettings)
       linuxFxVersion: 'DOCKER|${containerImage}'
       alwaysOn: true
       cors: {
@@ -52,14 +52,29 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
   }
 }
 
-// Set the Docker container configuration
+// Add container registry credentials as app settings
+var containerSettings = [
+  {
+    name: 'DOCKER_REGISTRY_SERVER_URL'
+    value: containerRegistryUrl
+  }
+  {
+    name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+    value: containerRegistryUsername
+  }
+  {
+    name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+    value: containerRegistryPassword
+  }
+]
+
+// Update the site config with container configuration
 resource appServiceConfig 'Microsoft.Web/sites/config@2022-03-01' = {
-  name: '${appService.name}/web'
+  parent: appService
+  name: 'web'
   properties: {
     appCommandLine: ''
-    dockerRegistryUrl: containerRegistryUrl
-    dockerRegistryUsername: containerRegistryUsername
-    dockerRegistryPassword: containerRegistryPassword
+    // Container registry credentials are provided through app settings
   }
 }
 

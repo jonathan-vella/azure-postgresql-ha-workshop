@@ -1,0 +1,904 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.36.1.42791",
+      "templateHash": "13177440086148225439"
+    },
+    "name": "SAIF Infrastructure",
+    "description": "Deploys the infrastructure for SAIF (Secure AI Foundations)",
+    "owner": "SAIF Team",
+    "version": "1.0.0",
+    "lastUpdated": "2025-06-18",
+    "documentation": "https://github.com/your-org/saif/blob/main/docs/deployment.md"
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "swedencentral",
+      "allowedValues": [
+        "swedencentral",
+        "germanywestcentral"
+      ],
+      "metadata": {
+        "description": "The Azure region where resources will be deployed"
+      }
+    },
+    "environmentName": {
+      "type": "string",
+      "defaultValue": "saif",
+      "minLength": 4,
+      "maxLength": 16,
+      "metadata": {
+        "description": "The name of the environment"
+      }
+    },
+    "sqlAdminLogin": {
+      "type": "string",
+      "defaultValue": "saifadmin",
+      "minLength": 1,
+      "metadata": {
+        "description": "The administrator login username for the SQL Server"
+      }
+    },
+    "sqlAdminPassword": {
+      "type": "securestring",
+      "minLength": 12,
+      "metadata": {
+        "description": "The administrator login password for the SQL Server"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags for the resources"
+      }
+    }
+  },
+  "variables": {
+    "randomSuffix": "[substring(uniqueString(resourceGroup().id), 0, 6)]",
+    "acrName": "[format('saifacr{0}', variables('randomSuffix'))]",
+    "appServicePlanName": "[format('{0}-plan-{1}', parameters('environmentName'), variables('randomSuffix'))]",
+    "apiAppServiceName": "[format('{0}-api-{1}', parameters('environmentName'), variables('randomSuffix'))]",
+    "webAppServiceName": "[format('{0}-web-{1}', parameters('environmentName'), variables('randomSuffix'))]",
+    "sqlServerName": "[format('{0}-sql-{1}', parameters('environmentName'), variables('randomSuffix'))]",
+    "sqlDatabaseName": "saif",
+    "logAnalyticsName": "[format('{0}-logs-{1}', parameters('environmentName'), variables('randomSuffix'))]",
+    "defaultTags": "[union(parameters('tags'), createObject('Environment', parameters('environmentName'), 'Owner', 'SAIF Team', 'Application', 'SAIF'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "containerRegistry",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "acrName": {
+            "value": "[variables('acrName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "15252372501947623968"
+            }
+          },
+          "parameters": {
+            "acrName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the Azure Container Registry"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "The location for the resources"
+              }
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "Basic",
+              "metadata": {
+                "description": "The SKU name for the container registry"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags for the resources"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerRegistry/registries",
+              "apiVersion": "2023-01-01-preview",
+              "name": "[parameters('acrName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('skuName')]"
+              },
+              "properties": {
+                "adminUserEnabled": true
+              }
+            }
+          ],
+          "outputs": {
+            "loginServer": {
+              "type": "string",
+              "metadata": {
+                "description": "The URL of the container registry"
+              },
+              "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName')), '2023-01-01-preview').loginServer]"
+            },
+            "acrName": {
+              "type": "string",
+              "value": "[parameters('acrName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "monitoring",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "logAnalyticsName": {
+            "value": "[variables('logAnalyticsName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "11347563559197643178"
+            }
+          },
+          "parameters": {
+            "logAnalyticsName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the log analytics workspace"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "The location for the resources"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags for the resources"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2022-10-01",
+              "name": "[parameters('logAnalyticsName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "name": "PerGB2018"
+                },
+                "retentionInDays": 30
+              }
+            },
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[format('{0}-insights', parameters('logAnalyticsName'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "logAnalyticsId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]"
+            },
+            "appInsightsId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Insights/components', format('{0}-insights', parameters('logAnalyticsName')))]"
+            },
+            "appInsightsInstrumentationKey": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-insights', parameters('logAnalyticsName'))), '2020-02-02').InstrumentationKey]"
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-insights', parameters('logAnalyticsName'))), '2020-02-02').ConnectionString]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "sqlDatabase",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "sqlServerName": {
+            "value": "[variables('sqlServerName')]"
+          },
+          "sqlDatabaseName": {
+            "value": "[variables('sqlDatabaseName')]"
+          },
+          "sqlAdministratorLogin": {
+            "value": "[parameters('sqlAdminLogin')]"
+          },
+          "sqlAdministratorPassword": {
+            "value": "[parameters('sqlAdminPassword')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "5924602401339951565"
+            }
+          },
+          "parameters": {
+            "sqlServerName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the SQL server"
+              }
+            },
+            "sqlDatabaseName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the SQL database"
+              }
+            },
+            "sqlAdministratorLogin": {
+              "type": "string",
+              "metadata": {
+                "description": "The administrator login username for the SQL server"
+              }
+            },
+            "sqlAdministratorPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "The administrator login password for the SQL server"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "The location for the resources"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags for the resources"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Sql/servers",
+              "apiVersion": "2022-05-01-preview",
+              "name": "[parameters('sqlServerName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+                "administratorLoginPassword": "[parameters('sqlAdministratorPassword')]",
+                "publicNetworkAccess": "Enabled",
+                "minimalTlsVersion": "1.0"
+              }
+            },
+            {
+              "type": "Microsoft.Sql/servers/firewallRules",
+              "apiVersion": "2022-05-01-preview",
+              "name": "[format('{0}/{1}', parameters('sqlServerName'), 'AllowAllAzureIPs')]",
+              "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Sql/servers/databases",
+              "apiVersion": "2022-05-01-preview",
+              "name": "[format('{0}/{1}', parameters('sqlServerName'), parameters('sqlDatabaseName'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Basic",
+                "tier": "Basic"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "sqlServerName": {
+              "type": "string",
+              "value": "[parameters('sqlServerName')]"
+            },
+            "sqlServerFqdn": {
+              "type": "string",
+              "value": "[format('{0}{1}', parameters('sqlServerName'), environment().suffixes.sqlServerHostname)]"
+            },
+            "sqlDatabaseName": {
+              "type": "string",
+              "value": "[parameters('sqlDatabaseName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "appServicePlan",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "appServicePlanName": {
+            "value": "[variables('appServicePlanName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "skuName": {
+            "value": "B1"
+          },
+          "skuTier": {
+            "value": "Basic"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "3145029697291296163"
+            }
+          },
+          "parameters": {
+            "appServicePlanName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the app service plan"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "The location for the resources"
+              }
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "B1",
+              "metadata": {
+                "description": "The SKU name for the app service plan"
+              }
+            },
+            "skuTier": {
+              "type": "string",
+              "defaultValue": "Basic",
+              "metadata": {
+                "description": "The SKU tier for the app service plan"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags for the resources"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/serverfarms",
+              "apiVersion": "2022-03-01",
+              "name": "[parameters('appServicePlanName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]"
+              },
+              "kind": "linux",
+              "properties": {
+                "reserved": true
+              }
+            }
+          ],
+          "outputs": {
+            "appServicePlanId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "apiAppService",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "appServiceName": {
+            "value": "[variables('apiAppServiceName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "appServicePlanId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appServicePlan'), '2022-09-01').outputs.appServicePlanId.value]"
+          },
+          "containerImage": {
+            "value": "[format('{0}/saif/api:latest', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
+          },
+          "containerRegistryUrl": {
+            "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
+          },
+          "containerRegistryUsername": {
+            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').username]"
+          },
+          "containerRegistryPassword": {
+            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').passwords[0].value]"
+          },
+          "environmentVariables": {
+            "value": [
+              {
+                "name": "SQL_SERVER",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sqlDatabase'), '2022-09-01').outputs.sqlServerFqdn.value]"
+              },
+              {
+                "name": "SQL_DATABASE",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sqlDatabase'), '2022-09-01').outputs.sqlDatabaseName.value]"
+              },
+              {
+                "name": "SQL_USERNAME",
+                "value": "[parameters('sqlAdminLogin')]"
+              },
+              {
+                "name": "SQL_PASSWORD",
+                "value": "[parameters('sqlAdminPassword')]"
+              },
+              {
+                "name": "API_KEY",
+                "value": "insecure_api_key_12345"
+              },
+              {
+                "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.appInsightsConnectionString.value]"
+              }
+            ]
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "7511729472772152247"
+            },
+            "name": "App Service",
+            "description": "Creates an App Service instance for container deployments",
+            "owner": "SAIF Team",
+            "version": "1.0.0",
+            "lastUpdated": "2025-06-18",
+            "documentation": "https://github.com/your-org/saif/blob/main/docs/modules.md"
+          },
+          "parameters": {
+            "appServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the app service"
+              }
+            },
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "The Azure region where resources will be deployed"
+              }
+            },
+            "appServicePlanId": {
+              "type": "string",
+              "metadata": {
+                "description": "The app service plan ID to use"
+              }
+            },
+            "containerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Container image to deploy"
+              }
+            },
+            "containerRegistryUrl": {
+              "type": "string",
+              "metadata": {
+                "description": "Container registry URL"
+              }
+            },
+            "containerRegistryUsername": {
+              "type": "string",
+              "metadata": {
+                "description": "Container registry username"
+              }
+            },
+            "containerRegistryPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Container registry password"
+              }
+            },
+            "environmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Environment variables for the container"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags for the resources"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/sites",
+              "apiVersion": "2022-03-01",
+              "name": "[parameters('appServiceName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "serverFarmId": "[parameters('appServicePlanId')]",
+                "siteConfig": {
+                  "appSettings": "[parameters('environmentVariables')]",
+                  "linuxFxVersion": "[format('DOCKER|{0}', parameters('containerImage'))]",
+                  "alwaysOn": true,
+                  "cors": {
+                    "allowedOrigins": [
+                      "*"
+                    ]
+                  },
+                  "ftpsState": "Disabled"
+                },
+                "httpsOnly": true
+              }
+            },
+            {
+              "type": "Microsoft.Web/sites/config",
+              "apiVersion": "2022-03-01",
+              "name": "[format('{0}/{1}', parameters('appServiceName'), 'web')]",
+              "properties": {
+                "appCommandLine": "",
+                "dockerRegistryUrl": "[parameters('containerRegistryUrl')]",
+                "dockerRegistryUsername": "[parameters('containerRegistryUsername')]",
+                "dockerRegistryPassword": "[parameters('containerRegistryPassword')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('appServiceName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "appServiceName": {
+              "type": "string",
+              "value": "[parameters('appServiceName')]"
+            },
+            "defaultHostname": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('appServiceName')), '2022-03-01').defaultHostName]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'appServicePlan')]",
+        "[resourceId('Microsoft.Resources/deployments', 'containerRegistry')]",
+        "[resourceId('Microsoft.Resources/deployments', 'monitoring')]",
+        "[resourceId('Microsoft.Resources/deployments', 'sqlDatabase')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "webAppService",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "appServiceName": {
+            "value": "[variables('webAppServiceName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "appServicePlanId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appServicePlan'), '2022-09-01').outputs.appServicePlanId.value]"
+          },
+          "containerImage": {
+            "value": "[format('{0}/saif/web:latest', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
+          },
+          "containerRegistryUrl": {
+            "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.loginServer.value)]"
+          },
+          "containerRegistryUsername": {
+            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').username]"
+          },
+          "containerRegistryPassword": {
+            "value": "[listCredentials(format('Microsoft.ContainerRegistry/registries/{0}', variables('acrName')), '2023-01-01-preview').passwords[0].value]"
+          },
+          "environmentVariables": {
+            "value": [
+              {
+                "name": "API_URL",
+                "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'apiAppService'), '2022-09-01').outputs.defaultHostname.value)]"
+              },
+              {
+                "name": "API_KEY",
+                "value": "insecure_api_key_12345"
+              },
+              {
+                "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.appInsightsConnectionString.value]"
+              }
+            ]
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "7511729472772152247"
+            },
+            "name": "App Service",
+            "description": "Creates an App Service instance for container deployments",
+            "owner": "SAIF Team",
+            "version": "1.0.0",
+            "lastUpdated": "2025-06-18",
+            "documentation": "https://github.com/your-org/saif/blob/main/docs/modules.md"
+          },
+          "parameters": {
+            "appServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the app service"
+              }
+            },
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "The Azure region where resources will be deployed"
+              }
+            },
+            "appServicePlanId": {
+              "type": "string",
+              "metadata": {
+                "description": "The app service plan ID to use"
+              }
+            },
+            "containerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Container image to deploy"
+              }
+            },
+            "containerRegistryUrl": {
+              "type": "string",
+              "metadata": {
+                "description": "Container registry URL"
+              }
+            },
+            "containerRegistryUsername": {
+              "type": "string",
+              "metadata": {
+                "description": "Container registry username"
+              }
+            },
+            "containerRegistryPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Container registry password"
+              }
+            },
+            "environmentVariables": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Environment variables for the container"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags for the resources"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/sites",
+              "apiVersion": "2022-03-01",
+              "name": "[parameters('appServiceName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "serverFarmId": "[parameters('appServicePlanId')]",
+                "siteConfig": {
+                  "appSettings": "[parameters('environmentVariables')]",
+                  "linuxFxVersion": "[format('DOCKER|{0}', parameters('containerImage'))]",
+                  "alwaysOn": true,
+                  "cors": {
+                    "allowedOrigins": [
+                      "*"
+                    ]
+                  },
+                  "ftpsState": "Disabled"
+                },
+                "httpsOnly": true
+              }
+            },
+            {
+              "type": "Microsoft.Web/sites/config",
+              "apiVersion": "2022-03-01",
+              "name": "[format('{0}/{1}', parameters('appServiceName'), 'web')]",
+              "properties": {
+                "appCommandLine": "",
+                "dockerRegistryUrl": "[parameters('containerRegistryUrl')]",
+                "dockerRegistryUsername": "[parameters('containerRegistryUsername')]",
+                "dockerRegistryPassword": "[parameters('containerRegistryPassword')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('appServiceName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "appServiceName": {
+              "type": "string",
+              "value": "[parameters('appServiceName')]"
+            },
+            "defaultHostname": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('appServiceName')), '2022-03-01').defaultHostName]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'apiAppService')]",
+        "[resourceId('Microsoft.Resources/deployments', 'appServicePlan')]",
+        "[resourceId('Microsoft.Resources/deployments', 'containerRegistry')]",
+        "[resourceId('Microsoft.Resources/deployments', 'monitoring')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "apiUrl": {
+      "type": "string",
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'apiAppService'), '2022-09-01').outputs.defaultHostname.value)]"
+    },
+    "webUrl": {
+      "type": "string",
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'webAppService'), '2022-09-01').outputs.defaultHostname.value)]"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sqlDatabase'), '2022-09-01').outputs.sqlServerName.value]"
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sqlDatabase'), '2022-09-01').outputs.sqlDatabaseName.value]"
+    },
+    "sqlServerFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sqlDatabase'), '2022-09-01').outputs.sqlServerFqdn.value]"
+    },
+    "acrName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2022-09-01').outputs.acrName.value]"
+    }
+  }
+}

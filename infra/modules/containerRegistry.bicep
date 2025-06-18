@@ -25,3 +25,4 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
 @description('The URL of the container registry')
 output loginServer string = acr.properties.loginServer
 output acrName string = acr.name
+output acrId string = acr.id
