@@ -132,7 +132,7 @@ This application contains multiple security vulnerabilities for students to iden
 
 ## Repository Structure
 
-```mermaid
+```mermaid```mermaid
 graph TD
     Root[SAIF Repository] --> API[/api]
     Root --> Web[/web]
