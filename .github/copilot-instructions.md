@@ -1,6 +1,22 @@
 ## GitHub Copilot Repository Instructions
 
+**Purpose**: These instructions guide GitHub Copilot's code suggestions and responses for this repository.
 **Scope**: Applies to all files (`**/*`).
+
+When generating code or providing suggestions, Copilot should:
+- Prioritize security and maintainability over brevity
+- Include appropriate error handling and logging
+- Follow the language-specific conventions outlined below
+- Generate tests alongside implementation code
+- Include inline documentation for complex logic
+
+---
+
+### Response Guidelines for Copilot
+- When suggesting code fixes, explain the issue first, then provide the solution
+- Include examples of both correct and incorrect implementations
+- For security-related suggestions, always explain the vulnerability being addressed
+- When multiple solutions exist, present trade-offs between them
 
 ---
 
@@ -25,6 +41,23 @@
 - **Secrets management**: Store sensitive data in secure vaults or environment variables.
 - **Encryption**: Protect data at rest and in transit.
 - **Audit logging**: Record security‑relevant events for traceability.
+
+#### Security Code Patterns
+
+**Input Validation Example**:
+```python
+# CORRECT
+def process_user_input(user_id: str) -> dict:
+    if not user_id or not user_id.isalnum():
+        raise ValueError("Invalid user ID format")
+    # Parameterized query
+    return db.query("SELECT * FROM users WHERE id = ?", [user_id])
+
+# INCORRECT
+def process_user_input(user_id: str) -> dict:
+    # SQL injection vulnerability
+    return db.query(f"SELECT * FROM users WHERE id = '{user_id}'")
+```
 
 ---
 
@@ -72,6 +105,19 @@ Priorities: Security, Operational Excellence, Performance, Reliability, Cost.
 - Use single‑purpose, reusable modules.
 - Default `targetScope = 'resourceGroup'` and parameterize regions.
 
+**Module Organization Example**:
+```
+infra/
+├── main.bicep
+├── modules/
+│   ├── storage/
+│   │   └── storageAccount.bicep
+│   ├── network/
+│   │   └── vnet.bicep
+│   └── compute/
+│       └── appService.bicep
+```
+
 **Template Metadata** (include in each file):
 ```bicep
 metadata name        = 'resourceName'
@@ -94,6 +140,16 @@ metadata documentation = 'Link to docs'
 - NEVER provide default values for secure parameters (except empty strings or newGuid()).
 - When referencing parameters between modules, ensure they're actually defined in the target module.
 - Check parameter definitions in module files before passing values.
+
+**Resource Naming Example**:
+```bicep
+// CORRECT
+param storageAccountPrefix string
+var storageAccountName = '${storageAccountPrefix}${uniqueString(resourceGroup().id)}'
+
+// INCORRECT
+var storageAccountName = 'mystorageaccount123' // Hardcoded names
+```
 
 **Function Restrictions**:
 - Function `utcNow()` can ONLY be used as parameter default values, never in variable declarations or resource properties.
@@ -121,6 +177,13 @@ var defaultTags = union(tags, {
   Application: 'AppName'
 })
 ```
+
+#### Bicep Best Practices Summary
+1. **Parameters**: Always include `@description`, use `@secure()` for secrets
+2. **Functions**: `utcNow()` only in parameter defaults
+3. **Dependencies**: Let Bicep infer dependencies, avoid manual `dependsOn`
+4. **Validation**: Always run `az bicep build --diagnostics` before deployment
+5. **Modules**: Verify parameter compatibility between parent and child modules
 
 **Bicep Deployment Workflow**:
 Follow this systematic approach for all Bicep deployments:
@@ -204,5 +267,90 @@ Follow this systematic approach for all Bicep deployments:
   - Ensure `utcNow()` is only used in parameter default values
   - Remove unnecessary dependsOn entries 
   - Check that Key Vault references and permission assignments are properly configured
-  - Avoid using `listCredentials()` directly in module parameters, as this can lead to deployment failures if resources are not yet fully provisioned
+  - Avoid using `listCredentials()` directly in module parameters
   - For container registries, set credentials via scripts post-deployment rather than within Bicep
+
+---
+
+### 7. Git and Pull Request Standards
+
+#### Commit Messages
+Follow conventional commits format:
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation changes
+- `refactor:` Code refactoring
+- `test:` Test additions/modifications
+- `chore:` Maintenance tasks
+
+#### Pull Request Description Template
+```markdown
+## Summary
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+- [ ] Unit tests pass
+- [ ] Integration tests pass
+- [ ] Manual testing completed
+
+## Security Considerations
+- [ ] No hardcoded secrets
+- [ ] Input validation implemented
+- [ ] Permissions verified
+```
+
+---
+
+### 8. Anti-Patterns to Avoid
+
+Copilot should NOT generate:
+- Code with hardcoded credentials or connection strings
+- Synchronous code when async alternatives exist
+- Direct database queries without parameterization
+- Console.log or print statements in production code
+- Generic error messages like "An error occurred"
+- Code that bypasses security validations
+- Comments that simply restate the code
+
+---
+
+### 9. Environment-Specific Considerations
+
+#### Development
+- Use verbose logging
+- Enable detailed error messages
+- Use local development containers
+
+#### Production
+- Minimize logging verbosity
+- Use structured logging (JSON format)
+- Generic error messages for users
+- Enable application insights or equivalent monitoring
+
+---
+
+### 10. Quick Reference
+
+| Language | Linter | Formatter | Test Framework |
+|----------|--------|-----------|----------------|
+| PowerShell | PSScriptAnalyzer | - | Pester |
+| Python | pylint/flake8 | Black | pytest |
+| JavaScript | ESLint | Prettier | Jest |
+| C# | Roslyn Analyzers | dotnet format | xUnit |
+| Bicep | bicep build | - | - |
+| Terraform | tflint | terraform fmt | terratest |
+
+---
+
+**Instructions Version**: 1.0.0
+**Last Updated**: 2025-06-19
+**Maintained By**: jonathan-vella
+**Review Schedule**: Quarterly
+
+For questions or improvements to these instructions, please open an issue or PR.
