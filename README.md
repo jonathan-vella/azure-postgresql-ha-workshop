@@ -132,7 +132,7 @@ This application contains multiple security vulnerabilities for students to iden
 
 ## Repository Structure
 
-```mermaid```mermaid
+```mermaid
 graph TD
     title(SAIF Repository Structure)
     
@@ -142,33 +142,53 @@ graph TD
     Root --> Infra(/infra)
     Root --> Scripts(/scripts)
     Root --> Docs(/docs)
+    Root --> GitHub(.github)
     Root --> DockerCompose(docker-compose.yml)
     Root --> DeployMD(DEPLOY.md)
     Root --> ReadmeMD(README.md)
+    Root --> InitDB(init-db.sql)
     
     %% API structure
-    API --> APICode(Python FastAPI Code)
+    API --> AppPy(app.py)
     API --> APIDockerfile(Dockerfile)
     API --> Requirements(requirements.txt)
+    API --> EnvExample(.env.example)
+    API --> APIReadme(README.md)
     
     %% Web structure
-    Web --> WebCode(PHP Frontend)
+    Web --> IndexPHP(index.php)
+    Web --> ProxyPHP(proxy.php)
+    Web --> APIProxyPHP(api-proxy.php)
     Web --> WebDockerfile(Dockerfile)
     Web --> Assets(/assets)
+    Web --> Htaccess(.htaccess)
+    Web --> ApacheConfig(apache-config.conf)
+    Web --> WebReadme(README.md)
+    
+    %% Web Assets structure
+    Assets --> CSS(/css)
+    Assets --> IMG(/img)
+    Assets --> JS(/js)
     
     %% Infra structure
     Infra --> MainBicep(main.bicep)
     Infra --> AzureDeploy(azuredeploy.json)
-    Infra --> Parameters(*.parameters.json)
+    Infra --> MainParams(main.parameters.json)
+    Infra --> AzureParams(azuredeploy.parameters.json)
     Infra --> Metadata(metadata.json)
     
     %% Scripts structure
     Scripts --> DeployComplete(Deploy-SAIF-Complete.ps1)
     Scripts --> UpdateContainers(Update-SAIF-Containers.ps1)
+    Scripts --> TestLocal(Test-SAIFLocal.ps1)
     
     %% Docs structure
     Docs --> DeploymentDoc(deployment.md)
     Docs --> SecurityDoc(security-challenges.md)
+    Docs --> InfraImprovements(infrastructure-improvements.md)
+    
+    %% GitHub structure
+    GitHub --> CopilotInstructions(copilot-instructions.md)
     
     %% Styling
     classDef folder fill:#f9d75e,stroke:#333,color:black;
@@ -176,26 +196,43 @@ graph TD
     classDef component fill:#91ca76,stroke:#333,color:black;
     
     %% Apply classes
-    class API,Web,Infra,Scripts,Docs,Assets folder;
-    class DockerCompose,Requirements,DeployMD,ReadmeMD,APIDockerfile,WebDockerfile,MainBicep,AzureDeploy,Parameters,Metadata,DeployComplete,UpdateContainers,DeploymentDoc,SecurityDoc file;
-    class APICode,WebCode component;
+    class API,Web,Infra,Scripts,Docs,Assets,CSS,IMG,JS,GitHub folder;
+    class DockerCompose,Requirements,DeployMD,ReadmeMD,InitDB,APIDockerfile,WebDockerfile,MainBicep,AzureDeploy,MainParams,AzureParams,Metadata,DeployComplete,UpdateContainers,TestLocal,DeploymentDoc,SecurityDoc,InfraImprovements,CopilotInstructions,AppPy,IndexPHP,ProxyPHP,APIProxyPHP,Htaccess,ApacheConfig,EnvExample,APIReadme,WebReadme file;
 ```
 
 ### Key Components
 
 - **`/api`**: Python FastAPI backend with containerization
-- **`/web`**: PHP web frontend with containerization  
+  - `app.py`: Main FastAPI application with security challenge endpoints
+  - `Dockerfile`: Container configuration for API service
+  - `requirements.txt`: Python dependencies
+  - `.env.example`: Environment variable template
+  - `README.md`: API component documentation
+- **`/web`**: PHP web frontend with containerization
+  - `index.php`: Main web interface for interacting with API
+  - `proxy.php` & `api-proxy.php`: API communication handlers
+  - `Dockerfile`: Container configuration for web service
+  - `.htaccess` & `apache-config.conf`: Apache server configuration
+  - `/assets`: Static resources (CSS, JavaScript, images)
+  - `README.md`: Web component documentation
 - **`/infra`**: Complete Azure infrastructure as code
   - `main.bicep`: Main Bicep template with full automation
   - `azuredeploy.json`: ARM template for Deploy to Azure button
-  - `*.parameters.json`: Parameter files for different environments
+  - `main.parameters.json` & `azuredeploy.parameters.json`: Parameter files for different environments
   - `metadata.json`: Azure QuickStart template metadata
 - **`/scripts`**: Fully automated PowerShell deployment scripts
   - `Deploy-SAIF-Complete.ps1`: End-to-end automated deployment
   - `Update-SAIF-Containers.ps1`: Container build and deployment updates
+  - `Test-SAIFLocal.ps1`: Local development testing script
 - **`/docs`**: Comprehensive documentation and guides
+  - `deployment.md`: Detailed deployment instructions
+  - `security-challenges.md`: Security vulnerability documentation
+  - `infrastructure-improvements.md`: Infrastructure enhancement details
+- **`/.github`**: GitHub configuration and templates
+  - `copilot-instructions.md`: GitHub Copilot coding guidelines
 - **`docker-compose.yml`**: Local development environment
 - **`DEPLOY.md`**: Complete deployment guide with automation details
+- **`init-db.sql`**: Database initialization script
 
 ## Prerequisites
 
