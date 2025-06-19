@@ -1,0 +1,149 @@
+name: Feature Request
+description: Suggest an idea for SAIF
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+projects: ["jonathan-vella/1"]
+assignees:
+  - jonathan-vella
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature for SAIF! 
+        
+        Please help us understand your idea and how it would benefit the security learning experience.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of what you want to happen.
+      placeholder: Describe the feature you'd like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem or Use Case
+      description: What problem does this feature solve? What use case does it address?
+      placeholder: |
+        Example: "As a security instructor, I need... so that..."
+        Or: "Currently it's difficult to... because..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature Category
+      description: What area of SAIF would this feature affect?
+      options:
+        - Web Frontend (UI/UX improvements)
+        - API Backend (new endpoints, functionality)
+        - Security Challenges (new vulnerabilities, scenarios)
+        - Infrastructure (deployment, scaling, monitoring)
+        - Documentation (guides, tutorials, examples)
+        - Educational Content (learning materials, exercises)
+        - Developer Experience (tooling, automation)
+        - Multiple areas
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-type
+    attributes:
+      label: Primary User
+      description: Who would primarily benefit from this feature?
+      options:
+        - Students/Learners (workshop participants)
+        - Instructors/Trainers (teaching security)
+        - Developers (contributing to SAIF)
+        - DevOps/Platform teams (deploying/managing SAIF)
+        - All users
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this feature to work? Describe your ideal solution.
+      placeholder: |
+        Describe how the feature should work, including:
+        - User interface changes
+        - New functionality
+        - Technical implementation ideas (if applicable)
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches or solutions have you considered?
+      placeholder: |
+        Have you considered any alternative solutions or workarounds?
+        Are there existing features that partially address this need?
+
+  - type: checkboxes
+    id: educational-benefit
+    attributes:
+      label: Educational Benefits
+      description: How would this feature enhance the learning experience? (Check all that apply)
+      options:
+        - label: Introduces new security concepts or vulnerabilities
+        - label: Improves hands-on learning experience
+        - label: Makes deployment/setup easier for workshops
+        - label: Provides better feedback or guidance to learners
+        - label: Helps instructors track student progress
+        - label: Makes the application more realistic/production-like
+        - label: Enhances understanding of secure development practices
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Implementation Complexity (Estimate)
+      description: How complex do you think this feature would be to implement?
+      options:
+        - Low (simple configuration or content changes)
+        - Medium (new components or moderate code changes)
+        - High (significant architectural changes or new systems)
+        - Unknown (not sure about complexity)
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - High (critical for workshop success)
+        - Medium (would significantly improve experience)
+        - Low (nice to have enhancement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success Criteria
+      description: How would you know if this feature is successful? What would "done" look like?
+      placeholder: |
+        Example:
+        - Students can complete X task in Y minutes
+        - Instructors can easily configure Z
+        - Deployment time is reduced by X%
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Add any other context, screenshots, links, or examples about the feature request here.
+        
+        **Tip**: You can attach images by clicking this area to highlight it and then dragging files in.
+      placeholder: |
+        Any additional information that might be helpful:
+        - Links to similar features in other tools
+        - Screenshots or mockups
+        - Related issues or discussions
