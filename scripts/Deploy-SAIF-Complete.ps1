@@ -60,23 +60,89 @@ Show-Banner "SAIF Complete Deployment"
 Write-Host "Checking Azure CLI login..." -ForegroundColor Yellow
 
 try {
-    $currentAccount = az account show --query "{name:name, user:user.name}" -o json | ConvertFrom-Json
+    $currentAccount = az account show --query "{name:name, user:user.name, id:id}" -o json | ConvertFrom-Json
     Write-Host "✅ Logged in as: $($currentAccount.user)" -ForegroundColor Green
-    Write-Host "✅ Subscription: $($currentAccount.name)" -ForegroundColor Green
+    Write-Host "✅ Current Subscription: $($currentAccount.name)" -ForegroundColor Green
+    Write-Host "   Subscription ID: $($currentAccount.id)" -ForegroundColor Gray
 } catch {
     Write-Host "❌ Please run 'az login' first" -ForegroundColor Red
     exit 1
 }
 
+# Interactive configuration if parameters not provided
+if (-not $PSBoundParameters.ContainsKey('location') -or -not $PSBoundParameters.ContainsKey('resourceGroupName')) {
+    Write-Host ""
+    Write-Host "🔧 Interactive Configuration" -ForegroundColor Cyan
+    Write-Host "Configure your SAIF deployment settings:" -ForegroundColor White
+    Write-Host ""
+    
+    # Subscription confirmation
+    Write-Host "Current subscription:" -ForegroundColor Yellow
+    Write-Host "  Name: $($currentAccount.name)" -ForegroundColor White
+    Write-Host "  ID: $($currentAccount.id)" -ForegroundColor Gray
+    $useCurrentSub = Read-Host "Use this subscription? (Y/n)"
+    
+    if ($useCurrentSub -eq 'n' -or $useCurrentSub -eq 'N') {
+        Write-Host ""
+        Write-Host "Available subscriptions:" -ForegroundColor Yellow
+        az account list --query "[].{Name:name, Id:id, State:state}" -o table
+        Write-Host ""
+        $subId = Read-Host "Enter subscription ID to use"
+        try {
+            az account set --subscription $subId
+            $currentAccount = az account show --query "{name:name, user:user.name, id:id}" -o json | ConvertFrom-Json
+            Write-Host "✅ Switched to: $($currentAccount.name)" -ForegroundColor Green
+        } catch {
+            Write-Host "❌ Failed to switch subscription" -ForegroundColor Red
+            exit 1
+        }
+    }
+    
+    # Region selection if not provided
+    if (-not $PSBoundParameters.ContainsKey('location')) {
+        Write-Host ""
+        Write-Host "Available regions for SAIF:" -ForegroundColor Yellow
+        Write-Host "  1. Sweden Central (swedencentral) - Recommended" -ForegroundColor White
+        Write-Host "  2. Germany West Central (germanywestcentral)" -ForegroundColor White
+        $regionChoice = Read-Host "Select region (1-2) [1]"
+        
+        switch ($regionChoice) {
+            "2" { $location = "germanywestcentral" }
+            default { $location = "swedencentral" }
+        }
+    }
+    
+    # Resource group configuration
+    if (-not $PSBoundParameters.ContainsKey('resourceGroupName')) {
+        $defaultRgName = if ($location -eq "swedencentral") { "rg-saif-swc01" } else { "rg-saif-gwc01" }
+        Write-Host ""
+        Write-Host "Resource Group Configuration:" -ForegroundColor Yellow
+        $rgChoice = Read-Host "Resource group name [$defaultRgName]"
+        $resourceGroupName = if ([string]::IsNullOrWhiteSpace($rgChoice)) { $defaultRgName } else { $rgChoice }
+    }
+    
+    # Container build option
+    if (-not $PSBoundParameters.ContainsKey('skipContainers')) {
+        Write-Host ""
+        Write-Host "Container Build Options:" -ForegroundColor Yellow
+        Write-Host "  1. Full deployment (infrastructure + containers) - Recommended" -ForegroundColor White
+        Write-Host "  2. Infrastructure only (skip container build)" -ForegroundColor White
+        $containerChoice = Read-Host "Select option (1-2) [1]"
+        $skipContainers = ($containerChoice -eq "2")
+    }
+}
+
 # Confirm deployment parameters
 Write-Host ""
-Write-Host "📋 Deployment Parameters:" -ForegroundColor Cyan
+Write-Host "📋 Final Deployment Configuration:" -ForegroundColor Cyan
+Write-Host "  Subscription: $($currentAccount.name)" -ForegroundColor White
+Write-Host "  Subscription ID: $($currentAccount.id)" -ForegroundColor Gray
 Write-Host "  Region: $location" -ForegroundColor White
 Write-Host "  Resource Group: $resourceGroupName" -ForegroundColor White
-Write-Host "  Skip Containers: $skipContainers" -ForegroundColor White
+Write-Host "  Container Build: $(if ($skipContainers) { 'Skip' } else { 'Include' })" -ForegroundColor White
 Write-Host ""
 
-$confirm = Read-Host "Continue with deployment? (y/N)"
+$confirm = Read-Host "Proceed with deployment? (y/N)"
 if ($confirm -ne 'y' -and $confirm -ne 'Y') {
     Write-Host "Deployment cancelled." -ForegroundColor Yellow
     exit 0
@@ -96,8 +162,15 @@ if ($rgExists -eq "false") {
     Write-Host "✅ Resource group exists: $resourceGroupName" -ForegroundColor Green
     
     # Check for existing resources
-    $existingResources = az resource list --resource-group $resourceGroupName --query "length(@)" -o tsv
-    if ([int]$existingResources -gt 0) {
+    try {
+        $resourceList = az resource list --resource-group $resourceGroupName --query "length(@)" -o tsv
+        $existingResources = [int]$resourceList
+    } catch {
+        Write-Host "⚠️  Unable to check existing resources, continuing..." -ForegroundColor Yellow
+        $existingResources = 0
+    }
+    
+    if ($existingResources -gt 0) {
         Write-Host "⚠️  Resource group contains $existingResources existing resources" -ForegroundColor Yellow
         $action = Read-Host "Choose action: (c)ontinue with Bicep deployment (idempotent), (d)elete all resources first, or (a)bort"
         
