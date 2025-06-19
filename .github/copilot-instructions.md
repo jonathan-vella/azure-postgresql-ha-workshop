@@ -44,7 +44,7 @@ Begin each script with a help comment block:
 ```
 
 #### 2.2 Python
-- Adhere to PEP 8 and automatic formatting (Black, 88 char line length).
+- Adhere to PEP 8 and automatic formatting (Black, 88 char line length).
 - Use type hints and Google or NumPy–style docstrings.
 - List dependencies in `requirements.txt` or `pyproject.toml`.
 - Document virtual environment setup and activation.
@@ -122,11 +122,36 @@ var defaultTags = union(tags, {
 })
 ```
 
-**Deployment Validation**:
-- Always run `az bicep build --file main.bicep --diagnostics` to catch errors before deployment.
-- Review all linter warnings, even if they don't block compilation.
-- Address all "no-unused-vars", "no-hardcoded-env-urls", "no-unnecessary-dependson", and "secure-parameter-default" warnings.
-- Run a what-if deployment before actual deployment: `az deployment group what-if --resource-group <rg> --template-file main.bicep`
+**Bicep Deployment Workflow**:
+Follow this systematic approach for all Bicep deployments:
+
+1. **Build** - Compile Bicep to ARM template (optional for validation):
+   ```bash
+   az bicep build --file main.bicep
+   ```
+
+2. **Validate** - Check syntax and catch errors early:
+   ```bash
+   az bicep build --file main.bicep --diagnostics
+   ```
+   - Review all linter warnings, even if they don't block compilation
+   - Address "no-unused-vars", "no-hardcoded-env-urls", "no-unnecessary-dependson", and "secure-parameter-default" warnings
+
+3. **Preview** - Review changes before deployment:
+   ```bash
+   az deployment group what-if --resource-group <rg> --template-file main.bicep
+   ```
+
+4. **Deploy** - Execute the deployment:
+   ```bash
+   az deployment group create --resource-group <rg> --template-file main.bicep
+   ```
+
+**Important Notes**:
+- The `az bicep` commands automatically transpile Bicep to JSON, so explicit JSON conversion is not required
+- Always run what-if deployments in production environments
+- For container registries, set credentials via scripts post-deployment rather than within Bicep
+- Avoid using `listCredentials()` directly in module parameters
 
 #### 3.3 Terraform Guidelines
 - Use Terraform v1.9+ features.
@@ -181,4 +206,3 @@ var defaultTags = union(tags, {
   - Check that Key Vault references and permission assignments are properly configured
   - Avoid using `listCredentials()` directly in module parameters, as this can lead to deployment failures if resources are not yet fully provisioned
   - For container registries, set credentials via scripts post-deployment rather than within Bicep
-
