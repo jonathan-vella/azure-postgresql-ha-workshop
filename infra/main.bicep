@@ -114,15 +114,14 @@ module appServicePlan 'modules/appServicePlan.bicep' = {
 // Create API App Service
 module apiAppService 'modules/appService.bicep' = {
   name: 'apiAppService'
-  params: {
-    appServiceName: apiAppServiceName
+  params: {    appServiceName: apiAppServiceName
     location: location
     appServicePlanId: appServicePlan.outputs.appServicePlanId
     enableManagedIdentity: true
     containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').username
-    containerRegistryPassword: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').passwords[0].value
+    containerRegistryUsername: 'apiAppService'  // Will be set after deployment by the script
+    containerRegistryPassword: 'placeholder'    // Will be set after deployment by the script
     environmentVariables: [      
       {
         name: 'SQL_SERVER'
@@ -158,13 +157,12 @@ module webAppService 'modules/appService.bicep' = {
   name: 'webAppService'
   params: {
     appServiceName: webAppServiceName
-    location: location
-    appServicePlanId: appServicePlan.outputs.appServicePlanId
+    location: location    appServicePlanId: appServicePlan.outputs.appServicePlanId
     enableManagedIdentity: true
     containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest'
     containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
-    containerRegistryUsername: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').username
-    containerRegistryPassword: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', acrName), '2023-01-01-preview').passwords[0].value
+    containerRegistryUsername: 'webAppService'  // Will be set after deployment by the script
+    containerRegistryPassword: 'placeholder'    // Will be set after deployment by the script
     environmentVariables: [
       {
         name: 'API_URL'

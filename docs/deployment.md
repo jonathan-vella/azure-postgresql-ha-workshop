@@ -99,7 +99,7 @@ To deploy SAIF to Azure with default settings:
    .\Deploy-SAIF.ps1
    ```
 
-This will deploy to Sweden Central using the resource group name `rg-aiseclab-swc01`.
+This will deploy to Sweden Central using the resource group name `rg-saif-swc01`.
 
 ### Custom Deployment
 
@@ -112,7 +112,7 @@ cd scripts
 
 ### Deployment Parameters
 
-- `resourceGroupName`: (Optional) Azure resource group name. If not specified, it defaults to `rg-aiseclab-swc01` for Sweden Central or `rg-aiseclab-gwc01` for Germany West Central.
+- `resourceGroupName`: (Optional) Azure resource group name. If not specified, it defaults to `rg-saif-swc01` for Sweden Central or `rg-saif-gwc01` for Germany West Central.
 - `location`: (Optional) Azure region for deployment. Default is 'swedencentral'. Allowed values: 'swedencentral', 'germanywestcentral'.
 - `environmentName`: (Optional) Environment name used for resource naming. Default is 'saif'.
 

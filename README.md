@@ -82,7 +82,7 @@ cd scripts
 .\Deploy-SAIF.ps1
 ```
 
-By default, deployment uses Sweden Central region (`swedencentral`) with resource group name `rg-aiseclab-swc01`. For Germany West Central, use:
+By default, deployment uses Sweden Central region (`swedencentral`) with resource group name `rg-saif-swc01`. For Germany West Central, use:
 
 ```powershell
 cd scripts

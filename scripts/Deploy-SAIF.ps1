@@ -42,9 +42,9 @@ param(
 # Default resource group name based on location if not specified
 if (-not $resourceGroupName) {
     if ($location -eq "swedencentral") {
-        $resourceGroupName = "rg-aiseclab-swc01"
+        $resourceGroupName = "rg-saif-swc01"
     } else {
-        $resourceGroupName = "rg-aiseclab-gwc01"
+        $resourceGroupName = "rg-saif-gwc01"
     }
 }
 
@@ -217,13 +217,12 @@ if ($confirmRegion.ToLower() -ne "y" -and $confirmRegion.ToLower() -ne "yes") {
             Write-Host "Invalid selection. Using default region: $location" -ForegroundColor Yellow
         }
     }
-    
-    # Update resource group name based on selected location if not explicitly provided
+      # Update resource group name based on selected location if not explicitly provided
     if (-not $PSBoundParameters.ContainsKey('resourceGroupName')) {
         if ($location -eq "swedencentral") {
-            $resourceGroupName = "rg-aiseclab-swc01"
+            $resourceGroupName = "rg-saif-swc01"
         } else {
-            $resourceGroupName = "rg-aiseclab-gwc01"
+            $resourceGroupName = "rg-saif-gwc01"
         }
         Write-Host "Resource group name updated to: $resourceGroupName" -ForegroundColor Cyan
     }
@@ -501,6 +500,25 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host "`n[Step 4/5] " -ForegroundColor White -BackgroundColor DarkBlue -NoNewline
 Write-Host " Configuring App Services..." -ForegroundColor Cyan
 
+# Get ACR credentials
+Write-Host "Retrieving ACR credentials..." -ForegroundColor Yellow
+$acrCredentials = az acr credential show --name $acrName --resource-group $resourceGroupName 2>&1 | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "✗ Failed to retrieve ACR credentials" -ForegroundColor Red
+    Write-Host "Error: $acrCredentials" -ForegroundColor Red
+    $continue = Read-Host "Do you want to continue anyway? (Y/N)"
+    if ($continue.ToLower() -ne "y" -and $continue.ToLower() -ne "yes") {
+        exit 1
+    }
+    # Provide default values to allow continuation
+    $acrUsername = "placeholderUsername"
+    $acrPassword = "placeholderPassword"
+} else {
+    $acrUsername = $acrCredentials.username
+    $acrPassword = $acrCredentials.passwords[0].value
+    Write-Host "✓ ACR credentials retrieved successfully" -ForegroundColor Green
+}
+
 # Update API App Service
 Write-Host "Updating API App Service with the latest container image..." -ForegroundColor Yellow
 Write-Host "  App Service: $apiAppServiceName" -ForegroundColor DarkGray
@@ -511,6 +529,8 @@ $apiUpdateResult = az webapp config container set `
     --resource-group $resourceGroupName `
     --docker-custom-image-name "$acrLoginServer/saif/api:latest" `
     --docker-registry-server-url "https://$acrLoginServer" `
+    --docker-registry-server-user $acrUsername `
+    --docker-registry-server-password $acrPassword `
     --query "status" -o tsv 2>&1
 
 if ($LASTEXITCODE -eq 0) {
@@ -534,6 +554,8 @@ $webUpdateResult = az webapp config container set `
     --resource-group $resourceGroupName `
     --docker-custom-image-name "$acrLoginServer/saif/web:latest" `
     --docker-registry-server-url "https://$acrLoginServer" `
+    --docker-registry-server-user $acrUsername `
+    --docker-registry-server-password $acrPassword `
     --query "status" -o tsv 2>&1
 
 if ($LASTEXITCODE -eq 0) {

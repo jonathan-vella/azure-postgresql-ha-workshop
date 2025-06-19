@@ -174,9 +174,11 @@ var defaultTags = union(tags, {
 - **Documentation**: Are public interfaces and modules documented?
 - **Compliance**: Does it follow the guidelines above?
 - **Bicep Validation**: 
-  - Run `az bicep build --file main.bicep --diagnostics` to catch all errors and warnings
+  - Run `az bicep build --file main.bicep` to catch all errors and warnings
   - Verify all module parameter references match the actual module parameters
   - Ensure `utcNow()` is only used in parameter default values
   - Remove unnecessary dependsOn entries 
   - Check that Key Vault references and permission assignments are properly configured
+  - Avoid using `listCredentials()` directly in module parameters, as this can lead to deployment failures if resources are not yet fully provisioned
+  - For container registries, set credentials via scripts post-deployment rather than within Bicep
 
