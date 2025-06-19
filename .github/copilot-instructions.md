@@ -182,7 +182,7 @@ var defaultTags = union(tags, {
 1. **Parameters**: Always include `@description`, use `@secure()` for secrets
 2. **Functions**: `utcNow()` only in parameter defaults
 3. **Dependencies**: Let Bicep infer dependencies, avoid manual `dependsOn`
-4. **Validation**: Always run `az bicep build --diagnostics` before deployment
+4. **Validation**: Always run `az bicep build` before deployment
 5. **Modules**: Verify parameter compatibility between parent and child modules
 
 **Bicep Deployment Workflow**:
@@ -195,7 +195,7 @@ Follow this systematic approach for all Bicep deployments:
 
 2. **Validate** - Check syntax and catch errors early:
    ```bash
-   az bicep build --file main.bicep --diagnostics
+   az bicep build --file main.bicep
    ```
    - Review all linter warnings, even if they don't block compilation
    - Address "no-unused-vars", "no-hardcoded-env-urls", "no-unnecessary-dependson", and "secure-parameter-default" warnings
