@@ -1,88 +1,115 @@
 # SAIF Deployment Guide
 
-## 🚀 Quick Deploy to Azure
+## 🚀 Fully Automated Deployment Options
 
-Deploy the complete SAIF hackathon environment with one click:
+SAIF provides **true 1-click deployment** with complete automation including infrastructure, container builds, and configuration.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyour-username%2FSAIF%2Fmain%2Finfra%2Fazuredeploy.json)
+### Option 1: PowerShell Script (🏆 Recommended - 100% Automated)
 
-[![Visualize](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fyour-username%2FSAIF%2Fmain%2Finfra%2Fazuredeploy.json)
-
-## 📋 What Gets Deployed
-
-The one-click deployment creates:
-
-### 🏗️ Infrastructure
-- **Resource Group**: `rg-saif-swc01` (Sweden Central) or `rg-saif-gwc01` (Germany West Central)
-- **Azure Container Registry**: Standard SKU for container images
-- **App Service Plan**: Linux Basic B1 tier
-- **API App Service**: For the Python FastAPI backend
-- **Web App Service**: For the PHP frontend
-- **Azure SQL Server**: With authentication configured
-- **Azure SQL Database**: S1 tier, empty database ready for the application
-- **Log Analytics Workspace**: For monitoring and diagnostics
-- **Application Insights**: Connected to both App Services
-
-### 🔐 Security Configuration
-> **Note**: This environment is intentionally configured with minimal security for educational purposes
-
-- Container Registry uses Azure AD authentication
-- App Services have managed identities with ACR pull permissions
-- SQL Server allows Azure services access
-- SQL credentials are configured for educational vulnerability demonstration
-
-## 🛠️ Deployment Options
-
-### Option 1: One-Click Azure Portal Deploy
-Use the "Deploy to Azure" button above for instant deployment through the Azure Portal.
-
-### Option 2: PowerShell Script (Complete)
-Deploy infrastructure and build containers in one command:
+**Complete end-to-end deployment in one command:**
 
 ```powershell
-# Clone the repository
-git clone https://github.com/your-username/SAIF.git
+# Clone and deploy everything
+git clone https://github.com/jonathan-vella/SAIF.git
 cd SAIF
-
-# Run complete deployment
-.\scripts\Deploy-SAIF-Complete.ps1 -location "swedencentral"
+.\scripts\Deploy-SAIF-Complete.ps1
 ```
 
-### Option 3: PowerShell Script (Infrastructure Only)
-Deploy just the infrastructure:
+**✅ What this automates:**
+- ✅ Resource group creation
+- ✅ All Azure infrastructure (ACR, App Services, SQL, Monitoring)
+- ✅ Managed identities and RBAC permissions
+- ✅ Application Insights configuration
+- ✅ Container builds and pushes
+- ✅ App Service restarts and validation
+- ✅ P1v3 SKU and Always On configuration
 
+**⏱️ Total time:** ~15-20 minutes
+
+### Option 2: Deploy to Azure Button + Container Build
+
+For Azure Portal enthusiasts:
+
+**Step 1:** Deploy infrastructure via Azure Portal
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjonathan-vella%2FSAIF%2Fmain%2Finfra%2Fazuredeploy.json)
+
+**Step 2:** Build and deploy containers
 ```powershell
-.\scripts\Deploy-SAIF-Complete.ps1 -location "swedencentral" -skipContainers
+git clone https://github.com/jonathan-vella/SAIF.git
+cd SAIF
+.\scripts\Update-SAIF-Containers.ps1
 ```
 
-### Option 4: Azure CLI
-Manual deployment using Azure CLI:
+[![Visualize](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fjonathan-vella%2FSAIF%2Fmain%2Finfra%2Fazuredeploy.json)
 
-```bash
-# Create resource group
-az group create --name rg-saif-swc01 --location swedencentral
+## 📋 What Gets Deployed (Fully Automated)
 
-# Deploy infrastructure
-az deployment group create \
-  --resource-group rg-saif-swc01 \
-  --template-file infra/main.bicep \
-  --parameters location=swedencentral sqlAdminPassword="YourSecurePassword123!"
+The automated deployment creates a complete hackathon environment:
 
-# Build and push containers
-ACR_NAME=$(az deployment group show --resource-group rg-saif-swc01 --name main --query properties.outputs.acrName.value -o tsv)
-az acr build --registry $ACR_NAME --image saif/api:latest ./api
-az acr build --registry $ACR_NAME --image saif/web:latest ./web
+### 🏗️ Infrastructure (All Automated)
+- **Resource Group**: `rg-saif-swc01` (Sweden Central) or `rg-saif-gwc01` (Germany West Central)
+- **Azure Container Registry**: Standard SKU with managed identity authentication
+- **App Service Plan**: Linux Premium P1v3 tier with Always On enabled
+- **API App Service**: Python FastAPI backend with managed identity
+- **Web App Service**: PHP frontend with managed identity
+- **Azure SQL Server**: With admin authentication configured
+- **Azure SQL Database**: S1 tier, ready for application data
+- **Log Analytics Workspace**: Centralized logging and monitoring
+- **Application Insights**: Connected to both App Services with automatic instrumentation
 
-# Restart App Services
-API_APP=$(az deployment group show --resource-group rg-saif-swc01 --name main --query properties.outputs.apiAppServiceName.value -o tsv)
-WEB_APP=$(az deployment group show --resource-group rg-saif-swc01 --name main --query properties.outputs.webAppServiceName.value -o tsv)
-az webapp restart --name $API_APP --resource-group rg-saif-swc01
-az webapp restart --name $WEB_APP --resource-group rg-saif-swc01
+### 🔐 Security Configuration (All Automated)
+- **Managed Identities**: System-assigned identities for both App Services
+- **RBAC Permissions**: AcrPull roles automatically assigned to managed identities
+- **ACR Authentication**: Configured to use managed identity (no admin credentials)
+- **Application Insights**: Connection strings automatically configured
+- **SQL Authentication**: Configured for educational vulnerability demonstration
+
+### 🐳 Container Deployment (Automated via PowerShell)
+- **API Container**: Built from `./api` and pushed as `saif/api:latest`
+- **Web Container**: Built from `./web` and pushed as `saif/web:latest`
+- **App Service Configuration**: Containers automatically configured and started
+
+## 🛠️ Available Scripts
+
+### Primary Deployment Scripts
+
+| Script | Purpose | Automation Level |
+|--------|---------|------------------|
+| **`Deploy-SAIF-Complete.ps1`** | Full deployment including containers | 🟢 **100% Automated** |
+| **`Update-SAIF-Containers.ps1`** | Update containers only | 🟢 **100% Automated** |
+
+### Script Examples
+
+**Complete deployment:**
+```powershell
+# Deploy everything to Sweden Central
+.\scripts\Deploy-SAIF-Complete.ps1
+
+# Deploy to Germany West Central
+.\scripts\Deploy-SAIF-Complete.ps1 -location "germanywestcentral"
+
+# Deploy infrastructure only (skip containers)
+.\scripts\Deploy-SAIF-Complete.ps1 -skipContainers
+```
+
+**Container updates only:**
+```powershell
+# Update both containers
+.\scripts\Update-SAIF-Containers.ps1
+
+# Update only API container
+.\scripts\Update-SAIF-Containers.ps1 -buildApi
+
+# Update only Web container  
+.\scripts\Update-SAIF-Containers.ps1 -buildWeb
+
+# Deploy to different region
+.\scripts\Update-SAIF-Containers.ps1 -location "germanywestcentral"
 ```
 
 ## 🔄 Container Updates
 
-After making changes to your application code, update just the containers:
+After making changes to your application code, update containers easily:
 
 ```powershell
 # Update both containers
@@ -95,6 +122,12 @@ After making changes to your application code, update just the containers:
 .\scripts\Update-SAIF-Containers.ps1 -buildWeb
 ```
 
+**What this automates:**
+- ✅ Builds containers from source code
+- ✅ Pushes to Azure Container Registry
+- ✅ Restarts App Services to pull new images
+- ✅ Validates deployment
+
 ## 📍 Deployment Regions
 
 Choose from supported regions:
@@ -103,22 +136,23 @@ Choose from supported regions:
 
 ## 🔧 Prerequisites
 
-### For One-Click Deploy:
-- Azure subscription with Contributor access
-- Browser access to Azure Portal
+### For PowerShell Automation (Recommended):
+- ✅ Azure CLI installed and logged in (`az login`)
+- ✅ PowerShell 5.1+ or PowerShell Core 7+
+- ✅ Docker (for container builds)
+- ✅ Git (for repository cloning)
 
-### For PowerShell Scripts:
-- Azure CLI installed and logged in (`az login`)
-- PowerShell 5.1 or PowerShell Core 7+
-- Docker (for local testing)
+### For Deploy to Azure Button:
+- ✅ Azure subscription with Contributor access
+- ✅ Browser access to Azure Portal
+- ✅ PowerShell + Azure CLI (for follow-up container build)
 
-### For Manual Deployment:
-- Azure CLI 2.50.0+
-- Bicep CLI (included with Azure CLI)
+### Automatic Validation:
+Both deployment methods include automatic prerequisite checking and clear error messages.
 
 ## 🎯 Post-Deployment
 
-After successful deployment, you'll receive:
+After successful deployment, you'll receive output like:
 
 ```
 🎉 SAIF Deployment Complete!
@@ -127,19 +161,18 @@ API URL: https://app-saif-api-axxq5b.azurewebsites.net
 Web URL: https://app-saif-web-axxq5b.azurewebsites.net
 ```
 
-### Access Your Application
-1. **Web Interface**: Visit the Web URL to access the diagnostic dashboard
+### ✅ Automatic Configuration Verification
+- **Managed Identity Authentication**: ✅ Configured
+- **Container Registry Access**: ✅ Verified
+- **Application Insights**: ✅ Connected
+- **Always On**: ✅ Enabled
+- **P1v3 Performance Tier**: ✅ Configured
+
+### 🌐 Access Your Application
+1. **Web Interface**: Visit the Web URL for the diagnostic dashboard
 2. **API Documentation**: Visit `{API_URL}/docs` for interactive API documentation
-3. **Database**: SQL Server is accessible from the App Services using the configured credentials
-
-### Verify Deployment
-```powershell
-# Test API health
-Invoke-RestMethod -Uri "https://your-api-url.azurewebsites.net/health"
-
-# Check App Service logs
-az webapp log tail --name your-api-app --resource-group rg-saif-swc01
-```
+3. **Monitoring**: Application Insights automatically collects telemetry
+4. **Database**: SQL Server accessible from App Services with pre-configured credentials
 
 ## 📊 Monitoring
 

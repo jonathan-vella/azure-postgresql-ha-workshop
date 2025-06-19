@@ -11,18 +11,27 @@ A 3-tier diagnostic application designed for hands-on learning about securing AI
 
 ## 🚀 Quick Deploy
 
-Deploy to Azure with one click:
+Deploy SAIF to Azure with **complete automation** - true 1-click deployment:
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyour-username%2FSAIF%2Fmain%2Finfra%2Fazuredeploy.json)
-
-Or use PowerShell for complete deployment including containers:
+### Option 1: PowerShell Script (Recommended - Fully Automated)
 ```powershell
-git clone https://github.com/your-username/SAIF.git
-cd SAIF
-.\scripts\Deploy-SAIF-Complete.ps1
+git clone https://github.com/jonathan-vella/SAIF.git
+cd SAIF\scripts
+.\Deploy-SAIF-Complete.ps1
+```
+**✅ Includes:** Infrastructure + Container builds + App configuration + Monitoring setup
+
+### Option 2: Deploy to Azure Button (Infrastructure Only)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjonathan-vella%2FSAIF%2Fmain%2Finfra%2Fazuredeploy.json)
+
+After infrastructure deployment, complete setup:
+```powershell
+git clone https://github.com/jonathan-vella/SAIF.git
+cd SAIF\scripts
+.\Update-SAIF-Containers.ps1 -ResourceGroupName "your-rg-name"
 ```
 
-📖 **[Full Deployment Guide](DEPLOY.md)**
+📖 **[Complete Deployment Guide](DEPLOY.md)**
 
 ## Project Overview
 
@@ -81,37 +90,27 @@ When deployed to Azure, the application can use:
 
 ### Local Development
 
-Run SAIF locally using Docker for testing:
+Run SAIF locally using Docker Compose:
 
-```powershell
-cd scripts
-.\Test-SAIFLocal.ps1
+```bash
+docker-compose up
+# Access at http://localhost:8080
 ```
 
 ### Azure Deployment
 
-SAIF can be deployed to Azure App Service (B1) with a single command:
+SAIF features **true 1-click deployment** with complete automation:
 
+**Fully Automated (Recommended):**
 ```powershell
-cd scripts
-.\Deploy-SAIF.ps1
+.\scripts\Deploy-SAIF-Complete.ps1
 ```
 
-By default, deployment uses Sweden Central region (`swedencentral`) with resource group name `rg-saif-swc01`. For Germany West Central, use:
+**Infrastructure + Manual Container Build:**
+1. Use Deploy to Azure button (see above)
+2. Run `.\scripts\Update-SAIF-Containers.ps1` to build and deploy containers
 
-```powershell
-cd scripts
-.\Deploy-SAIF.ps1 -location germanywestcentral
-```
-
-For a custom deployment:
-
-```powershell
-cd scripts
-.\Deploy-SAIF.ps1 -resourceGroupName "my-custom-rg" -location "germanywestcentral" -environmentName "saif-prod"
-```
-
-For detailed deployment instructions, see the [Deployment Guide](docs/deployment.md).
+For detailed deployment instructions, see [DEPLOY.md](DEPLOY.md).
 
 ## Security Challenges
 
@@ -141,18 +140,24 @@ graph TD
     Root --> Scripts[/scripts]
     Root --> Docs[/docs]
     Root --> DockerCompose[docker-compose.yml]
+    Root --> DeployMD[DEPLOY.md]
+    Root --> ReadmeMD[README.md]
     
     API --> APICode[Python FastAPI Code]
+    API --> APIDockerfile[Dockerfile]
     API --> Requirements[requirements.txt]
     
     Web --> WebCode[PHP Frontend]
+    Web --> WebDockerfile[Dockerfile]
     Web --> Assets[/assets]
     
-    Infra --> BicepTemplates[Bicep Templates]
-    Infra --> Modules[/modules]
+    Infra --> MainBicep[main.bicep]
+    Infra --> AzureDeploy[azuredeploy.json]
+    Infra --> Parameters[*.parameters.json]
+    Infra --> Metadata[metadata.json]
     
-    Scripts --> DeployScript[Deploy-SAIF.ps1]
-    Scripts --> TestScript[Test-SAIFLocal.ps1]
+    Scripts --> DeployComplete[Deploy-SAIF-Complete.ps1]
+    Scripts --> UpdateContainers[Update-SAIF-Containers.ps1]
     
     Docs --> DeploymentDoc[deployment.md]
     Docs --> SecurityDoc[security-challenges.md]
@@ -161,18 +166,26 @@ graph TD
     classDef file fill:#78b2f2,stroke:#333,color:black;
     classDef component fill:#91ca76,stroke:#333,color:black;
     
-    class API,Web,Infra,Scripts,Docs,Modules folder;
-    class DockerCompose,Requirements,DeployScript,TestScript,DeploymentDoc,SecurityDoc file;
-    class APICode,WebCode,Assets,BicepTemplates component;
+    class API,Web,Infra,Scripts,Docs,Assets folder;
+    class DockerCompose,Requirements,DeployMD,ReadmeMD,APIDockerfile,WebDockerfile,MainBicep,AzureDeploy,Parameters,Metadata,DeployComplete,UpdateContainers,DeploymentDoc,SecurityDoc file;
+    class APICode,WebCode component;
 ```
 
-- `/api`: Python FastAPI backend
-- `/web`: PHP web frontend
-- `/infra`: Bicep infrastructure templates
-  - `/modules`: Modular Bicep components
-- `/scripts`: PowerShell deployment and utility scripts
-- `/docs`: Documentation and guides
-- `docker-compose.yml`: Local development configuration
+### Key Components
+
+- **`/api`**: Python FastAPI backend with containerization
+- **`/web`**: PHP web frontend with containerization  
+- **`/infra`**: Complete Azure infrastructure as code
+  - `main.bicep`: Main Bicep template with full automation
+  - `azuredeploy.json`: ARM template for Deploy to Azure button
+  - `*.parameters.json`: Parameter files for different environments
+  - `metadata.json`: Azure QuickStart template metadata
+- **`/scripts`**: Fully automated PowerShell deployment scripts
+  - `Deploy-SAIF-Complete.ps1`: End-to-end automated deployment
+  - `Update-SAIF-Containers.ps1`: Container build and deployment updates
+- **`/docs`**: Comprehensive documentation and guides
+- **`docker-compose.yml`**: Local development environment
+- **`DEPLOY.md`**: Complete deployment guide with automation details
 
 ## Prerequisites
 
