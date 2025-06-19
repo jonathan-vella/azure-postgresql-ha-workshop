@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.1.42791",
-      "templateHash": "9888565908896799702"
+      "templateHash": "16544801656142913848"
     },
     "name": "SAIF Infrastructure",
     "description": "Deploys the infrastructure for SAIF (Secure AI Foundations) hackathon",
@@ -151,8 +151,8 @@
       "location": "[parameters('location')]",
       "tags": "[variables('defaultTags')]",
       "sku": {
-        "name": "P1v3",
-        "tier": "PremiumV3"
+        "name": "B1",
+        "tier": "Basic"
       },
       "kind": "linux",
       "properties": {
@@ -172,8 +172,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "siteConfig": {
           "linuxFxVersion": "[format('DOCKER|{0}/saif/api:latest', reference(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-07-01').loginServer)]",
-          "alwaysOn": true,
-          "acrUseManagedIdentityCreds": true,
+          "alwaysOn": false,
           "appSettings": [
             {
               "name": "SQL_SERVER",
@@ -194,6 +193,10 @@
             {
               "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "DOCKER_REGISTRY_SERVER_URL",
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-07-01').loginServer)]"
             }
           ]
         },
@@ -219,8 +222,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "siteConfig": {
           "linuxFxVersion": "[format('DOCKER|{0}/saif/web:latest', reference(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-07-01').loginServer)]",
-          "alwaysOn": true,
-          "acrUseManagedIdentityCreds": true,
+          "alwaysOn": false,
           "appSettings": [
             {
               "name": "API_URL",
@@ -229,6 +231,10 @@
             {
               "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "DOCKER_REGISTRY_SERVER_URL",
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-07-01').loginServer)]"
             }
           ]
         },

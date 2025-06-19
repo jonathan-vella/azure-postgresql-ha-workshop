@@ -1,0 +1,12 @@
+{
+  "$schema": "https://aka.ms/azure-quickstart-templates-metadata-schema#",
+  "type": "QuickStart",
+  "itemDisplayName": "SAIF (Secure AI Foundations) Hackathon Environment",
+  "description": "Deploys a complete hackathon environment for security training including App Services, Container Registry, SQL Database, and monitoring.",
+  "summary": "One-click deployment of SAIF hackathon infrastructure for security training",
+  "githubUsername": "jonathan-vella",
+  "dateUpdated": "2025-06-19",
+  "environments": [
+    "AzureCloud"
+  ]
+}

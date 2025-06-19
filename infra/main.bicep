@@ -125,8 +125,8 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   location: location
   tags: defaultTags
   sku: {
-    name: 'B1'
-    tier: 'Basic'
+    name: 'P1v3'
+    tier: 'PremiumV3'
   }
   kind: 'linux'
   properties: {
@@ -146,7 +146,8 @@ resource apiAppService 'Microsoft.Web/sites@2023-01-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: 'DOCKER|${acr.properties.loginServer}/saif/api:latest'
-      alwaysOn: false
+      alwaysOn: true
+      acrUseManagedIdentityCreds: true
       appSettings: [
         {
           name: 'SQL_SERVER'
@@ -168,10 +169,6 @@ resource apiAppService 'Microsoft.Web/sites@2023-01-01' = {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: appInsights.properties.ConnectionString
         }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_URL'
-          value: 'https://${acr.properties.loginServer}'
-        }
       ]
     }
     httpsOnly: true
@@ -190,7 +187,8 @@ resource webAppService 'Microsoft.Web/sites@2023-01-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: 'DOCKER|${acr.properties.loginServer}/saif/web:latest'
-      alwaysOn: false
+      alwaysOn: true
+      acrUseManagedIdentityCreds: true
       appSettings: [
         {
           name: 'API_URL'
@@ -198,12 +196,7 @@ resource webAppService 'Microsoft.Web/sites@2023-01-01' = {
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsights.properties.ConnectionString
-        }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_URL'
-          value: 'https://${acr.properties.loginServer}'
-        }
+          value: appInsights.properties.ConnectionString        }
       ]
     }
     httpsOnly: true

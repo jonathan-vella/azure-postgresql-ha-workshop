@@ -9,6 +9,21 @@
 
 A 3-tier diagnostic application designed for hands-on learning about securing AI systems across identity, network, application, and content safety domains.
 
+## 🚀 Quick Deploy
+
+Deploy to Azure with one click:
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyour-username%2FSAIF%2Fmain%2Finfra%2Fazuredeploy.json)
+
+Or use PowerShell for complete deployment including containers:
+```powershell
+git clone https://github.com/your-username/SAIF.git
+cd SAIF
+.\scripts\Deploy-SAIF-Complete.ps1
+```
+
+📖 **[Full Deployment Guide](DEPLOY.md)**
+
 ## Project Overview
 
 ![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)
