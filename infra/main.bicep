@@ -114,37 +114,36 @@ module appServicePlan 'modules/appServicePlan.bicep' = {
 // Create API App Service
 module apiAppService 'modules/appService.bicep' = {
   name: 'apiAppService'
-  params: {    appServiceName: apiAppServiceName
-    location: location
-    appServicePlanId: appServicePlan.outputs.appServicePlanId
-    enableManagedIdentity: true
-    containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest'
-    containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
+  params: {
+    appServiceName: apiAppServiceName,
+    location: location,
+    appServicePlanId: appServicePlan.outputs.appServicePlanId,
+    enableManagedIdentity: true,
+    containerImage: '${containerRegistry.outputs.loginServer}/saif/api:latest',
+    containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}',
     containerRegistryUsername: 'apiAppService'  // Will be set after deployment by the script
-    containerRegistryPassword: 'placeholder'    // Will be set after deployment by the script
-    environmentVariables: [      
+    containerRegistryPassword: 'placeholder'    // Will be set after deployment by the script    environmentVariables: [      
       {
-        name: 'SQL_SERVER'
+        name: 'SQL_SERVER',
         value: sqlDatabase.outputs.sqlServerFqdn
-      }
+      },
       {
-        name: 'SQL_DATABASE'
+        name: 'SQL_DATABASE',
         value: sqlDatabase.outputs.sqlDatabaseName
-      }
+      },
       {
-        name: 'SQL_USERNAME'
+        name: 'SQL_USERNAME',
         value: sqlAdminLogin
       }
-      {
-        name: 'SQL_PASSWORD'
+      {        name: 'SQL_PASSWORD',
         value: '@Microsoft.KeyVault(SecretUri=${keyVault.outputs.keyVaultUri}secrets/sql-password/)'  // Key Vault reference
-      }
+      },
       {
-        name: 'API_KEY'
+        name: 'API_KEY',
         value: 'insecure_api_key_12345'  // Deliberately insecure
-      }
+      },
       {
-        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING',
         value: monitoring.outputs.appInsightsConnectionString
       }
     ]
@@ -156,24 +155,24 @@ module apiAppService 'modules/appService.bicep' = {
 module webAppService 'modules/appService.bicep' = {
   name: 'webAppService'
   params: {
-    appServiceName: webAppServiceName
-    location: location    appServicePlanId: appServicePlan.outputs.appServicePlanId
-    enableManagedIdentity: true
-    containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest'
-    containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}'
+    appServiceName: webAppServiceName,
+    location: location,
+    appServicePlanId: appServicePlan.outputs.appServicePlanId,
+    enableManagedIdentity: true,
+    containerImage: '${containerRegistry.outputs.loginServer}/saif/web:latest',
+    containerRegistryUrl: 'https://${containerRegistry.outputs.loginServer}',
     containerRegistryUsername: 'webAppService'  // Will be set after deployment by the script
-    containerRegistryPassword: 'placeholder'    // Will be set after deployment by the script
-    environmentVariables: [
+    containerRegistryPassword: 'placeholder'    // Will be set after deployment by the script    environmentVariables: [
       {
-        name: 'API_URL'
+        name: 'API_URL',
         value: 'https://${apiAppService.outputs.defaultHostname}'
-      }
+      },
       {
-        name: 'API_KEY'
+        name: 'API_KEY',
         value: 'insecure_api_key_12345'  // Deliberately insecure
-      }
+      },
       {
-        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING',
         value: monitoring.outputs.appInsightsConnectionString
       }
     ]
@@ -185,9 +184,8 @@ module webAppService 'modules/appService.bicep' = {
 module keyVaultAccess 'modules/keyVaultAccess.bicep' = {
   name: 'keyVaultAccess'
   params: {
-    keyVaultName: keyVaultName
-    secretUserPrincipalIds: [
-      apiAppService.outputs.principalId
+    keyVaultName: keyVaultName    secretUserPrincipalIds: [
+      apiAppService.outputs.principalId,
       webAppService.outputs.principalId
     ]
   }
