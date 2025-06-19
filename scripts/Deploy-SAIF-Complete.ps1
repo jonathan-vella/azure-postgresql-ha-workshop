@@ -162,9 +162,11 @@ if ($rgExists -eq "false") {
     Write-Host "✅ Resource group exists: $resourceGroupName" -ForegroundColor Green
     
     # Check for existing resources
+    Write-Host "Checking for existing resources..." -ForegroundColor Yellow
     try {
-        $resourceList = az resource list --resource-group $resourceGroupName --query "length(@)" -o tsv
-        $existingResources = [int]$resourceList
+        $resourceListJson = az resource list --resource-group $resourceGroupName --output json
+        $resourceArray = $resourceListJson | ConvertFrom-Json
+        $existingResources = $resourceArray.Count
     } catch {
         Write-Host "⚠️  Unable to check existing resources, continuing..." -ForegroundColor Yellow
         $existingResources = 0
@@ -206,11 +208,12 @@ if ($sqlPasswordText.Length -lt 12) {
 
 # Deploy infrastructure
 Write-Host "🚀 Deploying infrastructure..." -ForegroundColor Green
+$deploymentName = "main-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 $deploymentResult = az deployment group create `
     --resource-group $resourceGroupName `
-    --template-file "infra/main.bicep" `
+    --template-file "../infra/main.bicep" `
     --parameters location=$location sqlAdminPassword=$sqlPasswordText `
-    --name "main-$(Get-Date -Format 'yyyyMMdd-HHmmss')" `
+    --name $deploymentName `
     --query "properties.provisioningState" -o tsv
 
 if ($deploymentResult -ne "Succeeded") {
@@ -221,12 +224,19 @@ if ($deploymentResult -ne "Succeeded") {
 Write-Host "✅ Infrastructure deployed successfully!" -ForegroundColor Green
 
 # Get deployment outputs
-$outputs = az deployment group show --resource-group $resourceGroupName --name main --query properties.outputs -o json | ConvertFrom-Json
-$acrName = $outputs.acrName.value
-$apiAppName = $outputs.apiAppServiceName.value
-$webAppName = $outputs.webAppServiceName.value
-$apiUrl = $outputs.apiUrl.value
-$webUrl = $outputs.webUrl.value
+Write-Host "Retrieving deployment outputs..." -ForegroundColor Yellow
+try {
+    $outputs = az deployment group show --resource-group $resourceGroupName --name $deploymentName --query properties.outputs -o json | ConvertFrom-Json
+    $acrName = $outputs.acrName.value
+    $apiAppName = $outputs.apiAppServiceName.value
+    $webAppName = $outputs.webAppServiceName.value
+    $apiUrl = $outputs.apiUrl.value
+    $webUrl = $outputs.webUrl.value
+} catch {
+    Write-Host "❌ Failed to retrieve deployment outputs" -ForegroundColor Red
+    Write-Host "Deployment name: $deploymentName" -ForegroundColor Gray
+    exit 1
+}
 
 Write-Host ""
 Write-Host "📊 Deployment Outputs:" -ForegroundColor Cyan
@@ -236,12 +246,20 @@ Write-Host "  Web App: $webAppName" -ForegroundColor White
 Write-Host "  API URL: $apiUrl" -ForegroundColor White
 Write-Host "  Web URL: $webUrl" -ForegroundColor White
 
+# Validate required outputs for container build
+if (-not $skipContainers) {
+    if ([string]::IsNullOrWhiteSpace($acrName)) {
+        Write-Host "❌ ACR name not found in deployment outputs" -ForegroundColor Red
+        Write-Host "Skipping container build..." -ForegroundColor Yellow
+        $skipContainers = $true
+    }
+}
+
 # Step 2: Container Build and Deployment
 if (-not $skipContainers) {
     Show-Banner "Step 2: Container Build & Deployment"
-    
-    Write-Host "🔨 Building and pushing API container..." -ForegroundColor Green
-    az acr build --registry $acrName --image saif/api:latest ./api
+      Write-Host "🔨 Building and pushing API container..." -ForegroundColor Green
+    az acr build --registry $acrName --image saif/api:latest ../api
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ API container built and pushed" -ForegroundColor Green
@@ -251,7 +269,7 @@ if (-not $skipContainers) {
     }
     
     Write-Host "🔨 Building and pushing Web container..." -ForegroundColor Green
-    az acr build --registry $acrName --image saif/web:latest ./web
+    az acr build --registry $acrName --image saif/web:latest ../web
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Web container built and pushed" -ForegroundColor Green
