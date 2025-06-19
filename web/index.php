@@ -707,19 +707,19 @@ $version = "1.0.0";
                     <div class="col-md-3">
                         <h6 class="footer-heading">Resources</h6>
                         <ul class="footer-links list-unstyled">
-                            <li><a href="#" class="footer-link">Documentation</a></li>
-                            <li><a href="#" class="footer-link">Security Guide</a></li>
-                            <li><a href="#" class="footer-link">API Reference</a></li>
-                            <li><a href="#" class="footer-link">GitHub Repository</a></li>
+                            <li><a href="https://learn.microsoft.com" class="footer-link">Documentation</a></li>
+                            <li><a href="https://learn.microsoft.com/en-us/azure/security/fundamentals/best-practices-and-patterns" class="footer-link">Security Guide</a></li>
+                            <li><a href="https://github.com/jonathan-vella/SAIF/tree/main/api" class="footer-link">API Reference</a></li>
+                            <li><a href="https://github.com/jonathan-vella/SAIF" class="footer-link">GitHub Repository</a></li>
                         </ul>
                     </div>
                     
                     <div class="col-md-2">
                         <h6 class="footer-heading">Connect</h6>
                         <div class="social-links">
-                            <a href="#" class="social-link" title="GitHub"><i class="bi bi-github"></i></a>
+                            <a href="https://github.com/jonathan-vella" class="social-link" title="GitHub"><i class="bi bi-github"></i></a>
                             <a href="#" class="social-link" title="Twitter"><i class="bi bi-twitter-x"></i></a>
-                            <a href="#" class="social-link" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                            <a href="https://www.linkedin.com/in/jonathanvella/" class="social-link" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
                         </div>
                     </div>
                 </div>
