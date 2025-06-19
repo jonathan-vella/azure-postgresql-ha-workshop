@@ -134,38 +134,48 @@ This application contains multiple security vulnerabilities for students to iden
 
 ```mermaid```mermaid
 graph TD
-    Root[SAIF Repository] --> API[/api]
-    Root --> Web[/web]
-    Root --> Infra[/infra]
-    Root --> Scripts[/scripts]
-    Root --> Docs[/docs]
-    Root --> DockerCompose[docker-compose.yml]
-    Root --> DeployMD[DEPLOY.md]
-    Root --> ReadmeMD[README.md]
+    title(SAIF Repository Structure)
     
-    API --> APICode[Python FastAPI Code]
-    API --> APIDockerfile[Dockerfile]
-    API --> Requirements[requirements.txt]
+    %% Root structure
+    Root(SAIF Repository) --> API(/api)
+    Root --> Web(/web)
+    Root --> Infra(/infra)
+    Root --> Scripts(/scripts)
+    Root --> Docs(/docs)
+    Root --> DockerCompose(docker-compose.yml)
+    Root --> DeployMD(DEPLOY.md)
+    Root --> ReadmeMD(README.md)
     
-    Web --> WebCode[PHP Frontend]
-    Web --> WebDockerfile[Dockerfile]
-    Web --> Assets[/assets]
+    %% API structure
+    API --> APICode(Python FastAPI Code)
+    API --> APIDockerfile(Dockerfile)
+    API --> Requirements(requirements.txt)
     
-    Infra --> MainBicep[main.bicep]
-    Infra --> AzureDeploy[azuredeploy.json]
-    Infra --> Parameters[*.parameters.json]
-    Infra --> Metadata[metadata.json]
+    %% Web structure
+    Web --> WebCode(PHP Frontend)
+    Web --> WebDockerfile(Dockerfile)
+    Web --> Assets(/assets)
     
-    Scripts --> DeployComplete[Deploy-SAIF-Complete.ps1]
-    Scripts --> UpdateContainers[Update-SAIF-Containers.ps1]
+    %% Infra structure
+    Infra --> MainBicep(main.bicep)
+    Infra --> AzureDeploy(azuredeploy.json)
+    Infra --> Parameters(*.parameters.json)
+    Infra --> Metadata(metadata.json)
     
-    Docs --> DeploymentDoc[deployment.md]
-    Docs --> SecurityDoc[security-challenges.md]
+    %% Scripts structure
+    Scripts --> DeployComplete(Deploy-SAIF-Complete.ps1)
+    Scripts --> UpdateContainers(Update-SAIF-Containers.ps1)
     
+    %% Docs structure
+    Docs --> DeploymentDoc(deployment.md)
+    Docs --> SecurityDoc(security-challenges.md)
+    
+    %% Styling
     classDef folder fill:#f9d75e,stroke:#333,color:black;
     classDef file fill:#78b2f2,stroke:#333,color:black;
     classDef component fill:#91ca76,stroke:#333,color:black;
     
+    %% Apply classes
     class API,Web,Infra,Scripts,Docs,Assets folder;
     class DockerCompose,Requirements,DeployMD,ReadmeMD,APIDockerfile,WebDockerfile,MainBicep,AzureDeploy,Parameters,Metadata,DeployComplete,UpdateContainers,DeploymentDoc,SecurityDoc file;
     class APICode,WebCode component;
