@@ -9,7 +9,12 @@
 
 A 3-tier diagnostic application designed for hands-on learning about securing AI systems across identity, network, application, and content safety domains.
 
-## 🚀 Quick Deploy
+## � SAIF in Action
+
+![SAIF Landing Page](assets/images/saif-landing-page.png)
+*SAIF's interactive diagnostic dashboard with security assessment tools*
+
+## �🚀 Quick Deploy
 
 Deploy SAIF to Azure with **complete automation** - true 1-click deployment:
 
