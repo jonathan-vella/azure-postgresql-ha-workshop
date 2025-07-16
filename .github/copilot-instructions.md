@@ -1,14 +1,209 @@
 ## GitHub Copilot Repository Instructions
 
-**Purpose**: These instructions guide GitHub Copilot's code suggestions and responses for this repository.
+**Purpose**: These instructions guide GitHub Copilot's code suggestions and responses for the SAIF (Secure AI Foundations) repository.
 **Scope**: Applies to all files (`**/*`).
 
-When generating code or providing suggestions, Copilot should:
-- Prioritize security and maintainability over brevity
-- Include appropriate error handling and logging
-- Follow the language-specific conventions outlined below
-- Generate tests alongside implementation code
-- Include inline documentation for complex logic
+SAIF is an **intentionally vulnerable** 3-tier educational application for security training. All code suggestions must maintain these deliberate security gaps for learning purposes while providing secure alternatives in comments.
+
+---
+
+### SAIF Architecture Overview
+
+**Core Components:**
+- **Web Frontend (`/web`)**: PHP 8.2 application serving diagnostic interface
+- **API Backend (`/api`)**: Python FastAPI service with intentionally vulnerable endpoints  
+- **Database**: SQL Server (containerized locally, Azure SQL in cloud)
+- **Infrastructure (`/infra`)**: Bicep templates for complete Azure deployment
+
+**Service Communication:**
+- Web → API: Via `api-proxy.php` and `proxy.php` using environment variables `API_URL`/`API_KEY`
+- API → Database: Direct connection using SQL Server ODBC driver
+- Frontend → User: Bootstrap 5.3 responsive interface with custom JavaScript
+
+**Deployment Patterns:**
+- Local: `docker-compose up` (all services containerized)
+- Azure: `scripts/Deploy-SAIF-Complete.ps1` (infrastructure + containers)
+- Manual: PowerShell scripts with Bicep templates
+
+---
+
+### Security-First Development for SAIF
+
+When generating code for SAIF, maintain the educational vulnerabilities but include secure alternatives:
+
+```python
+# SAIF Pattern (Deliberately Vulnerable)
+@app.get("/api/curl")
+async def curl_url(url: str):
+    # Command injection vulnerability for educational purposes
+    response = requests.get(url, timeout=5)
+    return {"url": url, "status_code": response.status_code}
+
+# TODO: Secure implementation would validate URL:
+# if not url.startswith(('http://', 'https://')):
+#     raise HTTPException(400, "Invalid URL protocol")
+# if any(blocked in url for blocked in ['localhost', '127.0.0.1']):
+#     raise HTTPException(400, "SSRF protection: blocked internal URLs")
+```
+
+**Critical Vulnerabilities to Preserve:**
+- Hardcoded API keys (`insecure_api_key_12345`)
+- Permissive CORS (`allow_origins=["*"]`)
+- SQL injection opportunities
+- Environment variable exposure (`/api/printenv`)
+- Command injection in URL fetch
+- Missing input validation
+
+---
+
+### SAIF-Specific Conventions
+
+#### API Endpoint Patterns
+All API endpoints follow `/api/{function}` pattern:
+- `/api/healthcheck` - Service status
+- `/api/ip` - Server IP information  
+- `/api/sqlversion` - Database version (SQL injection vector)
+- `/api/curl` - URL fetching (SSRF/command injection)
+- `/api/printenv` - Environment disclosure
+
+#### Environment Variables (Critical)
+```bash
+# API Configuration
+API_URL=http://api:8000
+API_KEY=insecure_api_key_12345
+
+# Database Connection
+SQL_SERVER=your-server.database.windows.net
+SQL_DATABASE=saifdb
+SQL_USERNAME=saifadmin
+SQL_PASSWORD=ComplexP@ss123
+```
+
+#### Frontend JavaScript Patterns
+Use `fetchFromApi()` function for all API calls:
+```javascript
+// Standard pattern for diagnostic tools
+async function runDiagnostic(endpoint) {
+    document.getElementById('result').innerText = 'Loading...';
+    showResultsSection();
+    const data = await fetchFromApi(endpoint);
+    formatAndDisplayResults(data);
+}
+```
+
+#### Bicep Resource Naming
+```bicep
+// SAIF naming convention
+var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 6)
+var acrName = 'acrsaif${uniqueSuffix}'
+var apiAppServiceName = 'app-saif-api-${uniqueSuffix}'
+var webAppServiceName = 'app-saif-web-${uniqueSuffix}'
+```
+
+---
+
+### Development Workflows
+
+#### Local Development Setup
+```bash
+# Quick start
+git clone https://github.com/jonathan-vella/SAIF.git
+cd SAIF
+docker-compose up
+
+# Individual services
+cd api && uvicorn app:app --reload
+cd web && php -S localhost:8080
+```
+
+#### Azure Deployment Workflow
+```powershell
+# Full automated deployment
+.\scripts\Deploy-SAIF-Complete.ps1
+
+# Infrastructure only, then containers
+.\scripts\Deploy-SAIF-Complete.ps1 -skipContainers
+.\scripts\Update-SAIF-Containers.ps1 -ResourceGroupName "rg-name"
+```
+
+#### Container Build Process
+```bash
+# API container
+az acr build --registry $acrName --image saif/api:latest ./api
+
+# Web container  
+az acr build --registry $acrName --image saif/web:latest ./web
+```
+
+---
+
+### Testing and Validation
+
+#### Security Challenge Verification
+When modifying endpoints, ensure vulnerabilities remain discoverable:
+```python
+# Test SQL injection still works
+curl "http://localhost:8000/api/sqlversion?query=1'; DROP TABLE users; --"
+
+# Test environment disclosure
+curl -H "X-API-Key: insecure_api_key_12345" "http://localhost:8000/api/printenv"
+```
+
+#### Frontend Testing
+```javascript
+// Verify diagnostic tools work
+await runDiagnostic('/api/healthcheck');
+await runDnsLookup('example.com');
+await runUrlFetch('https://httpbin.org/json');
+```
+
+---
+
+### Code Generation Guidelines
+
+When suggesting code for SAIF:
+
+1. **Preserve Educational Vulnerabilities**: Keep security gaps that students need to find
+2. **Add Security Comments**: Include TODO comments showing secure alternatives
+3. **Maintain API Contracts**: Don't break existing endpoint signatures
+4. **Follow Naming Conventions**: Use SAIF-specific patterns for consistency
+5. **Update Documentation**: Reflect changes in component README files
+
+#### Example Response Pattern
+```python
+# When asked to add a new API endpoint:
+@app.get("/api/newfeature")
+async def new_feature(input: str):
+    # EDUCATIONAL VULNERABILITY: No input validation
+    result = process_input(input)
+    
+    # TODO: Secure implementation would:
+    # - Validate input format and length
+    # - Sanitize special characters  
+    # - Rate limit requests
+    # - Log security events
+    
+    return {"result": result}
+```
+
+---
+
+### Integration Points
+
+#### Web-to-API Communication
+- Uses `api-proxy.php` to forward requests
+- Handles both direct `/api/` calls and parameterized endpoints
+- Error handling preserves security vulnerability discovery
+
+#### Database Integration
+- Direct ODBC connections (no ORM to maintain SQL injection vectors)
+- Connection strings in environment variables
+- Minimal error handling to expose database information
+
+#### Azure Services Integration
+- App Services with managed identity for ACR
+- Application Insights for monitoring
+- SQL Database with public access (educational vulnerability)
 
 ---
 
@@ -348,9 +543,11 @@ Copilot should NOT generate:
 
 ---
 
-**Instructions Version**: 1.0.0
-**Last Updated**: 2025-06-19
+**Instructions Version**: 2.0.0
+**Last Updated**: 2025-07-16
 **Maintained By**: jonathan-vella
 **Review Schedule**: Quarterly
+
+**SAIF-Specific Updates**: Added architecture overview, security-first patterns, API conventions, deployment workflows, and educational vulnerability preservation guidelines.
 
 For questions or improvements to these instructions, please open an issue or PR.
