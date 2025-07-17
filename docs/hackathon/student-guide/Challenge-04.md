@@ -8,6 +8,10 @@ title: Baseline Network Deployment – Implementing Zero Trust Architecture
 ---
 
 # Challenge 04: Baseline Network Deployment – Implementing Zero Trust Architecture
+# Timeline & Milestones
+| Suggested Duration | Recommended Milestones |
+|--------------------|-----------------------|
+| 2 hours            | Network deployed, security controls configured |
 
 ## Objective
 Deploy the zero trust network you designed in Challenge 03, using Azure hub-and-spoke architecture and best practices for segmentation and security controls.

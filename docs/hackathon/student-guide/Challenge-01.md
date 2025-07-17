@@ -1,4 +1,8 @@
 # Challenge 01: Mission Brief – Mapping the Security Landscape
+# Timeline & Milestones
+| Suggested Duration | Recommended Milestones |
+|--------------------|-----------------------|
+| 1 hour             | Requirements defined, rubric reviewed |
 
 ## Objective
 

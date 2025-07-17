@@ -1,4 +1,8 @@
 # Challenge 02: Guardians of Access – Designing the Identity Fortress
+# Timeline & Milestones
+| Suggested Duration | Recommended Milestones |
+|--------------------|-----------------------|
+| 1.5 hours          | Identity gaps identified, plan drafted |
 
 ## Objective
 

@@ -48,4 +48,21 @@ This guide is designed for coaches supporting hackathon students in the Secure A
 
 ---
 
+
+## FAQ: Common Issues & Troubleshooting
+
+**Q: Students are unable to deploy or access Azure resources. What should I check?**
+A: Confirm students have the correct Azure permissions and are using the right subscription and region. Advise them to check error messages in Azure Portal and validate their configuration files.
+
+**Q: Teams are struggling with WAF or security controls.**
+A: Review their WAF policies and security group rules. Encourage testing with known attack patterns and reviewing logs for evidence. Provide examples if needed.
+
+**Q: Private endpoints or DNS are not working as expected.**
+A: Help students verify their Private Endpoint and DNS Zone configurations. Check NSGs, firewalls, and internal connectivity. Use Azure diagnostics and network tools for troubleshooting.
+
+**Q: How can I support students who are stuck or need help?**
+A: Refer to the facilitation steps and prompts in each coach guide. Encourage collaboration, peer review, and use of support channels. Escalate issues to hackathon organizers if needed.
+
+---
+
 For questions or support, collaborate with other coaches or refer to the student guides in this repository.

@@ -7,6 +7,10 @@ title: Implementing Private Endpoints and Private DNS Zone
 ---
 
 # Challenge 07: Implementing Private Endpoints and Private DNS Zone
+# Timeline & Milestones
+| Suggested Duration | Recommended Milestones |
+|--------------------|-----------------------|
+| 2 hours            | Private endpoints and DNS implemented, validation complete |
 
 ## Objective
 Execute your remediation plan from Challenge 06 by removing public endpoints and implementing Private DNS Zones for SAIF in Azure.

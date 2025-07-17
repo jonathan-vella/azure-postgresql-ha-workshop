@@ -7,6 +7,10 @@ title: Planning Private Endpoints and Private DNS Zone Implementation
 ---
 
 # Challenge 06: Planning Private Endpoints and Private DNS Zone Implementation
+# Timeline & Milestones
+| Suggested Duration | Recommended Milestones |
+|--------------------|-----------------------|
+| 1 hour             | Remediation plan and DNS strategy documented |
 
 ## Objective
 Develop a remediation plan to remove all public endpoints (Web, API, SQL) from SAIF and design an implementation strategy for Private DNS Zones in Azure.

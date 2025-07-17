@@ -8,6 +8,10 @@ title: Zero Trust by Design – Network Blueprint
 ---
 
 # Challenge 03: Zero Trust by Design – Network Blueprint
+# Timeline & Milestones
+| Suggested Duration | Recommended Milestones |
+|--------------------|-----------------------|
+| 2 hours            | Network diagram completed, justifications written |
 
 ## Objective
 Design a zero trust network architecture for the SAIF solution, setting the foundation for implementation in Challenge 04.

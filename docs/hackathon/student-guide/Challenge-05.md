@@ -8,6 +8,10 @@ title: Implementing a Web Application Firewall (WAF)
 ---
 
 # Challenge 05: Implementing a Web Application Firewall (WAF)
+# Timeline & Milestones
+| Suggested Duration | Recommended Milestones |
+|--------------------|-----------------------|
+| 1.5 hours          | WAF deployed, attack blocking demonstrated |
 
 ## Objective
 Deploy and configure a Web Application Firewall (WAF) for SAIF, and demonstrate its effectiveness in blocking attacks. Bonus: Implement the JavaScript challenge feature for advanced protection.
