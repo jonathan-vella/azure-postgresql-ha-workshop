@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/SAIF)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Deployment Status](https://img.shields.io/badge/deployment-ready-success.svg)](docs/deployment.md)
+[![Deployment Status](https://img.shields.io/badge/deployment-ready-success.svg)](docs/hackathon/hacker-assets/deployment.md)
 [![Security Challenges](https://img.shields.io/badge/security%20challenges-15%2B-orange.svg)](docs/security-challenges.md)
 [![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)](docker-compose.yml)
 ![GitHub stars](https://img.shields.io/github/stars/yourusername/SAIF?style=social)
@@ -188,7 +188,7 @@ graph TD
     Scripts --> TestLocal(Test-SAIFLocal.ps1)
     
     %% Docs structure
-    Docs --> DeploymentDoc(deployment.md)
+    Docs --> DeploymentDoc(hackathon/hacker-assets/deployment.md)
     Docs --> SecurityDoc(security-challenges.md)
     Docs --> InfraImprovements(infrastructure-improvements.md)
     
@@ -230,7 +230,7 @@ graph TD
   - `Update-SAIF-Containers.ps1`: Container build and deployment updates
   - `Test-SAIFLocal.ps1`: Local development testing script
 - **`/docs`**: Comprehensive documentation and guides
-  - `deployment.md`: Detailed deployment instructions
+  - `hackathon/hacker-assets/deployment.md`: Detailed deployment instructions
   - `security-challenges.md`: Security vulnerability documentation
   - `infrastructure-improvements.md`: Infrastructure enhancement details
 - **`/.github`**: GitHub configuration and templates
