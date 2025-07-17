@@ -27,6 +27,7 @@ This guide is designed for hackathon students participating in the Secure AI Fou
 | 05 | Implement a WAF | Deploy a Web Application Firewall and demonstrate attack blocking | [Challenge-05.md](./Challenge-05.md) | 1.5 hours | WAF deployed, attack blocking demonstrated |
 | 06 | Private DNS Planning | Plan to remove public endpoints and implement Private DNS Zone | [Challenge-06.md](./Challenge-06.md) | 1 hour | Remediation plan and DNS strategy documented |
 | 07 | Private DNS Implementation | Implement the plan to secure all endpoints with Private DNS | [Challenge-07.md](./Challenge-07.md) | 2 hours | Private endpoints and DNS implemented, validation complete |
+| 08 | Defender for Containers | Enhance container security posture, assess vulnerabilities, and implement runtime protection using Microsoft Defender for Containers | [Challenge-08.md](./Challenge-08.md) | 2 hours | Defender enabled, vulnerabilities assessed, threat protection validated |
 
 
 ## Getting Started
