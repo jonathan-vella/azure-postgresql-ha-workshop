@@ -304,11 +304,13 @@ Verify connection string format:
 ```
 Server=<server>.postgres.database.azure.com;
 Database=saifdb;
-Port=5432;
+Port=6432;
 User Id=saifadmin;
 Password=<password>;
 Ssl Mode=Require;
 ```
+
+**Note:** Use port `6432` for PgBouncer connection pooling (recommended), or `5432` for direct connection.
 
 #### Cause 3C: SSL/TLS Configuration
 
@@ -319,9 +321,9 @@ Ensure connection string includes `Ssl Mode=Require` or `sslmode=require`.
 
 **Verification:**
 ```powershell
-# Test connection
+# Test connection through PgBouncer (port 6432)
 docker run --rm -e PGPASSWORD="YourPassword" postgres:16-alpine \
-  psql "host=psql-saifpg-XXXXXXXX.postgres.database.azure.com port=5432 dbname=saifdb user=saifadmin sslmode=require" \
+  psql "host=psql-saifpg-XXXXXXXX.postgres.database.azure.com port=6432 dbname=saifdb user=saifadmin sslmode=require" \
   -c "SELECT version();"
 ```
 

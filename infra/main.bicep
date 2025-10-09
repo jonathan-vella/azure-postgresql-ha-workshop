@@ -282,7 +282,7 @@ resource apiAppService 'Microsoft.Web/sites@2023-12-01' = {
         }
         {
           name: 'POSTGRES_PORT'
-          value: '5432'
+          value: '6432'  // Use PgBouncer connection pooling (6432) instead of direct (5432)
         }
         {
           name: 'POSTGRES_DATABASE'

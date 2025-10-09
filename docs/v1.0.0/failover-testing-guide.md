@@ -1490,12 +1490,12 @@ docker run --rm postgres:16-alpine nslookup psql-saifpg-10081025.postgres.databa
 
 # Test with SSL disabled (troubleshooting only):
 docker run --rm -e PGPASSWORD="$dbPassword" postgres:16-alpine `
-    psql "sslmode=disable host=$serverFqdn port=5432 user=$dbUser dbname=$dbName" `
+    psql "sslmode=disable host=$serverFqdn port=6432 user=$dbUser dbname=$dbName" `
     -c "SELECT 1;"
 
-# For production, verify SSL certificate:
+# For production, verify SSL certificate (use port 6432 for PgBouncer):
 docker run --rm -e PGPASSWORD="$dbPassword" postgres:16-alpine `
-    psql "sslmode=require host=$serverFqdn port=5432 user=$dbUser dbname=$dbName" `
+    psql "sslmode=require host=$serverFqdn port=6432 user=$dbUser dbname=$dbName" `
     -c "SELECT 1;"
 ```
 

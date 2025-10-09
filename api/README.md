@@ -110,7 +110,7 @@ The API expects the following PostgreSQL schema (created by `init-db.sql`):
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `POSTGRES_HOST` | PostgreSQL server hostname | Yes |
-| `POSTGRES_PORT` | PostgreSQL port (default: 5432) | No |
+| `POSTGRES_PORT` | PostgreSQL port (5432=direct, 6432=PgBouncer, default: 5432) | No |
 | `POSTGRES_DATABASE` | Database name | Yes |
 | `POSTGRES_USER` | Database username | Yes |
 | `POSTGRES_PASSWORD` | Database password | Yes |

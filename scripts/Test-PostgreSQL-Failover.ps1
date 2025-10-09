@@ -279,8 +279,8 @@ $dbPasswordText = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
 )
 $dbName = "saifdb"
 
-# Build connection string
-$connectionString = "Host=$serverFqdn;Port=5432;Database=$dbName;Username=$dbUser;Password=$dbPasswordText;SSL Mode=Require;Trust Server Certificate=true;Timeout=10;Command Timeout=5"
+# Build connection string (use port 6432 for PgBouncer connection pooling)
+$connectionString = "Host=$serverFqdn;Port=6432;Database=$dbName;Username=$dbUser;Password=$dbPasswordText;SSL Mode=Require;Trust Server Certificate=true;Timeout=10;Command Timeout=5"
 
 # Test connection
 Write-Step "Testing connection..."
