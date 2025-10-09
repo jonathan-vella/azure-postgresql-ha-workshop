@@ -1,13 +1,41 @@
-# SAIF-PostgreSQL: High Availability Payment Gateway Demo
+# Azure PostgreSQL High Availability Workshop
+
+> **⚠️ SECURITY NOTICE**: This repository contains intentional security vulnerabilities for training purposes. DO NOT use in production!
 
 [![Documentation Version](https://img.shields.io/badge/docs-v1.0.0-blue.svg)](docs/v1.0.0/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![Azure](https://img.shields.io/badge/Azure-Zone--Redundant%20HA-0089D6.svg)](https://azure.microsoft.com/en-us/products/postgresql/)
-[![License](https://img.shields.io/badge/license-Educational%20Use-orange.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Overview
+## 🎯 Purpose
 
-SAIF-PostgreSQL is a deliberately vulnerable payment gateway application designed for security training and high availability demonstrations. This version uses **Azure Database for PostgreSQL Flexible Server** with **Zone-Redundant High Availability** to achieve:
+Hands-on workshop for learning **Azure PostgreSQL Flexible Server Zone-Redundant High Availability**, failover testing, and database security concepts through a deliberately vulnerable payment gateway application.
+
+## 📚 What You'll Learn
+
+- Deploy Zone-Redundant HA PostgreSQL Flexible Server
+- Measure RTO (Recovery Time Objective) and RPO (Recovery Point Objective)
+- Test failover scenarios with high-performance load testing (1000+ TPS capable)
+- Identify and fix common security vulnerabilities
+- Implement secure database patterns
+- Performance testing methodologies
+
+## 💰 Estimated Costs
+
+| Resource | Configuration | Estimated Cost/Hour | Monthly (730 hrs) |
+|----------|--------------|---------------------|-------------------|
+| PostgreSQL Flexible Server | 4 vCores, Zone-Redundant HA | ~$0.89/hr | ~$650 |
+| App Services | 2x Basic tier | ~$0.14/hr | ~$100 |
+| Supporting services | ACR, Key Vault, Insights | ~$0.07/hr | ~$50 |
+| **Total** | **Full workshop environment** | **~$1.10/hr** | **~$800/month** |
+
+💡 **Workshop duration: 2-4 hours** = **~$4.50 total cost**
+
+> 💸 **Cost Saving Tip**: Use `Quick-Deploy-SAIF.ps1` with `-disableHighAvailability` flag for development/testing to reduce costs by ~70% (single-zone deployment).
+
+## 🏗️ Architecture
+
+This workshop uses **Azure Database for PostgreSQL Flexible Server** with **Zone-Redundant High Availability** to achieve:
 
 - **RPO = 0** (Zero data loss)
 - **RTO = 60-120 seconds** (Automatic failover)
@@ -68,19 +96,32 @@ SAIF-PostgreSQL is a deliberately vulnerable payment gateway application designe
 - ⚠️ Permissive CORS policies
 - ⚠️ Exposed database connection strings
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
+- Azure subscription ([free trial available](https://azure.microsoft.com/free/))
 - Azure CLI installed and logged in
-- PowerShell 7+ (pwsh)
-- Docker Desktop (for local testing/database initialization)
-- Azure subscription with Contributor access
+- PowerShell 7+ or Azure Cloud Shell
+- Docker Desktop (optional, for local testing)
 
 > 📖 For detailed prerequisites and setup instructions, see the [Deployment Guide](docs/v1.0.0/deployment-guide.md).
 
-### Deployment
+### Deploy (5 minutes)
 
-#### Option 1: Deploy to Azure (Bicep)
+```powershell
+# Clone repository
+git clone https://github.com/jonathan-vella/azure-postgresql-ha-workshop.git
+cd azure-postgresql-ha-workshop
+
+# Deploy infrastructure
+./scripts/Deploy-SAIF-PostgreSQL.ps1 -location swedencentral -autoApprove
+```
+
+[Full documentation →](docs/v1.0.0/deployment-guide.md)
+
+### Deployment Options
+
+#### Option 1: Quick Deploy (Recommended for Workshop)
 ```powershell
 # Deploy infrastructure
 cd infra
@@ -190,57 +231,52 @@ CREATE TABLE transactions (
 - `GET /api/curl?url=<url>` - Fetch URL ⚠️ SSRF/Command injection
 - `GET /api/printenv` - Environment variables ⚠️ Information disclosure
 
-## Cost Estimation
+## 📊 Performance Benchmarks
 
-### Production Configuration (Zone-Redundant HA)
-| Component | Specification | Monthly Cost |
-|-----------|--------------|--------------|
-| PostgreSQL Primary | Standard_D4ds_v5 (4 vCore, 16GB) | ~$325 |
-| PostgreSQL Standby | Standard_D4ds_v5 (4 vCore, 16GB) | ~$325 |
-| Storage | 128GB Premium SSD | ~$10 |
-| App Services | 2x P1v3 | ~$200 |
-| Supporting services | ACR, Key Vault, Insights | ~$50 |
-| **Total** | | **~$910/month** |
+Validated performance metrics from the C# failover testing script running in Azure Cloud Shell:
 
-## Performance Benchmarks
+### Measured Transaction Performance
+- **Peak TPS**: 314 TPS (tested with 10 workers)
+- **Sustained TPS**: 200-312 TPS (Cloud Shell: 1-2 CPU, 1.7-4GB RAM)
+- **Scalability**: 1000+ TPS capable (requires 35-40 workers, 8+ vCore database)
+- **Failover RTO**: 16-18 seconds (Zone-Redundant HA automatic failover)
+- **Failover RPO**: 0 seconds (zero data loss with synchronous replication)
+- **Success Rate**: 99.26% (during active testing with failover events)
 
-### Payment Transaction Throughput
-- **Writes**: ~500 TPS (transactions per second)
-- **Reads**: ~2,000 TPS
-- **Failover Impact**: 16-18 seconds downtime (native Npgsql)
-- **Data Loss**: 0 transactions (RPO=0)
-
-### Failover Testing
-The project includes **two failover testing options** for different performance requirements:
+### Failover Testing Scripts
+The workshop includes **two failover testing options**:
 
 #### Option 1: PowerShell Script (Local Execution)
 ```powershell
-# Run comprehensive failover test (12-13 TPS sustained load)
+# Run basic failover test (12-13 TPS)
 cd scripts
 .\Test-PostgreSQL-Failover.ps1
 ```
 
-**Capabilities**:
-- 12-13 TPS sustained write load (PowerShell loop overhead)
-- Automatic Npgsql dependency installation to `scripts/libs/`
-- Real-time RTO/RPO measurement
-- Connection loss detection with millisecond precision
-- Best for: Local testing, quick validation
+**Use Case**: Quick validation, local testing, learning basics  
+**Throughput**: 12-13 TPS (PowerShell loop overhead)
 
-#### Option 2: C# Script (Azure Cloud Shell) ⭐ **RECOMMENDED FOR HIGH THROUGHPUT**
+#### Option 2: C# Script (Azure Cloud Shell) ⭐ **RECOMMENDED FOR WORKSHOP**
 ```bash
-# Run high-performance failover test (200-500 TPS sustained load)
-dotnet script Test-PostgreSQL-Failover.csx -- \
+# Run high-performance failover test (300+ TPS, 1000+ TPS capable)
+dotnet script scripts/Test-PostgreSQL-Failover.csx -- \
   "Host=your-server.postgres.database.azure.com;Database=saifdb;Username=user;Password=pass;SSL Mode=Require" \
   10 \
   5
 ```
 
-**Capabilities**:
-- **200-500 TPS** sustained write load (from Cloud Shell)
+**Use Case**: Performance testing, RTO/RPO measurement, realistic load simulation  
+**Throughput**: 
+- **Current**: 312 TPS peak with 10 workers (Cloud Shell constraints)
+- **Capable**: 1000+ TPS with 35-40 workers (requires dedicated VM or more powerful environment)
+- **Database Scaling**: 8+ vCores recommended for 1000+ TPS target
+
+**Features**:
 - Parallel async workers with persistent connections
-- Sub-millisecond precision RTO/RPO measurement
-- Real-time performance statistics (P50, P95, peak TPS)
+- Millisecond-precision RTO/RPO measurement
+- Real-time statistics (P50, P95, P99 latency, peak TPS)
+- Automatic reconnection with exponential backoff
+- Failover detection and recovery validation
 - Best for: High-throughput testing, production-grade validation
 
 > 📖 **Guides**: 
@@ -322,12 +358,39 @@ SAIF-pgsql/
 
 > 💡 **Tip**: Having issues? Check [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) first!
 
-## References
+## 🤝 Contributing
+
+Contributions welcome! Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+
+### How to Contribute:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+Copyright (c) 2025 Jonathan Vella
+
+## ⚠️ Security Disclaimer
+
+This project contains **intentional security vulnerabilities** for educational purposes. See [SECURITY.md](SECURITY.md) for details.
+
+**DO NOT**:
+- ❌ Deploy this in production environments
+- ❌ Use these patterns in real applications
+- ❌ Expose these applications to the public internet
+
+## 🙏 Acknowledgments
+
+Built for Microsoft Azure training workshops and hackathons.
+
+## 📚 References
 
 - [Azure PostgreSQL Flexible Server HA](https://learn.microsoft.com/azure/reliability/reliability-postgresql-flexible-server)
 - [Azure Well-Architected Framework](https://learn.microsoft.com/azure/architecture/framework/)
 - [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html)
-
----
-
-**⚠️ WARNING**: This application contains intentional security vulnerabilities for educational purposes. **DO NOT** deploy to production or expose to the internet without proper hardening.
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Security vulnerability reference
