@@ -195,17 +195,55 @@ if ($haMode -ne "ZoneRedundant") {
 
 # Test initial connection
 Write-Step "Testing initial connection..."
-$connectionString = "Host=$serverFqdn;Port=$port;Database=$Database;Username=$Username;Password=$passwordText;SSL Mode=Require;Timeout=5;Command Timeout=3"
+$connectionString = "Host=$serverFqdn;Port=$port;Database=$Database;Username=$Username;Password=$passwordText;SSL Mode=Require;Timeout=10;Command Timeout=5"
 
-try {
-    Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\Npgsql.8.0.3\lib\net8.0\Npgsql.dll" -ErrorAction SilentlyContinue
-    $useNpgsql = $true
-} catch {
-    Write-Info "Npgsql not available, using psql command-line tool"
-    $useNpgsql = $false
+# Try to load Npgsql from local libs folder (same as Test-PostgreSQL-Failover.ps1)
+$scriptDir = $PSScriptRoot
+if ([string]::IsNullOrEmpty($scriptDir)) {
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+}
+$libsFolder = Join-Path $scriptDir "libs"
+$npgsqlDll = Join-Path $libsFolder "Npgsql.dll"
+
+$useNpgsql = $false
+if (Test-Path $npgsqlDll) {
+    try {
+        # Load dependencies in order
+        $depsToLoad = @(
+            "System.Runtime.CompilerServices.Unsafe.dll",
+            "Microsoft.Extensions.Logging.Abstractions.dll",
+            "System.Threading.Channels.dll",
+            "System.Diagnostics.DiagnosticSource.dll",
+            "Npgsql.dll"
+        )
+        
+        foreach ($dep in $depsToLoad) {
+            $dllPath = Join-Path $libsFolder $dep
+            if (Test-Path $dllPath) {
+                Add-Type -Path $dllPath -ErrorAction SilentlyContinue
+            }
+        }
+        
+        $useNpgsql = $true
+        Write-Info "Using Npgsql from libs folder"
+    } catch {
+        Write-Info "Could not load Npgsql from libs folder: $_"
+        $useNpgsql = $false
+    }
 }
 
+if (-not $useNpgsql) {
+    Write-Info "Npgsql not available - install with:"
+    Write-Host "  cd scripts" -ForegroundColor Yellow
+    Write-Host "  .\Test-PostgreSQL-Failover.ps1 -ResourceGroupName '$ResourceGroupName'" -ForegroundColor Yellow
+    Write-Host "  (This will auto-install Npgsql to libs folder on first run)" -ForegroundColor Yellow
+    Write-Host ""
+}
+
+# Try initial connection (may fail if server is still recovering)
 $initialConnSuccess = $false
+$initialConnError = ""
+
 if ($useNpgsql) {
     try {
         $testConn = New-Object Npgsql.NpgsqlConnection($connectionString)
@@ -216,25 +254,61 @@ if ($useNpgsql) {
         $testConn.Close()
         $initialConnSuccess = ($result -eq 1)
     } catch {
-        $initialConnSuccess = $false
-    }
-} else {
-    # Use psql
-    $env:PGPASSWORD = $passwordText
-    try {
-        $result = psql -h $serverFqdn -p $port -U $Username -d $Database -t -c "SELECT 1;" 2>$null
-        $initialConnSuccess = ($LASTEXITCODE -eq 0)
-    } catch {
+        $initialConnError = $_.Exception.Message
         $initialConnSuccess = $false
     }
 }
 
 if (-not $initialConnSuccess) {
-    Write-Failure "Cannot connect to database. Please check credentials and server status."
-    exit 1
+    Write-Host ""
+    Write-Host "⚠️  INITIAL CONNECTION FAILED" -ForegroundColor Yellow
+    Write-Host "   Error: $initialConnError" -ForegroundColor DarkGray
+    Write-Host ""
+    
+    # Check if server is in recovery state
+    if ($haState -eq "RecreatingStandby" -or $haState -eq "FailingOver") {
+        Write-Host "💡 SERVER STATUS: HA State = $haState" -ForegroundColor Cyan
+        Write-Host "   The server is currently recovering from a previous failover." -ForegroundColor White
+        Write-Host "   Standby server is being rebuilt." -ForegroundColor White
+        Write-Host ""
+        Write-Host "   OPTIONS:" -ForegroundColor Yellow
+        Write-Host "   1. Wait 5-10 minutes for standby to rebuild (HA state → Healthy)" -ForegroundColor White
+        Write-Host "   2. Continue monitoring anyway (will retry connections)" -ForegroundColor White
+        Write-Host "   3. Exit and check server status" -ForegroundColor White
+        Write-Host ""
+        
+        $choice = Read-Host "Continue monitoring anyway? (y/N)"
+        if ($choice -ne 'y' -and $choice -ne 'Y') {
+            Write-Host ""
+            Write-Host "💡 TIP: Check HA status with:" -ForegroundColor Cyan
+            Write-Host "   az postgres flexible-server show ``" -ForegroundColor Yellow
+            Write-Host "     --resource-group $ResourceGroupName ``" -ForegroundColor Yellow
+            Write-Host "     --name $ServerName ``" -ForegroundColor Yellow
+            Write-Host "     --query '{state:state,haState:highAvailability.state}'" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "   Wait for haState = 'Healthy' before testing failover" -ForegroundColor White
+            Write-Host ""
+            exit 0
+        }
+        
+        Write-Host ""
+        Write-Info "Continuing with connection monitoring (will retry until successful)..."
+    } else {
+        Write-Failure "Cannot connect to database."
+        Write-Host ""
+        Write-Host "💡 TROUBLESHOOTING:" -ForegroundColor Cyan
+        Write-Host "   1. Check credentials are correct" -ForegroundColor White
+        Write-Host "   2. Verify server is running:" -ForegroundColor White
+        Write-Host "      az postgres flexible-server show --resource-group $ResourceGroupName --name $ServerName" -ForegroundColor Yellow
+        Write-Host "   3. Check firewall rules allow your IP" -ForegroundColor White
+        Write-Host "   4. Test connection manually:" -ForegroundColor White
+        Write-Host "      psql -h $serverFqdn -p $port -U $Username -d $Database" -ForegroundColor Yellow
+        Write-Host ""
+        exit 1
+    }
+} else {
+    Write-Success "Initial connection successful"
 }
-
-Write-Success "Initial connection successful"
 
 # Instructions
 Write-Host ""
@@ -296,11 +370,13 @@ try {
                 $cmd.CommandText = "SELECT 1"
                 $result = $cmd.ExecuteScalar()
                 $conn.Close()
+                $conn.Dispose()
                 $success = ($result -eq 1)
             } else {
-                $env:PGPASSWORD = $passwordText
-                $result = psql -h $serverFqdn -p $port -U $Username -d $Database -t -c "SELECT 1;" 2>&1
-                $success = ($LASTEXITCODE -eq 0)
+                # Fallback: use Azure CLI to test connection
+                Write-Host "!" -NoNewline -ForegroundColor Yellow
+                $success = $false
+                $errorMessage = "Npgsql required - run Test-PostgreSQL-Failover.ps1 first to install"
             }
         } catch {
             $success = $false
