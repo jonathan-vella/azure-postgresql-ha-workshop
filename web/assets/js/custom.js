@@ -1,616 +1,446 @@
-/**
- * SAIF - Secure AI Foundations
- * Custom JavaScript Functions
- * Version: 1.0.0
- * Last Updated: 2025-06-18
- */
+// SAIF Payment Gateway - PostgreSQL HA Demo
+// API Configuration
 
-// Global variables
-let lastEndpoint = null;
-let lastParams = null;
-let isRequestPending = false;
-let checksRun = 0;
-let lastResponseTime = 0;
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : `${window.location.protocol}//${window.location.hostname.replace('web-', 'api-')}`;
 
-// Initialize tooltips and popovers from Bootstrap
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
-    // Initialize Bootstrap popovers
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+// Helper Functions
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.insertBefore(alertDiv, document.body.firstChild);
     
-    // Initialize dashboard metrics
-    initializeDashboard();
-});
-
-/**
- * Initialize dashboard metrics with initial values
- */
-function initializeDashboard() {
-    // Start checking API status
-    checkApiStatus();
-    
-    // Start checking DB status
-    checkDbStatus();
-    
-    // Set up periodic refresh every 60 seconds
-    setInterval(() => {
-        checkApiStatus();
-        checkDbStatus();
-    }, 60000);
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
 }
 
-/**
- * Check API health status for dashboard
- */
-async function checkApiStatus() {
-    try {
-        const startTime = performance.now();
-        const response = await fetchFromApi('healthcheck', {}, false);
-        const endTime = performance.now();
-        
-        // Calculate response time in milliseconds
-        const responseTime = Math.round(endTime - startTime);
-        
-        // Update metrics
-        document.getElementById('metric-api-status').textContent = response.status || 'Online';
-        document.getElementById('metric-api-status').className = response.status === 'OK' ? 'text-success' : 'text-warning';
-        
-        document.getElementById('metric-latency').textContent = responseTime + 'ms';
-        
-        // Store for later use
-        lastResponseTime = responseTime;
-    } catch (error) {
-        document.getElementById('metric-api-status').textContent = 'Offline';
-        document.getElementById('metric-api-status').className = 'text-danger';
-        document.getElementById('metric-latency').textContent = '--';
+function formatCurrency(amount, currency = 'USD') {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency
+    }).format(amount);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(date);
+}
+
+// Dashboard Functions
+let refreshIntervalId = null;
+
+async function loadDashboard() {
+    // Show refresh indicator
+    const indicator = document.getElementById('refresh-indicator');
+    if (indicator) {
+        indicator.style.display = 'inline-block';
     }
-}
-
-/**
- * Check database status for dashboard
- */
-async function checkDbStatus() {
+    
     try {
-        const response = await fetchFromApi('sqlversion', {}, false);
-        document.getElementById('metric-db-status').textContent = 'Connected';
-        document.getElementById('metric-db-status').className = 'text-success';
+        // Health Check
+        const healthResponse = await fetch(`${API_BASE_URL}/api/healthcheck`);
+        const healthData = await healthResponse.json();
+        
+        document.getElementById('health-status').innerHTML = healthData.status === 'healthy'
+            ? '<span class="text-success">✓ Healthy</span>'
+            : '<span class="text-danger">✗ Unhealthy</span>';
+        
+        document.getElementById('db-status').innerHTML = healthData.database === 'connected'
+            ? '<span class="text-success">✓ Connected</span>'
+            : '<span class="text-danger">✗ Disconnected</span>';
+        
+        // Database Status
+        const dbStatusResponse = await fetch(`${API_BASE_URL}/api/db-status`);
+        const dbStatusData = await dbStatusResponse.json();
+        
+        document.getElementById('db-version').textContent = dbStatusData.version || 'PostgreSQL 16';
+        document.getElementById('tx-count').textContent = (dbStatusData.transaction_count || 0).toLocaleString();
+        
+        // HA Status (simulated - would need Azure API integration)
+        document.getElementById('ha-status').innerHTML = '<span class="text-success">✓ Healthy</span>';
+        
+        // Update last updated timestamp
+        updateLastUpdatedTime();
+        
     } catch (error) {
-        document.getElementById('metric-db-status').textContent = 'Error';
-        document.getElementById('metric-db-status').className = 'text-danger';
-    }
-}
-
-/**
- * Fetch data from the API via our PHP proxy but avoid updating dashboard
- * @param {string} endpoint - API endpoint path
- * @param {Object} params - Query parameters or path parameters
- * @param {boolean} updateDash - Whether to update dashboard metrics
- * @returns {Promise<Object>} API response as JSON
- */
-async function fetchFromApi(endpoint, params = {}, updateDash = true) {
-    // Create the URL using our api-proxy.php script
-    const url = new URL('/api-proxy.php', window.location.origin);
-    
-    // Get endpoint name without the /api/ prefix if present
-    const endpointName = endpoint.startsWith('/api/') ? 
-        endpoint.substring(5) : endpoint;
-    
-    // Set the endpoint parameter
-    url.searchParams.append('endpoint', endpointName);
-    
-    // Add additional query parameters if any
-    Object.keys(params).forEach(key => {
-        url.searchParams.append(key, params[key]);
-    });
-
-    try {
-        // Set global tracking variables
-        lastEndpoint = endpoint;
-        lastParams = params;
-        isRequestPending = true;
-        
-        // Start loading state
-        updateLoadingState(true);
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        console.error('Dashboard load error:', error);
+        document.getElementById('health-status').innerHTML = '<span class="text-danger">✗ Error</span>';
+        document.getElementById('db-status').innerHTML = '<span class="text-danger">✗ Error</span>';
+    } finally {
+        // Hide refresh indicator
+        if (indicator) {
+            indicator.style.display = 'none';
         }
+    }
+}
+
+function updateLastUpdatedTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false
+    });
+    const lastUpdatedElement = document.getElementById('last-updated');
+    if (lastUpdatedElement) {
+        lastUpdatedElement.textContent = timeString;
+    }
+}
+
+function setupAutoRefresh() {
+    const intervalSelect = document.getElementById('refresh-interval');
+    const manualRefreshBtn = document.getElementById('manual-refresh');
+    
+    // Handle interval change
+    if (intervalSelect) {
+        intervalSelect.addEventListener('change', (e) => {
+            const seconds = parseInt(e.target.value);
+            
+            // Clear existing interval
+            if (refreshIntervalId) {
+                clearInterval(refreshIntervalId);
+                refreshIntervalId = null;
+            }
+            
+            // Set new interval if not 0
+            if (seconds > 0) {
+                refreshIntervalId = setInterval(loadDashboard, seconds * 1000);
+                showAlert(`Auto-refresh set to ${seconds} seconds`, 'success');
+            } else {
+                showAlert('Auto-refresh disabled', 'info');
+            }
+        });
+    }
+    
+    // Handle manual refresh button
+    if (manualRefreshBtn) {
+        manualRefreshBtn.addEventListener('click', () => {
+            loadDashboard();
+            showAlert('Dashboard refreshed', 'success');
+        });
+    }
+}
+
+// Payment Processing
+document.getElementById('payment-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const customerId = document.getElementById('customer-id').value;
+    const merchantId = document.getElementById('merchant-id').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const currency = document.getElementById('currency').value;
+    const description = document.getElementById('description').value;
+    
+    const resultDiv = document.getElementById('payment-result');
+    resultDiv.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Processing...</span></div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/payments/process`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': 'demo_api_key_12345'
+            },
+            body: JSON.stringify({
+                customer_id: parseInt(customerId),
+                merchant_id: parseInt(merchantId),
+                amount: amount,
+                currency: currency,
+                description: description
+            })
+        });
         
         const data = await response.json();
         
-        // End loading state
-        updateLoadingState(false);
-        isRequestPending = false;
-        
-        return data;
-    } catch (error) {
-        // End loading state even on error
-        updateLoadingState(false);
-        isRequestPending = false;
-        
-        return { error: error.message };
-    }
-}
-
-/**
- * Update UI to show loading state
- * @param {boolean} isLoading - Whether request is loading
- */
-function updateLoadingState(isLoading) {
-    const resultElement = document.getElementById('result');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const resultTabs = document.getElementById('resultTabs');
-    const executionInfo = document.getElementById('execution-info');
-    const copyButton = document.getElementById('copyResultBtn');
-    
-    if (isLoading) {
-        resultElement.classList.add('text-muted');
-        if (loadingIndicator) {
-            loadingIndicator.classList.remove('d-none');
-        }
-        if (executionInfo) {
-            executionInfo.classList.add('d-none');
-        }
-    } else {
-        resultElement.classList.remove('text-muted');
-        if (loadingIndicator) {
-            loadingIndicator.classList.add('d-none');
-        }
-        if (resultTabs && resultElement.textContent.trim() !== 'Run a diagnostic to see results...') {
-            resultTabs.classList.remove('d-none');
-            copyButton.disabled = false;
-        }
-        checksRun++;
-        document.getElementById('metric-checks-run').textContent = checksRun;
-    }
-}
-
-/**
- * Run a basic diagnostic endpoint
- * @param {string} endpoint - API endpoint to call
- */
-async function runDiagnostic(endpoint) {
-    document.getElementById('result').innerText = 'Loading...';
-    
-    // Reset result display
-    resetResultDisplay();
-    
-    // Show the results section if it's not visible
-    showResultsSection();
-    
-    // Update endpoint badge
-    const endpointBadge = document.getElementById('endpoint-badge');
-    if (endpointBadge) {
-        endpointBadge.textContent = endpoint;
-        endpointBadge.classList.remove('d-none');
-    }
-    
-    // Update result title
-    document.getElementById('result-title').textContent = 'Results: ' + endpoint.split('/').pop();
-    
-    const data = await fetchFromApi(endpoint);
-    formatAndDisplayResults(data);
-}
-
-/**
- * Run DNS lookup
- */
-async function runDnsLookup() {
-    const hostname = document.getElementById('hostname').value;
-    if (!hostname) {
-        alert('Please enter a hostname');
-        return;
-    }
-    
-    document.getElementById('result').innerText = 'Loading...';
-    showResultsSection();
-    
-    const data = await fetchFromApi('/api/dns', { pathParam: hostname });
-    formatAndDisplayResults(data);
-}
-
-/**
- * Run reverse DNS lookup
- */
-async function runReverseDnsLookup() {
-    const ip = document.getElementById('ip').value;
-    if (!ip) {
-        alert('Please enter an IP address');
-        return;
-    }
-    
-    document.getElementById('result').innerText = 'Loading...';
-    showResultsSection();
-    
-    const data = await fetchFromApi('/api/reversedns', { pathParam: ip });
-    formatAndDisplayResults(data);
-}
-
-/**
- * Run URL fetch tool
- */
-async function runUrlFetch() {
-    const url = document.getElementById('url').value;
-    if (!url) {
-        alert('Please enter a URL');
-        return;
-    }
-    
-    document.getElementById('result').innerText = 'Loading...';
-    showResultsSection();
-    
-    const data = await fetchFromApi('/api/curl', { url: url });
-    formatAndDisplayResults(data);
-}
-
-/**
- * Calculate PI to specified digits
- */
-async function calculatePi() {
-    const digits = document.getElementById('digits').value;
-    if (!digits || isNaN(parseInt(digits))) {
-        alert('Please enter a valid number of digits');
-        return;
-    }
-    
-    document.getElementById('result').innerText = 'Calculating PI...';
-    showResultsSection();
-    
-    const data = await fetchFromApi('/api/pi', { digits: digits });
-    formatAndDisplayResults(data);
-}
-
-/**
- * Format and display results in a nicely formatted way
- * @param {Object} data - Results data from API
- */
-function formatAndDisplayResults(data) {
-    const resultElement = document.getElementById('result');
-    resultElement.innerHTML = '';
-    
-    // Check if data has error property
-    if (data && data.error) {
-        resultElement.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
-        document.getElementById('status-badge').textContent = 'Error';
-        document.getElementById('status-badge').className = 'badge bg-danger';
-        return;
-    }
-    
-    // For nicely formatted JSON
-    const formattedJson = JSON.stringify(data, null, 2);
-    resultElement.innerHTML = `<pre class="language-json"><code>${formattedJson}</code></pre>`;
-    
-    // Initialize code highlighting if Prism.js is available
-    if (typeof Prism !== 'undefined') {
-        Prism.highlightAll();
-    }
-    
-    // Update the enhanced result display
-    updateResultAnalysis(data, lastEndpoint, lastResponseTime);
-    
-    // Show result tabs and execution info
-    document.getElementById('resultTabs').classList.remove('d-none');
-    document.getElementById('execution-info').classList.remove('d-none');
-    document.getElementById('copyResultBtn').disabled = false;
-}
-
-/**
- * Make sure the results section is visible
- */
-function showResultsSection() {
-    const resultsSection = document.getElementById('results-section');
-    if (resultsSection) {
-        resultsSection.classList.remove('d-none');
-        
-        // Scroll to results
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-}
-
-/**
- * Retry the last request
- */
-function retryLastRequest() {
-    if (lastEndpoint) {
-        fetchFromApi(lastEndpoint, lastParams)
-            .then(data => formatAndDisplayResults(data));
-    } else {
-        alert('No previous request to retry');
-    }
-}
-
-/**
- * Toggle dark mode
- */
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
-    
-    // Update button icon
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    if (darkModeToggle) {
-        if (isDarkMode) {
-            darkModeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
-            darkModeToggle.setAttribute('title', 'Switch to Light Mode');
+        if (response.ok) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <h5><i class="bi bi-check-circle"></i> Payment Successful!</h5>
+                    <p><strong>Transaction ID:</strong> ${data.transaction_id}</p>
+                    <p><strong>Amount:</strong> ${formatCurrency(amount, currency)}</p>
+                    <p><strong>Status:</strong> ${data.status}</p>
+                    <p><strong>Timestamp:</strong> ${formatDate(data.transaction_date)}</p>
+                </div>
+            `;
+            
+            // Refresh dashboard
+            loadDashboard();
         } else {
-            darkModeToggle.innerHTML = '<i class="bi bi-moon-fill"></i>';
-            darkModeToggle.setAttribute('title', 'Switch to Dark Mode');
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i class="bi bi-x-circle"></i> Payment Failed</h5>
+                    <p>${data.detail || 'An error occurred'}</p>
+                </div>
+            `;
         }
+    } catch (error) {
+        console.error('Payment error:', error);
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h5><i class="bi bi-x-circle"></i> Payment Failed</h5>
+                <p>Network error or API unavailable</p>
+            </div>
+        `;
     }
-}
+});
 
-/**
- * Reset the result display to its initial state
- */
-function resetResultDisplay() {
-    const resultTabs = document.getElementById('resultTabs');
-    const executionInfo = document.getElementById('execution-info');
-    const copyButton = document.getElementById('copyResultBtn');
+// Transaction Search
+document.getElementById('search-transactions').addEventListener('click', async () => {
+    const customerId = document.getElementById('search-customer-id').value;
     
-    if (resultTabs) {
-        resultTabs.classList.add('d-none');
+    if (!customerId) {
+        showAlert('Please enter a customer ID', 'warning');
+        return;
     }
     
-    if (executionInfo) {
-        executionInfo.classList.add('d-none');
-    }
-    
-    if (copyButton) {
-        copyButton.disabled = true;
-    }
-    
-    // Reset formatted output
-    document.getElementById('formatted-output').innerHTML = 'Select a tool to view formatted results';
-    document.getElementById('result-analysis').innerHTML = '<p class="text-muted">Run a diagnostic to generate analysis</p>';
-}
-
-/**
- * Copy the result to clipboard
- */
-function copyResultToClipboard() {
-    const resultText = document.getElementById('result').innerText;
-    
-    navigator.clipboard.writeText(resultText).then(function() {
-        // Show success message
-        const copyBtn = document.getElementById('copyResultBtn');
-        const originalHTML = copyBtn.innerHTML;
-        
-        copyBtn.innerHTML = '<i class="bi bi-check-lg"></i>';
-        copyBtn.classList.remove('btn-outline-secondary');
-        copyBtn.classList.add('btn-success');
-        
-        setTimeout(function() {
-            copyBtn.innerHTML = originalHTML;
-            copyBtn.classList.remove('btn-success');
-            copyBtn.classList.add('btn-outline-secondary');
-        }, 2000);
-    });
-}
-
-/**
- * Update the result display with analyzed data
- * @param {Object} data - The API response data
- * @param {string} endpoint - The API endpoint that was called
- * @param {number} responseTime - The API response time in milliseconds
- */
-function updateResultAnalysis(data, endpoint, responseTime) {
-    const resultAnalysis = document.getElementById('result-analysis');
-    const executionInfo = document.getElementById('execution-info');
-    const executionTime = document.getElementById('execution-time');
-    const statusBadge = document.getElementById('status-badge');
-    
-    if (!resultAnalysis || !data) return;
-    
-    // Update execution time and status
-    executionTime.textContent = responseTime;
-    executionInfo.classList.remove('d-none');
-    
-    // Format the data based on endpoint
-    let analysisHTML = '';
-    let isSuccess = true;
+    const listDiv = document.getElementById('transactions-list');
+    listDiv.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
     
     try {
-        // Try to determine if the request was successful
-        if (typeof data === 'object') {
-            if (data.error || data.status === 'error') {
-                isSuccess = false;
-                statusBadge.textContent = 'Error';
-                statusBadge.className = 'badge bg-danger';
-            } else {
-                statusBadge.textContent = 'Success';
-                statusBadge.className = 'badge bg-success';
-            }
-        }
+        const response = await fetch(`${API_BASE_URL}/api/customer/${customerId}/transactions`);
+        const data = await response.json();
         
-        // Generate endpoint-specific analysis
-        if (endpoint.includes('healthcheck')) {
-            analysisHTML = generateHealthAnalysis(data);
-        } else if (endpoint.includes('ip')) {
-            analysisHTML = generateIpAnalysis(data);
-        } else if (endpoint.includes('sql')) {
-            analysisHTML = generateSqlAnalysis(data, endpoint);
-        } else if (endpoint.includes('dns')) {
-            analysisHTML = generateDnsAnalysis(data);
-        } else if (endpoint.includes('url')) {
-            analysisHTML = generateUrlAnalysis(data);
-        } else if (endpoint.includes('printenv')) {
-            analysisHTML = generateEnvAnalysis(data);
-        } else if (endpoint.includes('pi')) {
-            analysisHTML = generatePiAnalysis(data);
+        if (response.ok && data.transactions && data.transactions.length > 0) {
+            let html = `
+                <h5>Transactions for Customer #${customerId}</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Merchant</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            data.transactions.forEach(tx => {
+                const statusClass = tx.status === 'completed' ? 'success' : tx.status === 'failed' ? 'danger' : 'warning';
+                html += `
+                    <tr>
+                        <td>#${tx.id}</td>
+                        <td>${formatDate(tx.created_at)}</td>
+                        <td>${tx.merchant_name || 'N/A'}</td>
+                        <td>${formatCurrency(tx.amount, tx.currency)}</td>
+                        <td><span class="badge bg-${statusClass}">${tx.status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            listDiv.innerHTML = html;
         } else {
-            analysisHTML = '<div class="alert alert-info">Analysis not available for this endpoint.</div>';
+            listDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No transactions found for customer #${customerId}
+                </div>
+            `;
         }
-        
-        // Update the formatted output
-        updateFormattedOutput(data);
     } catch (error) {
-        analysisHTML = `<div class="alert alert-warning">Error analyzing results: ${error.message}</div>`;
+        console.error('Transaction search error:', error);
+        listDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-x-circle"></i> Failed to load transactions
+            </div>
+        `;
     }
-    
-    resultAnalysis.innerHTML = analysisHTML;
-}
+});
 
-/**
- * Generate analysis for health check endpoint
- * @param {Object} data - Health check response data
- * @returns {string} HTML analysis content
- */
-function generateHealthAnalysis(data) {
-    let html = '<div class="mb-3">';
+// Load Recent Transactions
+document.getElementById('load-recent-transactions').addEventListener('click', async () => {
+    const listDiv = document.getElementById('transactions-list');
+    listDiv.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
     
-    if (data.status === 'OK') {
-        html += '<div class="alert alert-success"><i class="bi bi-check-circle me-2"></i> API service is healthy and responding properly.</div>';
-    } else {
-        html += '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i> API service is experiencing issues.</div>';
-    }
-    
-    html += '<h6 class="mt-3">Service Details</h6>';
-    html += '<ul class="list-group">';
-    
-    if (data.version) {
-        html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>API Version</span>
-            <span class="badge bg-primary rounded-pill">${data.version}</span>
-        </li>`;
-    }
-    
-    if (data.hostname) {
-        html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Hostname</span>
-            <span class="badge bg-secondary rounded-pill">${data.hostname}</span>
-        </li>`;
-    }
-    
-    html += '</ul>';
-    html += '</div>';
-    
-    return html;
-}
-
-/**
- * Generate analysis for IP information endpoint
- * @param {Object} data - IP info response data
- * @returns {string} HTML analysis content
- */
-function generateIpAnalysis(data) {
-    let html = '<div class="mb-3">';
-    
-    if (data.ipv4 || data.ipv6) {
-        html += '<div class="alert alert-success"><i class="bi bi-check-circle me-2"></i> Successfully retrieved IP information.</div>';
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/transactions/recent?limit=20`);
+        const data = await response.json();
         
-        html += '<h6 class="mt-3">Network Details</h6>';
-        html += '<ul class="list-group">';
-        
-        if (data.hostname) {
-            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>Hostname</span>
-                <span>${data.hostname}</span>
-            </li>`;
-        }
-        
-        if (data.ipv4) {
-            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>IPv4 Address</span>
-                <span class="badge bg-primary rounded-pill">${data.ipv4}</span>
-            </li>`;
-        }
-        
-        if (data.ipv6) {
-            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>IPv6 Address</span>
-                <span class="badge bg-secondary">${data.ipv6}</span>
-            </li>`;
-        }
-        
-        html += '</ul>';
-    } else {
-        html += '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i> Unable to retrieve complete IP information.</div>';
-    }
-    
-    html += '</div>';
-    return html;
-}
-
-/**
- * Generate analysis for SQL-related endpoints
- * @param {Object} data - SQL response data
- * @param {string} endpoint - The specific SQL endpoint
- * @returns {string} HTML analysis content
- */
-function generateSqlAnalysis(data, endpoint) {
-    let html = '<div class="mb-3">';
-    
-    if (endpoint.includes('sqlversion')) {
-        if (data.version) {
-            html += '<div class="alert alert-success"><i class="bi bi-check-circle me-2"></i> Successfully connected to the database.</div>';
+        if (response.ok && data.transactions && data.transactions.length > 0) {
+            let html = `
+                <h5>Recent Transactions (Last 20)</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Merchant</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
             
-            html += '<h6 class="mt-3">Database Details</h6>';
-            html += '<ul class="list-group">';
-            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>SQL Version</span>
-                <span>${data.version}</span>
-            </li>`;
+            data.transactions.forEach(tx => {
+                const statusClass = tx.status === 'completed' ? 'success' : tx.status === 'failed' ? 'danger' : 'warning';
+                html += `
+                    <tr>
+                        <td>#${tx.id}</td>
+                        <td>${formatDate(tx.created_at)}</td>
+                        <td>#${tx.customer_id}</td>
+                        <td>#${tx.merchant_id}</td>
+                        <td>${formatCurrency(tx.amount, tx.currency)}</td>
+                        <td><span class="badge bg-${statusClass}">${tx.status}</span></td>
+                    </tr>
+                `;
+            });
             
-            if (data.edition) {
-                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>Edition</span>
-                    <span>${data.edition}</span>
-                </li>`;
-            }
-            
-            html += '</ul>';
-            
-            html += '<div class="alert alert-warning mt-3"><i class="bi bi-shield-exclamation me-2"></i> Exposing database version information might help attackers identify known vulnerabilities.</div>';
+            html += '</tbody></table></div>';
+            listDiv.innerHTML = html;
         } else {
-            html += '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i> Unable to retrieve database version information.</div>';
+            listDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No transactions found
+                </div>
+            `;
         }
-    } else if (endpoint.includes('sqlsrcip')) {
-        if (data.client_ip) {
-            html += '<div class="alert alert-success"><i class="bi bi-check-circle me-2"></i> Successfully retrieved client IP information.</div>';
-            
-            html += '<h6 class="mt-3">Connection Details</h6>';
-            html += '<ul class="list-group">';
-            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>Client IP</span>
-                <span class="badge bg-primary rounded-pill">${data.client_ip}</span>
-            </li>`;
-            html += '</ul>';
-        } else {
-            html += '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i> Unable to retrieve client IP information.</div>';
-        }
+    } catch (error) {
+        console.error('Recent transactions error:', error);
+        listDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-x-circle"></i> Failed to load transactions
+            </div>
+        `;
+    }
+});
+
+// Diagnostics - SQL Injection Test
+document.getElementById('test-sql-injection').addEventListener('click', async () => {
+    const customerId = document.getElementById('sql-customer-id').value;
+    const resultDiv = document.getElementById('sql-result');
+    
+    resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm text-danger" role="status"></div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/sqlversion`, {
+            headers: { 'X-API-Key': 'demo_api_key_12345' }
+        });
+        const data = await response.json();
+        
+        resultDiv.innerHTML = `
+            <div class="alert alert-warning mt-2">
+                <pre class="mb-0">${JSON.stringify(data, null, 2)}</pre>
+            </div>
+        `;
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="alert alert-danger mt-2">Error: ${error.message}</div>`;
+    }
+});
+
+// Diagnostics - SSRF Test
+document.getElementById('test-ssrf').addEventListener('click', async () => {
+    const url = document.getElementById('curl-url').value;
+    const resultDiv = document.getElementById('ssrf-result');
+    
+    if (!url) {
+        showAlert('Please enter a URL', 'warning');
+        return;
     }
     
-    html += '</div>';
-    return html;
-}
+    resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm text-danger" role="status"></div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/curl?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        
+        resultDiv.innerHTML = `
+            <div class="alert alert-warning mt-2">
+                <pre class="mb-0" style="max-height: 200px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</pre>
+            </div>
+        `;
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="alert alert-danger mt-2">Error: ${error.message}</div>`;
+    }
+});
 
-/**
- * Generate placeholder analysis functions for other endpoints
- * These would be implemented with actual logic based on returned data formats
- */
-function generateDnsAnalysis(data) {
-    // Placeholder - would implement actual analysis based on DNS response format
-    return '<div class="alert alert-info">DNS lookup completed. Review the raw results for details.</div>';
-}
+// Diagnostics - Info Disclosure
+document.getElementById('test-info-disclosure').addEventListener('click', async () => {
+    const resultDiv = document.getElementById('env-result');
+    
+    resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm text-danger" role="status"></div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/printenv`, {
+            headers: { 'X-API-Key': 'demo_api_key_12345' }
+        });
+        const data = await response.json();
+        
+        resultDiv.innerHTML = `
+            <div class="alert alert-warning mt-2">
+                <pre class="mb-0" style="max-height: 200px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</pre>
+            </div>
+        `;
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="alert alert-danger mt-2">Error: ${error.message}</div>`;
+    }
+});
 
-function generateUrlAnalysis(data) {
-    // Placeholder - would implement actual analysis based on URL fetch response format
-    return '<div class="alert alert-info">URL fetch completed. Review the raw results for details.</div>';
-}
+// Load Test
+document.getElementById('run-load-test').addEventListener('click', async () => {
+    const count = parseInt(document.getElementById('load-count').value) || 10;
+    const resultDiv = document.getElementById('load-result');
+    
+    resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm text-success" role="status"></div>';
+    
+    try {
+        const promises = [];
+        for (let i = 0; i < count; i++) {
+            promises.push(
+                fetch(`${API_BASE_URL}/api/test/create-transaction`, { method: 'POST' })
+            );
+        }
+        
+        const startTime = Date.now();
+        await Promise.all(promises);
+        const duration = Date.now() - startTime;
+        const tps = (count / (duration / 1000)).toFixed(2);
+        
+        resultDiv.innerHTML = `
+            <div class="alert alert-success mt-2">
+                <p class="mb-0"><strong>✓ Generated ${count} transactions</strong></p>
+                <small>Duration: ${duration}ms | TPS: ${tps}</small>
+            </div>
+        `;
+        
+        // Refresh dashboard
+        loadDashboard();
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="alert alert-danger mt-2">Error: ${error.message}</div>`;
+    }
+});
 
-function generateEnvAnalysis(data) {
-    return `<div class="alert alert-danger"><i class="bi bi-shield-exclamation me-2"></i> <strong>Security Warning:</strong> Environment variables may contain sensitive information like API keys, credentials, and configuration settings.</div>
-            <div class="mt-3">Found approximately ${Object.keys(data).length} environment variables.</div>`;
-}
-
-function generatePiAnalysis(data) {
-    // Placeholder - would implement actual analysis for PI calculation
-    return '<div class="alert alert-info">PI calculation completed. Review the raw results to see the calculated digits.</div>';
-}
+// Initialize dashboard on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Initial load
+    loadDashboard();
+    
+    // Setup auto-refresh controls
+    setupAutoRefresh();
+    
+    // Start auto-refresh with default interval (10 seconds)
+    const defaultInterval = document.getElementById('refresh-interval');
+    if (defaultInterval && defaultInterval.value) {
+        const seconds = parseInt(defaultInterval.value);
+        if (seconds > 0) {
+            refreshIntervalId = setInterval(loadDashboard, seconds * 1000);
+        }
+    }
+});

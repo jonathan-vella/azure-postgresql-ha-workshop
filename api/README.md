@@ -1,67 +1,156 @@
-# API Component for SAIF
+# SAIF-PostgreSQL API
 
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.103.1-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red?logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](../docker-compose.yml)
+## Overview
 
-Python-based API that provides various diagnostic endpoints for testing and learning about security concepts.
+Python FastAPI application providing a payment gateway REST API with intentional security vulnerabilities for educational purposes.
 
-```mermaid
-classDiagram
-    class SAIFApi {
-        +healthcheck() : Status
-        +ip() : IPInfo
-        +sqlversion() : Version
-        +sqlsrcip() : IPAddress
-        +dns(hostname) : Resolution
-        +reversedns(ip) : Hostname
-        +curl(url) : Response
-        +printenv() : Variables
-        +pi(digits) : Calculation
-    }
-    
-    class Endpoint {
-        <<interface>>
-        +path : string
-        +method : string
-        +description : string
-        +vulnerabilities : string[]
-    }
-    
-    SAIFApi --> Endpoint
+## Features
+
+### Payment Gateway APIs
+- `POST /api/payments/process` - Process payment transactions
+- `GET /api/payments/{transaction_id}` - Get transaction details
+- `GET /api/payments/customer/{customer_id}` - Get customer transaction history
+- `GET /api/payments/merchant/{merchant_id}/summary` - Get merchant transaction summary
+
+### Customer Management APIs
+- `POST /api/customers/create` - Create new customer account
+- `GET /api/customers/{customer_id}` - Get customer details
+
+### Diagnostic APIs
+- `GET /api/healthcheck` - Health check with database connectivity test
+- `GET /api/ip` - Server IP information
+- `GET /api/sqlversion` - PostgreSQL version (⚠️ SQL injection vulnerability)
+- `GET /api/sqlsrcip` - Source IP from PostgreSQL perspective
+- `GET /api/dns/{hostname}` - DNS resolution
+- `GET /api/reversedns/{ip}` - Reverse DNS lookup
+- `GET /api/curl?url=<url>` - Fetch URL (⚠️ SSRF vulnerability)
+- `GET /api/printenv` - Environment variables (⚠️ Information disclosure)
+- `GET /api/pi?digits=<n>` - Calculate PI (CPU load test)
+
+### Load Testing APIs
+- `POST /api/test/create-transaction` - Create test transaction for load testing
+- `GET /api/test/db-status` - Detailed database status for HA monitoring
+
+## Local Development
+
+### Prerequisites
+- Python 3.11+
+- PostgreSQL 14+ (local or Azure)
+
+### Setup
+
+1. Create virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-## Endpoints
-
-The API provides the following endpoints:
-
-- `/api/healthcheck` - Simple health check
-- `/api/ip` - Returns IP address information
-- `/api/sqlversion` - Returns the SQL Server version
-- `/api/sqlsrcip` - Returns the source IP as seen by SQL Server
-- `/api/dns` - Resolves a DNS name
-- `/api/reversedns` - Performs reverse DNS lookup
-- `/api/curl` - Makes an HTTP request to a specified URL
-- `/api/printenv` - Returns environment variables
-- `/api/pi` - Calculates PI to test CPU load
-
-## Setup
-
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running Locally
+3. Configure environment:
+```bash
+cp .env.example .env
+# Edit .env with your PostgreSQL connection details
+```
+
+4. Run the application:
+```bash
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+5. Access API documentation:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Docker
+
+### Build Image
+```bash
+docker build -t saif-pgsql-api .
+```
+
+### Run Container
+```bash
+docker run -p 8000:8000 \
+  -e POSTGRES_HOST=your-postgres-server.postgres.database.azure.com \
+  -e POSTGRES_DATABASE=saifdb \
+  -e POSTGRES_USER=saifadmin \
+  -e POSTGRES_PASSWORD=YourPassword \
+  saif-pgsql-api
+```
+
+## API Authentication
+
+Most endpoints require an API key passed via the `X-API-Key` header:
 
 ```bash
-uvicorn app:app --reload
+curl -H "X-API-Key: demo_api_key_12345" \
+  https://your-api.azurewebsites.net/api/customers/1
 ```
+
+⚠️ **Warning**: API key authentication is deliberately weak for educational purposes.
+
+## Database Schema
+
+The API expects the following PostgreSQL schema (created by `init-db.sql`):
+
+- `customers` - Customer accounts
+- `merchants` - Merchant profiles
+- `payment_methods` - Payment instruments
+- `transactions` - Payment transactions
+- `orders` - E-commerce orders
+- `order_items` - Order line items
+- `transaction_logs` - Audit trail
 
 ## Environment Variables
 
-- `SQL_SERVER` - SQL Server hostname
-- `SQL_DATABASE` - Database name
-- `SQL_USERNAME` - SQL username
-- `SQL_PASSWORD` - SQL password
-- `API_KEY` - Optional API key for authentication (deliberately insecure)
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `POSTGRES_HOST` | PostgreSQL server hostname | Yes |
+| `POSTGRES_PORT` | PostgreSQL port (default: 5432) | No |
+| `POSTGRES_DATABASE` | Database name | Yes |
+| `POSTGRES_USER` | Database username | Yes |
+| `POSTGRES_PASSWORD` | Database password | Yes |
+| `API_KEY` | API authentication key | No |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | Azure Application Insights | No |
+
+## Security Vulnerabilities (Intentional)
+
+This application contains the following vulnerabilities for educational purposes:
+
+1. **SQL Injection** - `/api/sqlversion` endpoint
+2. **SSRF** - `/api/curl` endpoint allows fetching arbitrary URLs
+3. **Information Disclosure** - `/api/printenv` exposes environment variables
+4. **Weak Authentication** - Simple API key in header
+5. **No Rate Limiting** - APIs can be hammered
+6. **Permissive CORS** - Allows all origins
+
+⚠️ **DO NOT use this code in production without proper security hardening.**
+
+## Testing
+
+### Run Tests
+```bash
+pytest
+```
+
+### Load Testing
+Use the test endpoints to generate synthetic load:
+
+```bash
+# Create 100 test transactions
+for i in {1..100}; do
+  curl -X POST "http://localhost:8000/api/test/create-transaction?amount=99.99"
+done
+```
+
+## Deployment
+
+See the main [Deployment Guide](../docs/v1.0.0/deployment-guide.md) for complete deployment instructions.
+
+## License
+
+MIT

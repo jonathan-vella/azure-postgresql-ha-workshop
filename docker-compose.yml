@@ -1,48 +1,85 @@
+# Docker Compose for SAIF-PostgreSQL Local Development
+version: '3.8'
+
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: saif-postgres
+    environment:
+      POSTGRES_DB: saifdb
+      POSTGRES_USER: saifadmin
+      POSTGRES_PASSWORD: P@ssw0rd123!
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saifadmin -d saifdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - saif-network
+
+  # Python FastAPI Backend
   api:
     build:
       context: ./api
       dockerfile: Dockerfile
+    container_name: saif-api
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: saifdb
+      POSTGRES_USER: saifadmin
+      POSTGRES_PASSWORD: P@ssw0rd123!
+      POSTGRES_SSLMODE: disable
+      API_KEY: dev-api-key-12345
+      ENVIRONMENT: development
     ports:
       - "8000:8000"
-    environment:
-      - SQL_SERVER=db
-      - SQL_DATABASE=saif
-      - SQL_USERNAME=sa
-      - SQL_PASSWORD=ComplexP@ss123
-      - API_KEY=insecure_api_key_12345
-    volumes:
-      - ./api:/app
     depends_on:
-      - db
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - saif-network
     restart: unless-stopped
 
+  # PHP Web Frontend
   web:
     build:
       context: ./web
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
+    container_name: saif-web
     environment:
-      - API_URL=http://api:8000
-      - API_KEY=insecure_api_key_12345
-    volumes:
-      - ./web:/var/www/html
+      API_URL: http://api:8000
+    ports:
+      - "8080:80"
     depends_on:
       - api
-    restart: unless-stopped
-    
-  db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=ComplexP@ss123
-      - MSSQL_PID=Express
-    ports:
-      - "1433:1433"
-    volumes:
-      - saif-sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - saif-network
     restart: unless-stopped
 
 volumes:
-  saif-sqldata:
+  postgres_data:
+    driver: local
+
+networks:
+  saif-network:
+    driver: bridge

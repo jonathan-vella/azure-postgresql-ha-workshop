@@ -1,923 +1,373 @@
-<?php
-// Configuration
-$apiUrl = getenv('API_URL') ?: 'http://localhost:8000';
-$apiKey = getenv('API_KEY') ?: 'insecure_api_key_12345';
-$version = "1.0.0";
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAIF - Secure AI Foundations</title>
+    <title>SAIF Payment Gateway - PostgreSQL Demo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet">
-    <link href="assets/css/custom.css" rel="stylesheet">
-    <link rel="icon" href="assets/img/saif-logo.svg">
+    <link rel="stylesheet" href="/assets/css/custom.css">
 </head>
-<body>    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <!-- Left-aligned toggle button for mobile -->
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/assets/img/saif-logo.svg" alt="SAIF" height="30" class="d-inline-block align-text-top">
+                SAIF Payment Gateway
+            </a>
+            <span class="badge bg-danger ms-2">PostgreSQL HA Demo</span>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <!-- Logo in the center -->
-            <div class="navbar-brand-wrapper">
-                <a class="navbar-brand" href="#">
-                    <div class="d-flex align-items-center justify-content-center">
-                        <img src="assets/img/saif-logo.svg" alt="SAIF Logo" class="logo">
-                        <span class="brand-text">SAIF</span>
-                    </div>
-                </a>
-            </div>
-            
-            <!-- Navigation items -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Diagnostics</a>
+                        <a class="nav-link active" href="#dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Documentation</a>
+                        <a class="nav-link" href="#process-payment">Process Payment</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">About</a>
+                        <a class="nav-link" href="#transactions">Transactions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#diagnostics">Diagnostics</a>
                     </li>
                 </ul>
-                
-                <!-- Right-aligned items -->
-                <div class="ms-auto d-flex align-items-center">
-                    <span class="badge bg-danger me-2 d-flex align-items-center">
-                        <i class="bi bi-shield-exclamation me-1"></i> Vulnerable App
-                    </span>
-                    <button id="darkModeToggle" class="btn btn-outline-light btn-sm ms-2" onclick="toggleDarkMode()" title="Toggle Dark Mode">
-                        <i class="bi bi-moon-fill"></i>
-                    </button>
-                </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section">
+    <div class="hero-section">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-lg-7">
-                    <h1 class="display-4">Secure AI Foundations</h1>
-                    <p class="lead">Diagnostic Testing Interface for security analysis and API testing.</p>
-                    <p>Use these tools to test various API endpoints and identify potential security vulnerabilities.</p>
-                    <div class="mt-4">
-                        <span class="badge rounded-pill bg-light text-dark me-2">Version <?php echo htmlspecialchars($version); ?></span>
-                        <span class="badge rounded-pill bg-light text-dark me-2">API Available</span>
-                        <span class="badge rounded-pill bg-light text-dark me-2">Training Mode</span>                    </div>                    
-                    <div class="security-warning mt-4">
-                        <i class="bi bi-exclamation-triangle-fill text-warning me-2" style="font-size: 1.2rem;"></i> 
-                        <strong class="text-dark">Security Notice:</strong> This application contains intentional vulnerabilities for educational purposes.
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">SAIF Payment Gateway</h1>
+                    <p class="lead">Secure payment processing with Azure PostgreSQL Zone-Redundant HA</p>
+                    <div class="d-flex gap-2 mt-4">
+                        <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> 99.99% Uptime SLA</span>
+                        <span class="badge bg-info fs-6"><i class="bi bi-shield-check"></i> Zero Data Loss</span>
+                        <span class="badge bg-warning text-dark fs-6"><i class="bi bi-lightning"></i> 60-120s RTO</span>
                     </div>
                 </div>
-                <div class="col-lg-5">
-                    <img src="assets/img/dashboard-illustration.svg" alt="Dashboard Illustration" class="img-fluid hero-image">
+                <div class="col-lg-6">
+                    <img src="/assets/img/dashboard-illustration.svg" alt="Dashboard" class="img-fluid">
                 </div>
             </div>
-        </div>    </section>
+        </div>
+    </div>
 
-    <!-- Dashboard Metrics Section -->
-    <section class="metrics-dashboard py-4">
-        <div class="container">
+    <!-- Warning Banner -->
+    <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Educational Demo Only!</strong> This application contains intentional security vulnerabilities for learning purposes.
+        Never use in production or with real data.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0"><i class="bi bi-speedometer2"></i> System Dashboard</h2>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0 small" for="refresh-interval">Auto-Refresh:</label>
+                        <select id="refresh-interval" class="form-select form-select-sm" style="width: auto;">
+                            <option value="0">Off</option>
+                            <option value="5">5 seconds</option>
+                            <option value="10" selected>10 seconds</option>
+                            <option value="30">30 seconds</option>
+                            <option value="60">60 seconds</option>
+                        </select>
+                    </div>
+                    <button id="manual-refresh" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh Now
+                    </button>
+                    <small class="text-muted">
+                        Last updated: <span id="last-updated">Never</span>
+                        <span id="refresh-indicator" class="badge bg-secondary ms-2" style="display:none;">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Updating...
+                        </span>
+                    </small>
+                </div>
+            </div>
+            
             <div class="row g-4">
+                <!-- Health Status Card -->
                 <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="bi bi-activity"></i>
-                        </div>
-                        <div class="metric-data">
-                            <h3 id="metric-api-status">Online</h3>
-                            <p>API Status</p>
+                    <div class="card stat-card h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon health-icon">
+                                <i class="bi bi-heart-pulse"></i>
+                            </div>
+                            <h5 class="card-title">System Health</h5>
+                            <p class="stat-value" id="health-status">Loading...</p>
+                            <small class="text-muted">API Status</small>
                         </div>
                     </div>
                 </div>
-                
+
+                <!-- Database Status Card -->
                 <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="bi bi-hdd-network"></i>
-                        </div>
-                        <div class="metric-data">
-                            <h3 id="metric-latency">--</h3>
-                            <p>API Latency</p>
+                    <div class="card stat-card h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon db-icon">
+                                <i class="bi bi-database"></i>
+                            </div>
+                            <h5 class="card-title">Database</h5>
+                            <p class="stat-value" id="db-status">Loading...</p>
+                            <small class="text-muted">PostgreSQL 16</small>
                         </div>
                     </div>
                 </div>
-                
+
+                <!-- HA Status Card -->
                 <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="bi bi-database-check"></i>
-                        </div>
-                        <div class="metric-data">
-                            <h3 id="metric-db-status">--</h3>
-                            <p>DB Status</p>
+                    <div class="card stat-card h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon ha-icon">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <h5 class="card-title">High Availability</h5>
+                            <p class="stat-value" id="ha-status">Loading...</p>
+                            <small class="text-muted">Zone-Redundant</small>
                         </div>
                     </div>
                 </div>
-                
+
+                <!-- Transaction Count Card -->
                 <div class="col-md-3">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="bi bi-shield-check"></i>
-                        </div>
-                        <div class="metric-data">
-                            <h3 id="metric-checks-run">0</h3>
-                            <p>Checks Run</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="container mt-4">        <!-- Tool Categories Navigation -->
-        <ul class="nav nav-pills mb-4" id="toolsTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-tools" type="button">
-                    <i class="bi bi-grid-3x3-gap me-1"></i> All Tools
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="basic-tab" data-bs-toggle="pill" data-bs-target="#basic-tools" type="button">
-                    <i class="bi bi-cpu me-1"></i> Basic Diagnostics
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="network-tab" data-bs-toggle="pill" data-bs-target="#network-tools" type="button">
-                    <i class="bi bi-globe me-1"></i> Network Tools
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="database-tab" data-bs-toggle="pill" data-bs-target="#database-tools" type="button">
-                    <i class="bi bi-database me-1"></i> Database
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="advanced-tab" data-bs-toggle="pill" data-bs-target="#advanced-tools" type="button">
-                    <i class="bi bi-gear me-1"></i> Advanced
-                </button>
-            </li>
-        </ul>
-        
-        <!-- Tool Categories Content -->
-        <div class="tab-content" id="toolsTabContent">
-            <!-- All Tools Tab -->
-            <div class="tab-pane fade show active" id="all-tools" role="tabpanel">
-                <div class="row">
-                    <!-- Basic Tools -->
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-health.svg" alt="Health Check" width="24" height="24" class="me-2">
-                                Health Check
+                    <div class="card stat-card h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon tx-icon">
+                                <i class="bi bi-graph-up"></i>
                             </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Check the API service health status and response time.</p>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDiagnostic('/api/healthcheck')">
-                                        <i class="bi bi-activity me-1"></i> Run Health Check
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-ip.svg" alt="IP Info" width="24" height="24" class="me-2">
-                                IP Information
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Get information about the server's IP addresses and hostname.</p>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDiagnostic('/api/ip')">
-                                        <i class="bi bi-hdd-network me-1"></i> Get IP Info
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SQL Tools -->
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-sql.svg" alt="SQL Info" width="24" height="24" class="me-2">
-                                SQL Information
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Check database version and connection information.</p>
-                                <div class="mt-auto d-grid gap-2">
-                                    <button class="btn btn-primary" onclick="runDiagnostic('/api/sqlversion')">
-                                        <i class="bi bi-database-check me-1"></i> SQL Version
-                                    </button>
-                                    <button class="btn btn-outline-primary" onclick="runDiagnostic('/api/sqlsrcip')">
-                                        <i class="bi bi-shuffle me-1"></i> SQL Source IP
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- DNS Tools -->
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-dns.svg" alt="DNS Tools" width="24" height="24" class="me-2">
-                                DNS Tools
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="hostname" class="form-label">Hostname</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-globe2"></i></span>
-                                        <input type="text" class="form-control" id="hostname" value="example.com" placeholder="e.g., example.com">
-                                    </div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDnsLookup()">
-                                        <i class="bi bi-search me-1"></i> DNS Lookup
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Reverse DNS -->
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-dns.svg" alt="Reverse DNS" width="24" height="24" class="me-2">
-                                Reverse DNS
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="ip" class="form-label">IP Address</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
-                                        <input type="text" class="form-control" id="ip" value="8.8.8.8" placeholder="e.g., 8.8.8.8">
-                                    </div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runReverseDnsLookup()">
-                                        <i class="bi bi-arrow-left-right me-1"></i> Reverse DNS
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- URL Fetch -->
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-url.svg" alt="URL Fetch" width="24" height="24" class="me-2">
-                                URL Fetch
-                                <span class="badge badge-security ms-auto" data-bs-toggle="tooltip" title="Contains security vulnerabilities">Vulnerable</span>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="url" class="form-label">URL</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                                        <input type="text" class="form-control" id="url" value="https://example.com" placeholder="e.g., https://example.com">
-                                    </div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runUrlFetch()">
-                                        <i class="bi bi-cloud-download me-1"></i> Fetch URL
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Environment Variables -->
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-env.svg" alt="Environment Variables" width="24" height="24" class="me-2">
-                                Environment Variables
-                                <span class="badge badge-security ms-auto" data-bs-toggle="tooltip" title="Contains security vulnerabilities">Vulnerable</span>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Display all environment variables from the API server.</p>
-                                <p class="card-text text-danger small"><i class="bi bi-exclamation-triangle"></i> Warning: May expose sensitive data</p>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDiagnostic('/api/printenv')">
-                                        <i class="bi bi-list-check me-1"></i> Show Environment
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PI Calculator -->
-                    <div class="col-md-4 col-lg-3 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-pi.svg" alt="PI Calculator" width="24" height="24" class="me-2">
-                                PI Calculator
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="digits" class="form-label">Digits</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-123"></i></span>
-                                        <input type="number" class="form-control" id="digits" value="1000" min="1" max="100000">
-                                    </div>
-                                    <div class="form-text">Max: 100,000 digits</div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="calculatePi()">
-                                        <i class="bi bi-calculator me-1"></i> Calculate PI
-                                    </button>
-                                </div>
-                            </div>
+                            <h5 class="card-title">Transactions</h5>
+                            <p class="stat-value" id="tx-count">Loading...</p>
+                            <small class="text-muted">Total Processed</small>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Basic Diagnostics Tab -->
-            <div class="tab-pane fade" id="basic-tools" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-health.svg" alt="Health Check" width="24" height="24" class="me-2">
-                                Health Check
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Check the API service health status and response time.</p>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDiagnostic('/api/healthcheck')">
-                                        <i class="bi bi-activity me-1"></i> Run Health Check
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-ip.svg" alt="IP Info" width="24" height="24" class="me-2">
-                                IP Information
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Get information about the server's IP addresses and hostname.</p>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDiagnostic('/api/ip')">
-                                        <i class="bi bi-hdd-network me-1"></i> Get IP Info
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Database Details -->
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> PostgreSQL Configuration</h5>
                 </div>
-            </div>
-            
-            <!-- Network Tools Tab -->
-            <div class="tab-pane fade" id="network-tools" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-dns.svg" alt="DNS Tools" width="24" height="24" class="me-2">
-                                DNS Tools
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="hostname-network" class="form-label">Hostname</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-globe2"></i></span>
-                                        <input type="text" class="form-control" id="hostname-network" value="example.com" placeholder="e.g., example.com">
-                                    </div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDnsLookup('hostname-network')">
-                                        <i class="bi bi-search me-1"></i> DNS Lookup
-                                    </button>
-                                </div>
-                            </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Database Version:</strong></td>
+                                    <td id="db-version">Loading...</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>HA Mode:</strong></td>
+                                    <td><span class="badge bg-success">Zone-Redundant</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Primary Zone:</strong></td>
+                                    <td>Zone 1 (Sweden Central)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Standby Zone:</strong></td>
+                                    <td>Zone 2 (Sweden Central)</td>
+                                </tr>
+                            </table>
                         </div>
-                    </div>
-
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-dns.svg" alt="Reverse DNS" width="24" height="24" class="me-2">
-                                Reverse DNS
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="ip-network" class="form-label">IP Address</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
-                                        <input type="text" class="form-control" id="ip-network" value="8.8.8.8" placeholder="e.g., 8.8.8.8">
-                                    </div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runReverseDnsLookup('ip-network')">
-                                        <i class="bi bi-arrow-left-right me-1"></i> Reverse DNS
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-url.svg" alt="URL Fetch" width="24" height="24" class="me-2">
-                                URL Fetch
-                                <span class="badge badge-security ms-auto" data-bs-toggle="tooltip" title="Contains security vulnerabilities">Vulnerable</span>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="url-network" class="form-label">URL</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                                        <input type="text" class="form-control" id="url-network" value="https://example.com" placeholder="e.g., https://example.com">
-                                    </div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runUrlFetch('url-network')">
-                                        <i class="bi bi-cloud-download me-1"></i> Fetch URL
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Database Tab -->
-            <div class="tab-pane fade" id="database-tools" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-sql.svg" alt="SQL Info" width="24" height="24" class="me-2">
-                                SQL Information
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Check database version and connection information.</p>
-                                <div class="mt-auto d-grid gap-2">
-                                    <button class="btn btn-primary" onclick="runDiagnostic('/api/sqlversion')">
-                                        <i class="bi bi-database-check me-1"></i> SQL Version
-                                    </button>
-                                    <button class="btn btn-outline-primary" onclick="runDiagnostic('/api/sqlsrcip')">
-                                        <i class="bi bi-shuffle me-1"></i> SQL Source IP
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Advanced Tab -->
-            <div class="tab-pane fade" id="advanced-tools" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-env.svg" alt="Environment Variables" width="24" height="24" class="me-2">
-                                Environment Variables
-                                <span class="badge badge-security ms-auto" data-bs-toggle="tooltip" title="Contains security vulnerabilities">Vulnerable</span>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small">Display all environment variables from the API server.</p>
-                                <p class="card-text text-danger small"><i class="bi bi-exclamation-triangle"></i> Warning: May expose sensitive data</p>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="runDiagnostic('/api/printenv')">
-                                        <i class="bi bi-list-check me-1"></i> Show Environment
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card diagnostic-card h-100">
-                            <div class="card-header d-flex align-items-center">
-                                <img src="assets/img/icon-pi.svg" alt="PI Calculator" width="24" height="24" class="me-2">
-                                PI Calculator
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3">
-                                    <label for="digits-advanced" class="form-label">Digits</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-123"></i></span>
-                                        <input type="number" class="form-control" id="digits-advanced" value="1000" min="1" max="100000">
-                                    </div>
-                                    <div class="form-text">Max: 100,000 digits</div>
-                                </div>
-                                <div class="mt-auto">
-                                    <button class="btn btn-primary w-100" onclick="calculatePi('digits-advanced')">
-                                        <i class="bi bi-calculator me-1"></i> Calculate PI
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Results Section -->        <div class="row mt-4" id="results-section">
-            <div class="col-12">
-                <div class="card results-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-terminal me-2"></i>
-                            <span id="result-title">Results</span>
-                            <span class="badge bg-secondary ms-2 api-endpoint-badge d-none" id="endpoint-badge"></span>
-                        </h5>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary me-2" id="copyResultBtn" onclick="copyResultToClipboard()" title="Copy to Clipboard" disabled>
-                                <i class="bi bi-clipboard"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="retryLastRequest()" title="Retry Last Request">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body result-container position-relative">
-                        <!-- Result Tabs -->
-                        <ul class="nav nav-tabs mb-3 result-tabs d-none" id="resultTabs">
-                            <li class="nav-item">
-                                <button class="nav-link active" id="raw-tab" data-bs-toggle="pill" data-bs-target="#raw-result" type="button">Raw Output</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" id="formatted-tab" data-bs-toggle="pill" data-bs-target="#formatted-result" type="button">Formatted</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" id="analysis-tab" data-bs-toggle="pill" data-bs-target="#analysis-result" type="button">Analysis</button>
-                            </li>
-                        </ul>
-                        
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="raw-result">
-                                <div id="loading-indicator" class="d-none text-center py-5">
-                                    <div class="loading-spinner mb-3"></div>
-                                    <p>Processing request...</p>
-                                </div>
-                                <pre id="result" class="mb-0">Run a diagnostic to see results...</pre>
-                            </div>
-                            <div class="tab-pane fade" id="formatted-result">
-                                <div id="formatted-output" class="formatted-json">Select a tool to view formatted results</div>
-                            </div>
-                            <div class="tab-pane fade" id="analysis-result">
-                                <div id="result-analysis" class="analysis-panel p-3">
-                                    <p class="text-muted">Run a diagnostic to generate analysis</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Execution Time & Status -->
-                        <div class="text-end mt-3 execution-info d-none" id="execution-info">
-                            <small class="text-muted">
-                                Execution time: <span id="execution-time">0</span>ms | 
-                                Status: <span id="status-badge" class="badge bg-success">Success</span>
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div><!-- Features Section -->
-        <section class="features-section mt-5 mb-5">
-            <div class="container">
-                <div class="row">
-                    <div class="col-12 text-center mb-4">
-                        <div class="section-title-container">
-                            <h2 class="section-title">About SAIF</h2>
-                            <div class="section-divider"></div>
-                            <p class="lead">A security training platform to help identify and mitigate common vulnerabilities.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon-wrapper">
-                                <div class="feature-icon-bg">
-                                    <i class="bi bi-shield-lock"></i>
-                                </div>
-                            </div>
-                            <h5>Security Challenges</h5>
-                            <p>Explore and identify intentional vulnerabilities embedded in this application.</p>
-                            <ul class="feature-list">
-                                <li><i class="bi bi-check-circle-fill"></i> SQL Injection</li>
-                                <li><i class="bi bi-check-circle-fill"></i> Server-Side Request Forgery</li>
-                                <li><i class="bi bi-check-circle-fill"></i> Information Disclosure</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon-wrapper">
-                                <div class="feature-icon-bg">
-                                    <i class="bi bi-layers"></i>
-                                </div>
-                            </div>
-                            <h5>Three-Tier Architecture</h5>
-                            <p>Demonstrates frontend, API, and database components and their security considerations.</p>
-                            <ul class="feature-list">
-                                <li><i class="bi bi-check-circle-fill"></i> PHP Web Frontend</li>
-                                <li><i class="bi bi-check-circle-fill"></i> Python FastAPI Backend</li>
-                                <li><i class="bi bi-check-circle-fill"></i> SQL Server Database</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon-wrapper">
-                                <div class="feature-icon-bg">
-                                    <i class="bi bi-cloud"></i>
-                                </div>
-                            </div>
-                            <h5>Cloud Deployment</h5>
-                            <p>Configured for deployment to Azure App Services using secure infrastructure as code.</p>
-                            <ul class="feature-list">
-                                <li><i class="bi bi-check-circle-fill"></i> Azure Infrastructure as Code</li>
-                                <li><i class="bi bi-check-circle-fill"></i> Containerized Services</li>
-                                <li><i class="bi bi-check-circle-fill"></i> CI/CD Ready</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row mt-5">
-                    <div class="col-12 text-center">
-                        <div class="cta-card">
-                            <div class="cta-content">
-                                <h4>Ready to Learn More?</h4>
-                                <p>Explore the documentation to learn how to secure similar applications.</p>
-                                <a href="#" class="btn btn-primary">View Documentation</a>
-                            </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>RPO (Data Loss):</strong></td>
+                                    <td><span class="badge bg-success">0 seconds</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>RTO (Failover Time):</strong></td>
+                                    <td><span class="badge bg-info">60-120 seconds</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SLA Uptime:</strong></td>
+                                    <td><span class="badge bg-success">99.99%</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Compute SKU:</strong></td>
+                                    <td>Standard_D4ds_v5 (4 vCore)</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
-        
-        <!-- Footer -->
-        <footer class="footer mt-auto py-4">
-            <div class="container">
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="footer-branding">
-                            <a href="#" class="footer-logo d-flex align-items-center text-decoration-none">
-                                <img src="assets/img/saif-logo.svg" alt="SAIF Logo" width="36" height="36" class="me-2">
-                                <span class="h5 mb-0">SAIF</span>
-                            </a>
-                            <p class="mt-3 text-muted">Secure AI Foundations is an educational platform for security testing and vulnerability identification.</p>
-                            <p class="version-badge">
-                                <span class="badge rounded-pill bg-light text-dark">Version <?php echo htmlspecialchars($version); ?></span>
-                            </p>
+
+        <!-- Process Payment Section -->
+        <section id="process-payment" class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-credit-card"></i> Process Payment</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form id="payment-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Customer ID <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="customer-id" required value="1">
+                                <small class="text-muted">Test IDs: 1-1000</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Merchant ID <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="merchant-id" required value="1">
+                                <small class="text-muted">Test IDs: 1-100</small>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <h6 class="footer-heading">Tools</h6>
-                        <ul class="footer-links list-unstyled">
-                            <li><a href="#" data-bs-toggle="pill" data-bs-target="#basic-tools" class="footer-link">Basic Diagnostics</a></li>
-                            <li><a href="#" data-bs-toggle="pill" data-bs-target="#network-tools" class="footer-link">Network Tools</a></li>
-                            <li><a href="#" data-bs-toggle="pill" data-bs-target="#database-tools" class="footer-link">Database Tools</a></li>
-                            <li><a href="#" data-bs-toggle="pill" data-bs-target="#advanced-tools" class="footer-link">Advanced Tools</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <h6 class="footer-heading">Resources</h6>
-                        <ul class="footer-links list-unstyled">
-                            <li><a href="https://learn.microsoft.com" class="footer-link">Documentation</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/azure/security/fundamentals/best-practices-and-patterns" class="footer-link">Security Guide</a></li>
-                            <li><a href="https://github.com/jonathan-vella/SAIF/tree/main/api" class="footer-link">API Reference</a></li>
-                            <li><a href="https://github.com/jonathan-vella/SAIF" class="footer-link">GitHub Repository</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div class="col-md-2">
-                        <h6 class="footer-heading">Connect</h6>
-                        <div class="social-links">
-                            <a href="https://github.com/jonathan-vella" class="social-link" title="GitHub"><i class="bi bi-github"></i></a>
-                            <a href="#" class="social-link" title="Twitter"><i class="bi bi-twitter-x"></i></a>
-                            <a href="https://www.linkedin.com/in/jonathanvella/" class="social-link" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Amount ($) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="amount" required min="0.01" step="0.01" value="99.99">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Currency <span class="text-danger">*</span></label>
+                                <select class="form-select" id="currency">
+                                    <option value="USD" selected>USD</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="GBP">GBP</option>
+                                    <option value="SEK">SEK</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-control" id="description" placeholder="Payment for services">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Process Payment
+                        </button>
+                    </form>
+                    <div id="payment-result" class="mt-3"></div>
                 </div>
-                
-                <div class="footer-divider mt-4"></div>
-                
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <p class="mb-0 copyright">&copy; 2025 SAIF Project - For educational purposes only</p>
+            </div>
+        </section>
+
+        <!-- Transactions Section -->
+        <section id="transactions" class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-list-ul"></i> Recent Transactions</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Customer ID</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="search-customer-id" placeholder="Enter customer ID">
+                            <button class="btn btn-primary" id="search-transactions">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                            <button class="btn btn-secondary" id="load-recent-transactions">
+                                <i class="bi bi-clock-history"></i> Recent (All)
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-md-6 text-md-end">
-                        <p class="mb-0 footer-legal">
-                            <a href="#" class="footer-link-sm">Privacy Policy</a> |
-                            <a href="#" class="footer-link-sm">Terms of Use</a> |
-                            <a href="#" class="footer-link-sm">Security</a>
-                        </p>
+                    <div id="transactions-list">
+                        <p class="text-muted">Enter a customer ID or click "Recent" to view transactions</p>
                     </div>
                 </div>
             </div>
-        </footer>
+        </section>
+
+        <!-- Diagnostics Section (Vulnerable) -->
+        <section id="diagnostics" class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-wrench"></i> Diagnostics & Testing</h2>
+            
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Security Warning:</strong> These diagnostic endpoints contain intentional vulnerabilities for educational purposes.
+            </div>
+
+            <div class="row g-4">
+                <!-- SQL Injection Test -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-danger text-white">
+                            <i class="bi bi-bug"></i> SQL Injection Test
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Test SQL injection vulnerability</p>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="sql-customer-id" placeholder="Customer ID or SQL payload">
+                                <button class="btn btn-danger" id="test-sql-injection">Test</button>
+                            </div>
+                            <small class="text-muted">Try: <code>1 OR 1=1</code></small>
+                            <div id="sql-result" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SSRF Test -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-danger text-white">
+                            <i class="bi bi-bug"></i> SSRF Test
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Test Server-Side Request Forgery</p>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="curl-url" placeholder="URL to fetch">
+                                <button class="btn btn-danger" id="test-ssrf">Test</button>
+                            </div>
+                            <small class="text-muted">Try: <code>http://169.254.169.254/latest/meta-data/</code></small>
+                            <div id="ssrf-result" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Disclosure Test -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-danger text-white">
+                            <i class="bi bi-bug"></i> Information Disclosure
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">View environment variables</p>
+                            <button class="btn btn-danger w-100" id="test-info-disclosure">View Environment</button>
+                            <div id="env-result" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load Test -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-speedometer"></i> Load Testing
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Generate test transactions</p>
+                            <div class="input-group mb-2">
+                                <input type="number" class="form-control" id="load-count" placeholder="Count" value="10">
+                                <button class="btn btn-success" id="run-load-test">Generate</button>
+                            </div>
+                            <small class="text-muted">Creates test transactions using stored function</small>
+                            <div id="load-result" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Scripts -->
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">SAIF Payment Gateway - PostgreSQL Zone-Redundant HA Demo</p>
+            <small class="text-muted">Educational purposes only • Contains intentional vulnerabilities</small>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script src="assets/js/custom.js"></script>
-    
-    <script>
-        // Check if there are duplicate input element IDs and fix them
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize tooltips
-            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            const tooltips = [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
-            
-            // Set up network tab DNS lookup
-            document.getElementById('hostname-network').addEventListener('input', function() {
-                document.getElementById('hostname').value = this.value;
-            });
-            document.getElementById('hostname').addEventListener('input', function() {
-                document.getElementById('hostname-network').value = this.value;
-            });
-            
-            // Set up network tab reverse DNS lookup
-            document.getElementById('ip-network').addEventListener('input', function() {
-                document.getElementById('ip').value = this.value;
-            });
-            document.getElementById('ip').addEventListener('input', function() {
-                document.getElementById('ip-network').value = this.value;
-            });
-            
-            // Set up network tab URL fetch
-            document.getElementById('url-network').addEventListener('input', function() {
-                document.getElementById('url').value = this.value;
-            });
-            document.getElementById('url').addEventListener('input', function() {
-                document.getElementById('url-network').value = this.value;
-            });
-            
-            // Set up advanced tab PI calculator
-            document.getElementById('digits-advanced').addEventListener('input', function() {
-                document.getElementById('digits').value = this.value;
-            });
-            document.getElementById('digits').addEventListener('input', function() {
-                document.getElementById('digits-advanced').value = this.value;
-            });
-        });
-        
-        // Extended versions of functions to handle alternate IDs
-        function runDnsLookup(altId = null) {
-            const hostnameInput = altId ? document.getElementById(altId) : document.getElementById('hostname');
-            const hostname = hostnameInput.value;
-            
-            if (!hostname) {
-                alert('Please enter a hostname');
-                return;
-            }
-            
-            document.getElementById('result').innerText = 'Loading...';
-            showResultsSection();
-            
-            fetchFromApi('/api/dns', { pathParam: hostname })
-                .then(data => formatAndDisplayResults(data));
-        }
-        
-        function runReverseDnsLookup(altId = null) {
-            const ipInput = altId ? document.getElementById(altId) : document.getElementById('ip');
-            const ip = ipInput.value;
-            
-            if (!ip) {
-                alert('Please enter an IP address');
-                return;
-            }
-            
-            document.getElementById('result').innerText = 'Loading...';
-            showResultsSection();
-            
-            fetchFromApi('/api/reversedns', { pathParam: ip })
-                .then(data => formatAndDisplayResults(data));
-        }
-        
-        function runUrlFetch(altId = null) {
-            const urlInput = altId ? document.getElementById(altId) : document.getElementById('url');
-            const url = urlInput.value;
-            
-            if (!url) {
-                alert('Please enter a URL');
-                return;
-            }
-            
-            document.getElementById('result').innerText = 'Loading...';
-            showResultsSection();
-            
-            fetchFromApi('/api/curl', { url: url })
-                .then(data => formatAndDisplayResults(data));
-        }
-        
-        function calculatePi(altId = null) {
-            const digitsInput = altId ? document.getElementById(altId) : document.getElementById('digits');
-            const digits = digitsInput.value;
-            
-            if (!digits || isNaN(parseInt(digits))) {
-                alert('Please enter a valid number of digits');
-                return;
-            }
-            
-            document.getElementById('result').innerText = 'Calculating PI...';
-            showResultsSection();
-            
-            fetchFromApi('/api/pi', { digits: digits })
-                .then(data => formatAndDisplayResults(data));
-        }
-        
-        async function fetchFromApi(endpoint, params = {}){
-            // Create the URL using our api-proxy.php script
-            const url = new URL('/api-proxy.php', window.location.origin);
-            
-            // Get endpoint name without the /api/ prefix
-            const endpointName = endpoint.startsWith('/api/') ? 
-                endpoint.substring(5) : endpoint;
-            
-            // Set the endpoint parameter
-            url.searchParams.append('endpoint', endpointName);
-            
-            // Add additional query parameters if any
-            Object.keys(params).forEach(key => {
-                url.searchParams.append(key, params[key]);
-            });
-
-            try {
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                return { error: error.message };
-            }
-        }
-
-        async function runDiagnostic(endpoint) {
-            document.getElementById('result').innerText = 'Loading...';
-            
-            const data = await fetchFromApi(endpoint);
-            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-        }        async function runDnsLookup() {
-            const hostname = document.getElementById('hostname').value;
-            document.getElementById('result').innerText = 'Loading...';
-            
-            const data = await fetchFromApi('/api/dns', { pathParam: hostname });
-            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-        }
-        
-        async function runReverseDnsLookup() {
-            const ip = document.getElementById('ip').value;
-            document.getElementById('result').innerText = 'Loading...';
-            
-            const data = await fetchFromApi('/api/reversedns', { pathParam: ip });
-            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-        }
-        
-        async function runUrlFetch() {
-            const url = document.getElementById('url').value;
-            document.getElementById('result').innerText = 'Loading...';
-            
-            const data = await fetchFromApi('/api/curl', { url: url });
-            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-        }
-        
-        async function calculatePi() {
-            const digits = document.getElementById('digits').value;
-            document.getElementById('result').innerText = 'Calculating PI...';
-            
-            const data = await fetchFromApi('/api/pi', { digits: digits });
-            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-        }
-    </script>
+    <script src="/assets/js/custom.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

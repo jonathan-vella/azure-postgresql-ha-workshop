@@ -1,153 +1,330 @@
 <#
 .SYNOPSIS
-    Sets up and tests SAIF (Secure AI Foundations) locally using Docker.
+    Tests SAIF-PostgreSQL application locally using Docker Compose.
+
 .DESCRIPTION
-    This script builds and runs Docker containers for local testing of the SAIF application.
-    It creates necessary SQL initialization scripts and helps with local development.
+    Validates local development environment, starts containers, and runs health checks.
+
+.PARAMETER SkipBuild
+    Skip building containers (use existing images).
+
+.PARAMETER CleanStart
+    Remove existing containers and volumes before starting.
+
 .EXAMPLE
     .\Test-SAIFLocal.ps1
+
+.EXAMPLE
+    .\Test-SAIFLocal.ps1 -CleanStart
+
 .NOTES
     Author: SAIF Team
-    Version: 1.0.0
-    Date: 2025-06-18
-    Requirements: Docker Desktop must be installed and running.
+    Version: 2.0.0
+    Date: 2025-01-08
+    Requires: Docker Desktop
 #>
 
 [CmdletBinding()]
-param()
+param(
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipBuild,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$CleanStart
+)
 
-Write-Host "======================================" -ForegroundColor Cyan
-Write-Host "SAIF: Secure AI Foundations"
-Write-Host "Local Testing Environment"
-Write-Host "======================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "This script sets up the local development environment for SAIF."
-Write-Host ""
-Write-Host "Steps:" -ForegroundColor Yellow
-Write-Host "1. Checking prerequisites"
-Write-Host "2. Building Docker containers"
-Write-Host "3. Creating and initializing the database"
-Write-Host "4. Starting the application"
-Write-Host ""
+$ErrorActionPreference = "Stop"
 
-# Check for Docker
-try {
-    Write-Host "Checking Docker installation..." -ForegroundColor Cyan
-    docker --version | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Docker command failed"
-    }
+#region Helper Functions
+
+function Show-Banner {
+    param([string]$message)
+    $border = "=" * ($message.Length + 4)
+    Write-Host ""
+    Write-Host $border -ForegroundColor Cyan
+    Write-Host "| $message |" -ForegroundColor White -BackgroundColor DarkBlue
+    Write-Host $border -ForegroundColor Cyan
+    Write-Host ""
 }
-catch {
-    Write-Host "Docker is not installed or not running. Please install Docker Desktop and try again." -ForegroundColor Red
+
+function Write-Step {
+    param([string]$message)
+    Write-Host "📍 $message" -ForegroundColor Yellow
+}
+
+function Write-Success {
+    param([string]$message)
+    Write-Host "✅ $message" -ForegroundColor Green
+}
+
+function Write-Error-Custom {
+    param([string]$message)
+    Write-Host "❌ $message" -ForegroundColor Red
+}
+
+function Write-Info {
+    param([string]$message)
+    Write-Host "ℹ️  $message" -ForegroundColor Cyan
+}
+
+#endregion
+
+#region Main Script
+
+Show-Banner "SAIF-PostgreSQL Local Test"
+
+# Check Docker
+Write-Step "Checking Docker Desktop..."
+try {
+    $dockerVersion = docker --version
+    Write-Success "Docker installed: $dockerVersion"
+    
+    $dockerInfo = docker info 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error-Custom "Docker is not running. Please start Docker Desktop."
+        exit 1
+    }
+    Write-Success "Docker is running"
+} catch {
+    Write-Error-Custom "Docker not found. Please install Docker Desktop."
     exit 1
 }
 
-# Create SQL initialization script
-Write-Host "Creating SQL initialization script..." -ForegroundColor Cyan
-$sqlScript = @"
-CREATE DATABASE saif;
-GO
-
-USE saif;
-GO
-
-CREATE TABLE diagnostics (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    endpoint VARCHAR(100) NOT NULL,
-    request_time DATETIME NOT NULL DEFAULT GETDATE(),
-    client_ip VARCHAR(50) NOT NULL,
-    response_status INT NOT NULL,
-    execution_time_ms INT NOT NULL
-);
-GO
-
-CREATE TABLE security_events (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    event_time DATETIME NOT NULL DEFAULT GETDATE(),
-    event_type VARCHAR(50) NOT NULL,
-    severity VARCHAR(20) NOT NULL,
-    description VARCHAR(MAX) NOT NULL,
-    source_ip VARCHAR(50) NULL
-);
-GO
-
--- Insert some sample security events
-INSERT INTO security_events (event_type, severity, description, source_ip)
-VALUES 
-    ('FAILED_LOGIN', 'HIGH', 'Multiple failed login attempts', '192.168.1.100'),
-    ('SQL_INJECTION_ATTEMPT', 'CRITICAL', 'Possible SQL injection detected in query parameter', '10.0.0.15'),
-    ('SENSITIVE_DATA_ACCESS', 'MEDIUM', 'Access to sensitive customer data from unusual location', '203.0.113.42');
-GO
-"@
-
-Set-Content -Path "../init-db.sql" -Value $sqlScript
-
-# Navigate to the root directory for docker-compose
-$scriptPath = $MyInvocation.MyCommand.Path
-$scriptDir = Split-Path $scriptPath -Parent
-$rootDir = Split-Path $scriptDir -Parent
-Push-Location $rootDir
-
+# Check docker-compose
+Write-Step "Checking Docker Compose..."
 try {
-    # Build and run Docker containers
-    Write-Host "Building and starting containers..." -ForegroundColor Green
-    # For newer Docker versions
-    docker compose up -d --build
+    $composeVersion = docker-compose --version
+    Write-Success "Docker Compose installed: $composeVersion"
+} catch {
+    Write-Error-Custom "Docker Compose not found."
+    exit 1
+}
+
+# Navigate to project root
+$projectRoot = Split-Path $PSScriptRoot -Parent
+Set-Location $projectRoot
+
+Write-Info "Project directory: $projectRoot"
+
+# Clean start if requested
+if ($CleanStart) {
+    Show-Banner "Clean Start"
     
-    # If the above fails, try with docker-compose (hyphenated) for older Docker versions
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Trying with docker-compose (older syntax)..." -ForegroundColor Yellow
-        docker-compose up -d --build
+    Write-Step "Stopping and removing existing containers..."
+    docker-compose down -v 2>&1 | Out-Null
+    Write-Success "Cleaned up existing containers and volumes"
+}
+
+# Start services
+Show-Banner "Starting Services"
+
+if ($SkipBuild) {
+    Write-Step "Starting containers (using existing images)..."
+    docker-compose up -d
+} else {
+    Write-Step "Building and starting containers..."
+    Write-Info "This may take 5-10 minutes on first run..."
+    docker-compose up -d --build
+}
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error-Custom "Failed to start containers"
+    Write-Host "Check logs with: docker-compose logs" -ForegroundColor Yellow
+    exit 1
+}
+
+Write-Success "Containers started"
+
+# Wait for services to be ready
+Write-Step "Waiting for services to be ready (60 seconds)..."
+Start-Sleep -Seconds 60
+
+# Check container status
+Show-Banner "Container Status"
+
+$containers = docker-compose ps --format json | ConvertFrom-Json
+
+Write-Host "Container Status:" -ForegroundColor Cyan
+foreach ($container in $containers) {
+    $status = if ($container.State -eq "running") { "✅" } else { "❌" }
+    Write-Host "  $status $($container.Service): $($container.State)" -ForegroundColor White
+}
+
+# Health Checks
+Show-Banner "Health Checks"
+
+# PostgreSQL
+Write-Step "Testing PostgreSQL connection..."
+try {
+    $pgTest = docker-compose exec -T postgres psql -U saifadmin -d saifdb -c "SELECT 1;" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Success "PostgreSQL is healthy"
+    } else {
+        Write-Error-Custom "PostgreSQL connection failed"
+        Write-Host "Error: $pgTest" -ForegroundColor Red
     }
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Failed to start Docker containers. Check the error messages above."
-        exit 1
+} catch {
+    Write-Error-Custom "PostgreSQL test failed: $_"
+}
+
+# API
+Write-Step "Testing API endpoint..."
+try {
+    $apiResponse = Invoke-RestMethod -Uri "http://localhost:8000/api/healthcheck" -Method Get -TimeoutSec 10
+    
+    if ($apiResponse.status -eq "healthy") {
+        Write-Success "API is healthy"
+        Write-Host "  Database: $($apiResponse.database)" -ForegroundColor Gray
+        Write-Host "  Version: $($apiResponse.version)" -ForegroundColor Gray
+    } else {
+        Write-Error-Custom "API reports unhealthy status"
     }
+} catch {
+    Write-Error-Custom "API health check failed: $_"
+    Write-Host "  URL: http://localhost:8000/api/healthcheck" -ForegroundColor Gray
+}
+
+# Web
+Write-Step "Testing Web frontend..."
+try {
+    $webResponse = Invoke-WebRequest -Uri "http://localhost:8080" -Method Get -TimeoutSec 10
     
-    Write-Host "Waiting for SQL Server to start (20 seconds)..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 20
+    if ($webResponse.StatusCode -eq 200) {
+        Write-Success "Web frontend is accessible"
+    } else {
+        Write-Error-Custom "Web frontend returned status: $($webResponse.StatusCode)"
+    }
+} catch {
+    Write-Error-Custom "Web frontend check failed: $_"
+    Write-Host "  URL: http://localhost:8080" -ForegroundColor Gray
+}
+
+# Functional Tests
+Show-Banner "Functional Tests"
+
+# Test 1: Database Status
+Write-Step "Test 1: Database Status"
+try {
+    $dbStatus = Invoke-RestMethod -Uri "http://localhost:8000/api/db-status" -Method Get -TimeoutSec 10
+    Write-Success "Database status retrieved"
+    Write-Host "  Version: $($dbStatus.version)" -ForegroundColor Gray
+    Write-Host "  Connection count: $($dbStatus.connection_count)" -ForegroundColor Gray
+    Write-Host "  Transaction count: $($dbStatus.transaction_count)" -ForegroundColor Gray
+} catch {
+    Write-Error-Custom "Database status test failed"
+}
+
+# Test 2: Create Test Transaction
+Write-Step "Test 2: Create Test Transaction"
+try {
+    $txResponse = Invoke-RestMethod -Uri "http://localhost:8000/api/test/create-transaction" -Method Post -TimeoutSec 10
+    Write-Success "Test transaction created"
+    Write-Host "  Transaction ID: $($txResponse.transaction_id)" -ForegroundColor Gray
+    Write-Host "  Amount: $($txResponse.amount)" -ForegroundColor Gray
+} catch {
+    Write-Error-Custom "Transaction creation test failed"
+}
+
+# Test 3: Process Payment
+Write-Step "Test 3: Process Payment"
+try {
+    $paymentData = @{
+        customer_id = 1
+        merchant_id = 1
+        amount = 99.99
+        currency = "USD"
+        description = "Test payment"
+    } | ConvertTo-Json
     
-    # Get the container name for the database
-    $dbContainer = docker ps --format "{{.Names}}" | Where-Object { $_ -like "*db*" }
+    $paymentResponse = Invoke-RestMethod `
+        -Uri "http://localhost:8000/api/process-payment" `
+        -Method Post `
+        -ContentType "application/json" `
+        -Body $paymentData `
+        -TimeoutSec 10
     
-    if ($dbContainer) {
-        Write-Host "Initializing database..." -ForegroundColor Green
-        docker exec $dbContainer /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ComplexP@ss123 -i /var/opt/mssql/init-db.sql
+    Write-Success "Payment processed successfully"
+    Write-Host "  Transaction ID: $($paymentResponse.transaction_id)" -ForegroundColor Gray
+    Write-Host "  Status: $($paymentResponse.status)" -ForegroundColor Gray
+    Write-Host "  Amount: $($paymentResponse.amount)" -ForegroundColor Gray
+} catch {
+    Write-Error-Custom "Payment processing test failed"
+}
+
+# Test 4: Get Recent Transactions
+Write-Step "Test 4: Get Recent Transactions"
+try {
+    $txListResponse = Invoke-RestMethod `
+        -Uri "http://localhost:8000/api/transactions/recent?limit=5" `
+        -Method Get `
+        -TimeoutSec 10
+    
+    Write-Success "Retrieved recent transactions"
+    Write-Host "  Count: $($txListResponse.transactions.Count)" -ForegroundColor Gray
+} catch {
+    Write-Error-Custom "Transaction list test failed"
+}
+
+# Load Test
+Show-Banner "Load Test"
+
+Write-Step "Generating 20 test transactions..."
+try {
+    $startTime = Get-Date
+    $successCount = 0
+    $failCount = 0
+    
+    for ($i = 1; $i -le 20; $i++) {
+        try {
+            Invoke-RestMethod `
+                -Uri "http://localhost:8000/api/test/create-transaction" `
+                -Method Post `
+                -TimeoutSec 5 | Out-Null
+            $successCount++
+        } catch {
+            $failCount++
+        }
         
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Database initialization might have failed. The application may not work correctly."
+        if ($i % 5 -eq 0) {
+            Write-Host "  Progress: $i/20 transactions" -ForegroundColor Gray
         }
     }
-    else {
-        Write-Warning "Could not find the database container. Database initialization skipped."
-    }
     
-    # Check if containers are running
-    Write-Host "Checking container status..." -ForegroundColor Cyan
-    docker ps
+    $duration = ((Get-Date) - $startTime).TotalSeconds
+    $tps = [Math]::Round($successCount / $duration, 2)
     
-    # Get the container status for API and Web
-    $apiContainer = docker ps --format "{{.Names}}" | Where-Object { $_ -like "*api*" }
-    $webContainer = docker ps --format "{{.Names}}" | Where-Object { $_ -like "*web*" }
-    
-    Write-Host ""
-    if ($apiContainer -and $webContainer) {
-        Write-Host "Setup complete! The application is now running locally:" -ForegroundColor Green
-        Write-Host "- Web: http://localhost" -ForegroundColor Yellow
-        Write-Host "- API: http://localhost:8000" -ForegroundColor Yellow
-    }
-    else {
-        Write-Warning "Not all containers are running. Please check the Docker logs."
-    }
-    
-    Write-Host ""
-    Write-Host "Commands:" -ForegroundColor Cyan
-    Write-Host "- View logs: docker-compose logs -f" -ForegroundColor Gray
-    Write-Host "- Stop containers: docker-compose down" -ForegroundColor Gray
-    Write-Host "- Restart containers: docker-compose restart" -ForegroundColor Gray
+    Write-Success "Load test completed"
+    Write-Host "  Successful: $successCount" -ForegroundColor Green
+    Write-Host "  Failed: $failCount" -ForegroundColor $(if ($failCount -gt 0) { 'Red' } else { 'Gray' })
+    Write-Host "  Duration: $([Math]::Round($duration, 2))s" -ForegroundColor Gray
+    Write-Host "  TPS: $tps" -ForegroundColor Gray
+} catch {
+    Write-Error-Custom "Load test failed: $_"
 }
-finally {
-    # Return to the original directory
-    Pop-Location
-}
+
+# Final Summary
+Show-Banner "🎉 Test Complete!"
+
+Write-Host "Access Points:" -ForegroundColor Cyan
+Write-Host "  🌐 Web UI:  http://localhost:8080" -ForegroundColor White
+Write-Host "  🔌 API:     http://localhost:8000" -ForegroundColor White
+Write-Host "  📊 Docs:    http://localhost:8000/docs" -ForegroundColor White
+Write-Host "  🗄️  PostgreSQL: localhost:5432" -ForegroundColor White
+
+Write-Host ""
+Write-Host "Test Credentials:" -ForegroundColor Cyan
+Write-Host "  Database: saifdb" -ForegroundColor Gray
+Write-Host "  Username: saifadmin" -ForegroundColor Gray
+Write-Host "  Password: P@ssw0rd123!" -ForegroundColor Gray
+
+Write-Host ""
+Write-Host "Useful Commands:" -ForegroundColor Cyan
+Write-Host "  View logs:     docker-compose logs -f" -ForegroundColor White
+Write-Host "  Stop services: docker-compose down" -ForegroundColor White
+Write-Host "  Restart:       docker-compose restart" -ForegroundColor White
+Write-Host "  Clean all:     docker-compose down -v" -ForegroundColor White
+
+Write-Host ""
+Write-Success "Local environment is ready for testing!"
+
+#endregion

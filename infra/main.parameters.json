@@ -5,8 +5,34 @@
     "location": {
       "value": "swedencentral"
     },
-    "sqlAdminPassword": {
-      "value": ""
+    "postgresAdminLogin": {
+      "value": "saifadmin"
+    },
+    "postgresqlVersion": {
+      "value": "16"
+    },
+    "postgresqlSku": {
+      "value": "Standard_D4ds_v5"
+    },
+    "postgresqlStorageSizeGB": {
+      "value": 128
+    },
+    "enableHighAvailability": {
+      "value": true
+    },
+    "backupRetentionDays": {
+      "value": 7
+    },
+    "apiKey": {
+      "value": "demo_api_key_12345_change_in_production"
+    },
+    "tags": {
+      "value": {
+        "Environment": "Demo",
+        "Application": "SAIF-PostgreSQL",
+        "Purpose": "Security Training & HA Testing",
+        "DeployedBy": "Bicep"
+      }
     }
   }
 }

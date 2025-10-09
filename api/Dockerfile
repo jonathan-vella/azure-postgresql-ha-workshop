@@ -1,26 +1,22 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install ODBC Driver for SQL Server
-RUN apt-get update && \
-    apt-get install -y curl gnupg unixodbc unixodbc-dev && \
-    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
-    curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
-    apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y msodbcsql17 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file and install dependencies
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --progress-bar=off -r requirements.txt
 
-# Copy the rest of the application code
-COPY . .
+# Copy application code
+COPY app.py .
 
-# Expose the port the app will run on
+# Expose port
 EXPOSE 8000
 
-# Command to run the application
+# Run the application
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,34 +1,24 @@
 FROM php:8.2-apache
 
 # Install PHP extensions
-RUN apt-get update && \
-    apt-get install -y \
-        libcurl4-openssl-dev \
-        libssl-dev \
-        zip \
-        unzip && \
-    docker-php-ext-install curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN docker-php-ext-install mysqli
 
-# Enable mod_rewrite for Apache
-RUN a2enmod rewrite
+# Enable Apache modules
+RUN a2enmod rewrite headers
 
-# Configure Apache to allow .htaccess files
-COPY apache-config.conf /etc/apache2/conf-available/custom-apache-config.conf
-RUN a2enconf custom-apache-config
+# Copy Apache configuration
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
 
-# Set the working directory
-WORKDIR /var/www/html
+# Copy application files
+COPY . /var/www/html/
 
-# Copy PHP files
-COPY . .
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
-# Change ownership of web files
-RUN chown -R www-data:www-data /var/www/html
-
-# Expose port 80
+# Expose port
 EXPOSE 80
 
-# Start Apache in foreground
-CMD ["apache2-foreground"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
