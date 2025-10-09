@@ -137,4 +137,4 @@ az webapp log tail --name app-saifpg-api-10081025 --resource-group rg-saif-pgsql
 ---
 
 **Full Documentation:** See `BUILD-CONTAINERS-GUIDE.md`  
-**Version:** 1.0.0 | **Date:** 2025-10-08
+**Version:** 1.0.0 | **Date:** 2025-10-09

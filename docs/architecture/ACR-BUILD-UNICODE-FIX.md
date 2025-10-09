@@ -1,7 +1,7 @@
 # ACR Build Unicode Encoding Fix
 
 **Document Version:** 1.0.0  
-**Date:** 2025-10-08  
+**Date:** 2025-10-09  
 **Author:** Azure Principal Architect  
 **Classification:** Architecture Decision Record (ADR)
 
@@ -475,7 +475,7 @@ AzureContainerRegistry
 This fix aligns with Azure Well-Architected Framework principles, follows Microsoft documentation patterns, and provides a sustainable, cross-platform solution. The single-line Dockerfile change eliminates a critical deployment blocker while maintaining build observability through text-based logs.
 
 **Sign-off:** Azure Principal Architect  
-**Date:** 2025-10-08  
+**Date:** 2025-10-09  
 **Review Status:** Complete
 
 ---
@@ -484,5 +484,5 @@ This fix aligns with Azure Well-Architected Framework principles, follows Micros
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2025-10-08 | Azure Principal Architect | Initial documentation |
+| 1.0.0 | 2025-10-09 | Azure Principal Architect | Initial documentation |
 

@@ -9,14 +9,14 @@ This folder contains obsolete scripts that have been superseded by newer version
 - **Method**: Docker-based psql execution
 - **Performance**: ~0.7-0.8 TPS
 - **Superseded by**: `Test-PostgreSQL-Failover.ps1` (Npgsql native)
-- **Date Archived**: 2025-10-08
+- **Date Archived**: 2025-10-09
 - **Reason**: Native Npgsql version is 16x faster (12-13 TPS) and more reliable
 
 ### Test-PostgreSQL-Failover-Improved.ps1
 - **Status**: Experimental iteration #1
 - **Method**: Docker-based with improved RTO measurement
 - **Performance**: ~1-2 TPS
-- **Date Archived**: 2025-10-08
+- **Date Archived**: 2025-10-09
 - **Reason**: Still Docker-bound, superseded by native version
 
 ### Test-PostgreSQL-Failover-Parallel.ps1
@@ -24,33 +24,33 @@ This folder contains obsolete scripts that have been superseded by newer version
 - **Method**: PowerShell background jobs with parallel Docker workers
 - **Performance**: ~5-10 TPS
 - **Issues**: Failover detection isolated in background jobs, not visible in console
-- **Date Archived**: 2025-10-08
+- **Date Archived**: 2025-10-09
 - **Reason**: Detection issues and still Docker-bound
 
 ### Test-PostgreSQL-Failover-Fast.ps1
 - **Status**: Experimental iteration #3
 - **Method**: Persistent worker processes with file-based communication
 - **Performance**: ~10-20 TPS
-- **Date Archived**: 2025-10-08
+- **Date Archived**: 2025-10-09
 - **Reason**: Still limited by Docker per-transaction overhead, superseded by native version
 
 ### Initialize-Database-Container.ps1
 - **Status**: Superseded
 - **Method**: Container-based database initialization
 - **Superseded by**: `Initialize-Database.ps1`
-- **Date Archived**: 2025-10-08
+- **Date Archived**: 2025-10-09
 - **Reason**: Main script now handles both container and direct initialization
 
 ### Initialize-Database-CloudShell.ps1
 - **Status**: Edge case script
 - **Method**: Cloud Shell specific initialization
-- **Date Archived**: 2025-10-08
+- **Date Archived**: 2025-10-09
 - **Reason**: Rarely used, edge case scenario
 
 ### Update-SAIF-Containers-PostgreSQL.ps1
 - **Status**: Superseded
 - **Superseded by**: `Rebuild-SAIF-Containers.ps1`
-- **Date Archived**: 2025-10-08
+- **Date Archived**: 2025-10-09
 - **Reason**: New rebuild script provides better functionality and naming
 
 ## Evolution Timeline
@@ -102,4 +102,4 @@ Copy-Item "archive\<script-name>.ps1" "..\<script-name>.ps1"
 
 ---
 
-*Last Updated: 2025-10-08*
+*Last Updated: 2025-10-09*

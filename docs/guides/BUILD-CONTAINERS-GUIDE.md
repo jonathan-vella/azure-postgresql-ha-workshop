@@ -2,7 +2,7 @@
 
 **Script:** `Build-SAIF-Containers.ps1`  
 **Version:** 1.0.0  
-**Date:** 2025-10-08  
+**Date:** 2025-10-09  
 **Author:** Azure Principal Architect
 
 ## Overview
@@ -125,7 +125,7 @@ The image tag to use for both containers.
 
 **Default:** `"latest"`  
 **Recommended:** Use semantic versioning for production  
-**Examples:** `"v1.0.0"`, `"2025-10-08"`, `"dev"`, `"staging"`
+**Examples:** `"v1.0.0"`, `"2025-10-09"`, `"dev"`, `"staging"`
 
 ```powershell
 # Development build
@@ -815,7 +815,7 @@ az acr config retention update `
 **Enhancements?** Submit a pull request with your improvements.
 
 **Documentation Version:** 1.0.0  
-**Last Updated:** 2025-10-08  
+**Last Updated:** 2025-10-09  
 **Maintained By:** Azure Principal Architect Team
 
 ---

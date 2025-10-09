@@ -465,6 +465,6 @@ az webapp --help
 
 ---
 
-**Last Updated:** October 8, 2025  
+**Last Updated:** 2025-10-09  
 **Version:** 2.0.0  
 **Repository:** https://github.com/jonathan-vella/SAIF

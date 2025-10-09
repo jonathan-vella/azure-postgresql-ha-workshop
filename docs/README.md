@@ -14,7 +14,7 @@ This directory contains versioned documentation for the SAIF-PostgreSQL project 
 
 **[→ View v1.0.0 Documentation](v1.0.0/index.md)**
 
-**Release Date**: January 2025  
+**Release Date**: 2025-10-09  
 **Status**: ✅ Current & Supported  
 **PostgreSQL Version**: 16  
 **Azure HA Mode**: Zone-Redundant
@@ -109,7 +109,7 @@ Procedural guides for day-to-day operations:
 
 | Version | Release Date | Status | Notes |
 |---------|-------------|--------|-------|
-| [v1.0.0](v1.0.0/index.md) | January 2025 | ✅ Current | Initial release with PostgreSQL 16 and zone-redundant HA |
+| [v1.0.0](v1.0.0/index.md) | 2025-10-09 | ✅ Current | Initial release with PostgreSQL 16 and zone-redundant HA |
 
 ---
 
@@ -256,7 +256,7 @@ docs/- **See all available docs** → [index.md](v1.0.0/index.md)
 
 **Documentation Repository Version**: 1.0.0  
 
----**Last Updated**: January 2025  
+---**Last Updated**: 2025-10-09  
 
 **Maintained by**: SAIF Project Team
 
@@ -311,7 +311,7 @@ Get-Content docs\TROUBLESHOOTING.md | Select-String -Pattern "uuid-ossp"
 
 ---
 
-## 🔄 Recent Updates (October 8, 2025)
+## 🔄 Recent Updates (October 9, 2025)
 
 - ✅ **New**: Comprehensive TROUBLESHOOTING.md (consolidates 9 root causes)
 - ✅ **Updated**: Main README.md Quick Start section
@@ -321,7 +321,7 @@ Get-Content docs\TROUBLESHOOTING.md | Select-String -Pattern "uuid-ossp"
 
 ---
 
-**Last Updated**: October 8, 2025  
+**Last Updated**: 2025-10-09  
 **Documentation Version**: 1.1.0  
 **Application Version**: 1.0.0-pgsql
 

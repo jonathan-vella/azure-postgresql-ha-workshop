@@ -142,8 +142,8 @@ For realistic testing, simulate zone failure:
    Min TPS:               18.30
 
 🔄 Failover Metrics:
-   Connection Lost:       2025-10-09 19:15:42.123
-   Connection Restored:   2025-10-09 19:15:58.456
+  Connection Lost:       2025-10-09 19:15:42.123
+  Connection Restored:   2025-10-09 19:15:58.456
 
    ⏱️  RTO (Recovery Time):  16.33 seconds
    💾 RPO (Data Loss):      0 seconds (zero data loss)

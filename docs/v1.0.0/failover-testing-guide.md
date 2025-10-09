@@ -1946,6 +1946,6 @@ Comprehensive HA demonstration:
 ---
 
 **Document Version**: 1.0.0  
-**Last Updated**: October 2025  
+**Last Updated**: 2025-10-09  
 **Tested With**: Azure Database for PostgreSQL Flexible Server 16  
 **Author**: SAIF Team

@@ -1,6 +1,6 @@
 # Monitor Script Bug Fix - Empty FQDN Issue
 
-**Date**: October 8, 2025  
+**Date**: 2025-10-09  
 **Issue**: Cannot bind argument to parameter 'ServerFqdn' because it is an empty string  
 **Status**: ✅ RESOLVED
 

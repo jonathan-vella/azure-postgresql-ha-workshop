@@ -67,4 +67,4 @@ For secure implementation guidance, please refer to:
 
 This software is provided "as is" for educational purposes. The maintainers are not responsible for any misuse of the intentionally vulnerable code or any damages resulting from its use outside of educational contexts.
 
-**Last Updated:** January 2025
+**Last Updated:** 2025-10-09

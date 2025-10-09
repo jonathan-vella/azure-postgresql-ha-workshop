@@ -162,8 +162,8 @@ curl -sL https://raw.githubusercontent.com/jonathan-vella/SAIF/main/SAIF-pgsql/s
 
 ### Affected Versions
 - **Version:** Initial release (pre-fix)
-- **Introduced:** October 9, 2025 (initial creation)
-- **Fixed:** October 9, 2025 (same day)
+- **Introduced:** 2025-10-09 (initial creation)
+- **Fixed:** 2025-10-09 (same day)
 
 ### Breaking Changes
 - **None** - Fixes are backward compatible

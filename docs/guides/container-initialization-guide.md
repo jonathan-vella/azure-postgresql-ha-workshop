@@ -12,7 +12,6 @@ This guide provides **container-based solutions** for initializing your SAIF Pos
 | **Azure Cloud Shell** | Web browser only | ~2 min | Everyone! No installs | ⭐ Easiest |
 | **Azure Container Instances** | Azure CLI | ~3 min | CI/CD pipelines | ⭐⭐⭐ Advanced |
 
----
 
 ## 🎯 Option 1: Docker Container (Recommended for Developers)
 
@@ -86,7 +85,6 @@ docker run --rm `
 # Ensure C:\ drive is shared
 ```
 
----
 
 ## ☁️ Option 2: Azure Cloud Shell (Easiest - No Installation!)
 
@@ -137,7 +135,6 @@ $pwd = ConvertTo-SecureString "SafeP@ssw0rd2025!" -AsPlainText -Force
 - **Authentication:** Automatically uses your Azure credentials
 - **Security:** Runs in Azure network, no local credential storage
 
----
 
 ## 🚀 Option 3: Azure Container Instances (Advanced - CI/CD)
 
@@ -212,7 +209,6 @@ az container create `
     --command-line "psql -f /scripts/init-db.sql"
 ```
 
----
 
 ## 📋 Comparison: Container vs Traditional Methods
 
@@ -244,7 +240,6 @@ az container create `
 ❌ Requires internet connection
 ```
 
----
 
 ## 🎯 Which Option Should You Choose?
 
@@ -266,7 +261,6 @@ az container create `
 - ✓ You want scheduled database tasks
 - ✓ You need network isolation
 
----
 
 ## 🔒 Security Best Practices
 
@@ -308,7 +302,6 @@ az container create `
        --object-id "<managed-identity-object-id>"
    ```
 
----
 
 ## 🔍 Verification Steps
 
@@ -336,7 +329,6 @@ Write-Host "Database status: $($response.database)" -ForegroundColor Green
 Start-Process "https://app-saifpg-web-10081025.azurewebsites.net"
 ```
 
----
 
 ## 🛠️ Troubleshooting
 
@@ -377,7 +369,6 @@ $env:PGPASSWORD = $null
 docker run --platform linux/amd64 --rm postgres:16-alpine psql --version
 ```
 
----
 
 ## 📚 Additional Resources
 
@@ -386,7 +377,6 @@ docker run --platform linux/amd64 --rm postgres:16-alpine psql --version
 - [Azure Container Instances](https://learn.microsoft.com/azure/container-instances/)
 - [PostgreSQL psql Documentation](https://www.postgresql.org/docs/current/app-psql.html)
 
----
 
 ## 📞 Need Help?
 
@@ -398,7 +388,6 @@ If you encounter issues:
 4. Verify admin password is correct
 5. Check Azure service health status
 
----
 
 **Generated:** $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")  
 **Version:** 1.0.0  

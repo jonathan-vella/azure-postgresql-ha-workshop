@@ -1,4 +1,7 @@
+
 # Azure PostgreSQL High Availability Workshop
+
+**Last Updated:** 2025-10-09
 
 > **⚠️ SECURITY NOTICE**: This repository contains intentional security vulnerabilities for training purposes. DO NOT use in production!
 

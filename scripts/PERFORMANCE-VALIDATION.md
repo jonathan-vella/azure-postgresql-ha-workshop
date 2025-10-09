@@ -4,7 +4,7 @@
 
 ✅ **VALIDATION SUCCESSFUL** - C# script achieved **314 TPS peak** in Azure Cloud Shell, exceeding all performance targets.
 
-**Date:** October 9, 2025  
+**Date:** 2025-10-09  
 **Environment:** Azure Cloud Shell  
 **Test Duration:** 45 seconds (aborted due to race condition, now fixed)  
 **Script Version:** 2.0 (Native C# for Cloud Shell)
@@ -327,6 +327,6 @@ Deploy `Test-PostgreSQL-Failover.csx` as the **primary failover testing tool** f
 ---
 
 **Validated by:** Azure Cloud Shell Testing  
-**Date:** October 9, 2025  
+**Date:** 2025-10-09  
 **Script Version:** 2.0 (with race condition fix)  
 **Status:** ✅ **PRODUCTION READY**
