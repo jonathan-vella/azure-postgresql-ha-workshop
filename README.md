@@ -29,16 +29,41 @@ Hands-on workshop for learning **Azure PostgreSQL Flexible Server Zone-Redundant
 
 ## 💰 Estimated Costs
 
+**Default Configuration** (as deployed):
+
 | Resource | Configuration | Estimated Cost/Hour | Monthly (730 hrs) |
 |----------|--------------|---------------------|-------------------|
-| PostgreSQL Flexible Server | 4 vCores, Zone-Redundant HA | ~$0.89/hr | ~$650 |
-| App Services | 2x Basic tier | ~$0.14/hr | ~$100 |
-| Supporting services | ACR, Key Vault, Insights | ~$0.07/hr | ~$50 |
-| **Total** | **Full workshop environment** | **~$1.10/hr** | **~$800/month** |
+| PostgreSQL Flexible Server | Standard_D4ds_v5 (4 vCores, 16 GB RAM) | ~$0.28/hr | ~$205 |
+| PostgreSQL Zone-Redundant HA | Standby replica (same SKU) | ~$0.28/hr | ~$205 |
+| PostgreSQL Storage | 128 GB Premium SSD | ~$0.05/hr | ~$40 |
+| App Service Plan | P1v3 (2 vCPU, 8 GB RAM, Linux) | ~$0.26/hr | ~$190 |
+| Container Registry | Standard tier | ~$0.83/day | ~$25 |
+| Key Vault | Secrets storage + operations | ~$0.03/day | ~$1 |
+| Application Insights | Basic ingestion (Pay-as-you-go) | Variable | ~$10 |
+| **Total** | **Zone-Redundant HA Setup** | **~$0.90/hr** | **~$675/month** |
 
-💡 **Workshop duration: 2-4 hours** = **~$4.50 total cost**
+💡 **Workshop duration: 2-4 hours** = **~$3.60 total cost**
 
-> 💸 **Cost Saving Tip**: Use `Quick-Deploy-SAIF.ps1` with `-disableHighAvailability` flag for development/testing to reduce costs by ~70% (single-zone deployment).
+**High-Performance Configuration** (for 8K+ TPS testing):
+
+| Resource | Configuration | Estimated Cost/Hour | Monthly (730 hrs) |
+|----------|--------------|---------------------|-------------------|
+| PostgreSQL Flexible Server | Standard_D16ds_v5 (16 vCores, 64 GB RAM) | ~$1.15/hr | ~$840 |
+| PostgreSQL Zone-Redundant HA | Standby replica (same SKU) | ~$1.15/hr | ~$840 |
+| PostgreSQL Storage | 8 TB (P60 - 16K IOPS, 500 MB/s) | ~$1.10/hr | ~$800 |
+| App Service Plan | P1v3 (2 vCPU, 8 GB RAM, Linux) | ~$0.26/hr | ~$190 |
+| Load Testing (ACI) | 16 vCPU, 32 GB RAM (transient) | ~$0.80/hr | **$0** (test only) |
+| Supporting services | ACR, Key Vault, Insights | ~$0.04/hr | ~$35 |
+| **Total** | **High-Performance Setup** | **~$3.70/hr** | **~$2,705/month** |
+
+💡 **8K TPS Load Test duration: 5-10 minutes** = **~$0.62 test cost**
+
+> 💸 **Cost Optimization Tips**:
+> - **Development/Testing**: Use `-disableHighAvailability` flag to reduce costs by ~50% (single-zone deployment)
+> - **Stop/Start**: Stop PostgreSQL server when not in use (stops compute costs, only pay for storage)
+> - **Reserved Capacity**: Save up to 60% with 3-year reserved pricing for production workloads
+> - **Burstable Tier**: Use Standard_B2s (~$0.05/hr) for non-production workloads
+> - **Load Testing**: ACI is pay-per-second, delete after test completion to avoid charges
 
 ## 🏗️ Architecture
 
