@@ -49,12 +49,15 @@ param postgresqlVersion string = '16'
 
 @description('PostgreSQL compute SKU')
 @allowed([
-  'Standard_B2s'    // Burstable: 2 vCore, 4 GB RAM (dev/test)
+  'Standard_B2s'     // Burstable: 2 vCore, 4 GB RAM (dev/test)
   'Standard_D2ds_v5' // General Purpose: 2 vCore, 8 GB RAM
-  'Standard_D4ds_v5' // General Purpose: 4 vCore, 16 GB RAM (recommended)
+  'Standard_D4ds_v5' // General Purpose: 4 vCore, 16 GB RAM
   'Standard_D8ds_v5' // General Purpose: 8 vCore, 32 GB RAM
+  'Standard_D16ds_v5' // General Purpose: 16 vCore, 64 GB RAM (high TPS)
+  'Standard_E4ds_v5' // Memory-Optimized: 4 vCore, 32 GB RAM (recommended for 8K+ TPS)
+  'Standard_E8ds_v5' // Memory-Optimized: 8 vCore, 64 GB RAM
 ])
-param postgresqlSku string = 'Standard_D4ds_v5'
+param postgresqlSku string = 'Standard_E4ds_v5'
 
 @description('PostgreSQL storage size in GB')
 @minValue(32)
@@ -103,7 +106,7 @@ var naming = {
 
 var postgresDatabase = 'saifdb'
 var highAvailabilityMode = enableHighAvailability ? 'ZoneRedundant' : 'Disabled'
-var skuTier = startsWith(postgresqlSku, 'Standard_B') ? 'Burstable' : 'GeneralPurpose'
+var skuTier = startsWith(postgresqlSku, 'Standard_B') ? 'Burstable' : startsWith(postgresqlSku, 'Standard_E') ? 'MemoryOptimized' : 'GeneralPurpose'
 
 // ============================================================================
 // LOG ANALYTICS WORKSPACE
