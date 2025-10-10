@@ -1,0 +1,356 @@
+{
+  "location": "Sweden Central",
+  "tags": {
+    "hidden-title": "PostgreSQL-HA-Performance-psql-saifpg-10081025"
+  },
+  "properties": {
+    "metadata": {
+      "model": {
+        "timeRange": {
+          "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange",
+          "value": {
+            "relative": {
+              "duration": 3600000
+            }
+          }
+        }
+      }
+    },
+    "lenses": {
+      "0": {
+        "order": 0,
+        "parts": {
+          "3": {
+            "metadata": {
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "inputs": [
+                {
+                  "isOptional": true,
+                  "name": "sharedTimeRange"
+                },
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "name": "disk_bandwidth_consumed_percentage",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#FF8C00",
+                            "displayName": "Disk Bandwidth %"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        },
+                        {
+                          "name": "read_throughput",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#00BCF2",
+                            "displayName": "Read Throughput (Bytes/s)"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        },
+                        {
+                          "name": "write_throughput",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#E81123",
+                            "displayName": "Write Throughput (Bytes/s)"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        }
+                      ],
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2
+                      },
+                      "title": "📈 Disk Throughput"
+                    }
+                  }
+                }
+              ]
+            },
+            "position": {
+              "x": 6,
+              "colSpan": 6,
+              "y": 4,
+              "rowSpan": 4
+            }
+          },
+          "0": {
+            "metadata": {
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "inputs": [
+                {
+                  "isOptional": true,
+                  "name": "sharedTimeRange"
+                },
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "name": "xact_commit",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "displayName": "Transactions Committed"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        }
+                      ],
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2
+                      },
+                      "title": "🚀 Transactions Per Second (TPS)"
+                    }
+                  }
+                }
+              ]
+            },
+            "position": {
+              "x": 0,
+              "colSpan": 6,
+              "y": 0,
+              "rowSpan": 4
+            }
+          },
+          "2": {
+            "metadata": {
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "inputs": [
+                {
+                  "isOptional": true,
+                  "name": "sharedTimeRange"
+                },
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "name": "cpu_percent",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#EC008C",
+                            "displayName": "CPU %"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        },
+                        {
+                          "name": "memory_percent",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#0078D4",
+                            "displayName": "Memory %"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        }
+                      ],
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2
+                      },
+                      "title": "🖥️ CPU & Memory Utilization"
+                    }
+                  }
+                }
+              ]
+            },
+            "position": {
+              "x": 0,
+              "colSpan": 6,
+              "y": 4,
+              "rowSpan": 4
+            }
+          },
+          "1": {
+            "metadata": {
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "inputs": [
+                {
+                  "isOptional": true,
+                  "name": "sharedTimeRange"
+                },
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "name": "disk_iops_consumed_percentage",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#47BDF5",
+                            "displayName": "Disk IOPS Consumed %"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        },
+                        {
+                          "name": "read_iops",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#7FBA00",
+                            "displayName": "Read IOPS"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        },
+                        {
+                          "name": "write_iops",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#F25022",
+                            "displayName": "Write IOPS"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        }
+                      ],
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2
+                      },
+                      "title": "💾 Disk IOPS Utilization"
+                    }
+                  }
+                }
+              ]
+            },
+            "position": {
+              "x": 6,
+              "colSpan": 6,
+              "y": 0,
+              "rowSpan": 4
+            }
+          },
+          "5": {
+            "metadata": {
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "inputs": [
+                {
+                  "isOptional": true,
+                  "name": "sharedTimeRange"
+                },
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "name": "physical_replication_delay_in_seconds",
+                          "aggregationType": 3,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#FF8C00",
+                            "displayName": "Replication Lag (seconds)"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        }
+                      ],
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2
+                      },
+                      "title": "⚡ Replication Lag (HA Standby)"
+                    }
+                  }
+                }
+              ]
+            },
+            "position": {
+              "x": 6,
+              "colSpan": 6,
+              "y": 8,
+              "rowSpan": 4
+            }
+          },
+          "4": {
+            "metadata": {
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "inputs": [
+                {
+                  "isOptional": true,
+                  "name": "sharedTimeRange"
+                },
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "name": "active_connections",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#00188F",
+                            "displayName": "Active Connections"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        },
+                        {
+                          "name": "connections_failed",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.dbforpostgresql/flexibleservers",
+                          "metricVisualization": {
+                            "color": "#E81123",
+                            "displayName": "Failed Connections"
+                          },
+                          "resourceMetadata": {
+                            "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+                          }
+                        }
+                      ],
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2
+                      },
+                      "title": "🔌 Database Connections"
+                    }
+                  }
+                }
+              ]
+            },
+            "position": {
+              "x": 0,
+              "colSpan": 6,
+              "y": 8,
+              "rowSpan": 4
+            }
+          }
+        }
+      }
+    }
+  }
+}

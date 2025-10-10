@@ -1,0 +1,245 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# PostgreSQL HA Performance Monitor\n\n**Server:** psql-saifpg-10081025  \n**Target:** 8000 TPS sustained load testing  \n**P70 Disk:** 15K IOPS, 500 MB/s throughput\n\n---"
+      },
+      "name": "text - header"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "workbook-tps-chart",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.dbforpostgresql/flexibleservers",
+        "metricScope": 0,
+        "resourceIds": [
+          "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+        ],
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "metrics": [
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--xact_commit",
+            "aggregation": 4,
+            "splitBy": null
+          }
+        ],
+        "title": "🚀 Transactions Per Second (TPS)",
+        "gridSettings": {
+          "rowLimit": 10000
+        }
+      },
+      "customWidth": "50",
+      "name": "metric - tps"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "workbook-iops-chart",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.dbforpostgresql/flexibleservers",
+        "metricScope": 0,
+        "resourceIds": [
+          "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+        ],
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "metrics": [
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--disk_iops_consumed_percentage",
+            "aggregation": 4,
+            "splitBy": null
+          },
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--read_iops",
+            "aggregation": 4,
+            "splitBy": null
+          },
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--write_iops",
+            "aggregation": 4,
+            "splitBy": null
+          }
+        ],
+        "title": "💾 Disk IOPS (P70: 15K max)",
+        "gridSettings": {
+          "rowLimit": 10000
+        }
+      },
+      "customWidth": "50",
+      "name": "metric - iops"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "workbook-cpu-memory-chart",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.dbforpostgresql/flexibleservers",
+        "metricScope": 0,
+        "resourceIds": [
+          "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+        ],
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "metrics": [
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--cpu_percent",
+            "aggregation": 4,
+            "splitBy": null
+          },
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--memory_percent",
+            "aggregation": 4,
+            "splitBy": null
+          }
+        ],
+        "title": "🖥️ CPU & Memory Utilization",
+        "gridSettings": {
+          "rowLimit": 10000
+        }
+      },
+      "customWidth": "50",
+      "name": "metric - cpu-memory"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "workbook-throughput-chart",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.dbforpostgresql/flexibleservers",
+        "metricScope": 0,
+        "resourceIds": [
+          "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+        ],
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "metrics": [
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--disk_bandwidth_consumed_percentage",
+            "aggregation": 4,
+            "splitBy": null
+          },
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--read_throughput",
+            "aggregation": 4,
+            "splitBy": null
+          },
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--write_throughput",
+            "aggregation": 4,
+            "splitBy": null
+          }
+        ],
+        "title": "📈 Disk Throughput (P70: 500 MB/s max)",
+        "gridSettings": {
+          "rowLimit": 10000
+        }
+      },
+      "customWidth": "50",
+      "name": "metric - throughput"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "workbook-connections-chart",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.dbforpostgresql/flexibleservers",
+        "metricScope": 0,
+        "resourceIds": [
+          "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+        ],
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "metrics": [
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--active_connections",
+            "aggregation": 4,
+            "splitBy": null
+          },
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--connections_failed",
+            "aggregation": 1,
+            "splitBy": null
+          }
+        ],
+        "title": "🔌 Database Connections",
+        "gridSettings": {
+          "rowLimit": 10000
+        }
+      },
+      "customWidth": "50",
+      "name": "metric - connections"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "workbook-replication-chart",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.dbforpostgresql/flexibleservers",
+        "metricScope": 0,
+        "resourceIds": [
+          "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+        ],
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "metrics": [
+          {
+            "namespace": "microsoft.dbforpostgresql/flexibleservers",
+            "metric": "microsoft.dbforpostgresql/flexibleservers--physical_replication_delay_in_seconds",
+            "aggregation": 3,
+            "splitBy": null
+          }
+        ],
+        "title": "⚡ Replication Lag (HA Standby)",
+        "gridSettings": {
+          "rowLimit": 10000
+        }
+      },
+      "customWidth": "50",
+      "name": "metric - replication"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "---\n\n## 📊 Performance Targets\n\n| Metric | Target | Status |\n|--------|--------|--------|\n| **TPS** | ≥ 8,000 | 🎯 Primary goal |\n| **IOPS %** | < 50% | 🟢 Excellent headroom |\n| **CPU %** | 50-70% | 🟢 Optimal |\n| **Memory %** | < 60% | 🟢 No pressure |\n| **Replication Lag** | < 1 second | 🟢 Ready for failover |\n\n---\n\n**Color Coding:**\n- 🟢 **Green**: Healthy / Meeting targets\n- 🟡 **Yellow**: Warning / Monitor closely\n- 🔴 **Red**: Critical / Action required\n\n**Auto-refresh:** This workbook auto-refreshes every 60 seconds"
+      },
+      "name": "text - footer"
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-saif-pgsql-swc-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-saifpg-10081025"
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

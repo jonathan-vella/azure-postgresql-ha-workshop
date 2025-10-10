@@ -1,0 +1,156 @@
+# ═══════════════════════════════════════════════════════════════
+# POSTGRESQL PERFORMANCE MONITORING - KQL QUERIES
+# ═══════════════════════════════════════════════════════════════
+# Server: psql-saifpg-10081025
+# Generated: 2025-10-10 20:40:15
+#
+# Use these queries in Azure Monitor Log Analytics workspace
+# ═══════════════════════════════════════════════════════════════
+
+# 1. TPS (Transactions Per Second) - Last Hour
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName == "xact_commit"
+| where TimeGenerated > ago(1h)
+| summarize TPS = avg(Average) by bin(TimeGenerated, 1m)
+| render timechart 
+    with (title="Transactions Per Second (TPS)")
+
+# 2. IOPS Utilization - Current Status
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName in ("disk_iops_consumed_percentage", "read_iops", "write_iops")
+| where TimeGenerated > ago(1h)
+| summarize 
+    IOPS_Consumed_Pct = avg(iif(MetricName == "disk_iops_consumed_percentage", Average, 0.0)),
+    Read_IOPS = avg(iif(MetricName == "read_iops", Average, 0.0)),
+    Write_IOPS = avg(iif(MetricName == "write_iops", Average, 0.0))
+    by bin(TimeGenerated, 1m)
+| render timechart 
+    with (title="IOPS Utilization (P70: 15K IOPS max)")
+
+# 3. CPU and Memory Usage
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName in ("cpu_percent", "memory_percent")
+| where TimeGenerated > ago(1h)
+| summarize 
+    CPU = avg(iif(MetricName == "cpu_percent", Average, 0.0)),
+    Memory = avg(iif(MetricName == "memory_percent", Average, 0.0))
+    by bin(TimeGenerated, 1m)
+| render timechart 
+    with (title="CPU & Memory Utilization")
+
+# 4. Disk Throughput (MB/s)
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName in ("read_throughput", "write_throughput", "disk_bandwidth_consumed_percentage")
+| where TimeGenerated > ago(1h)
+| extend ThroughputMB = Average / 1024.0 / 1024.0  // Convert bytes to MB
+| summarize 
+    Read_MB_s = avg(iif(MetricName == "read_throughput", ThroughputMB, 0.0)),
+    Write_MB_s = avg(iif(MetricName == "write_throughput", ThroughputMB, 0.0)),
+    Bandwidth_Pct = avg(iif(MetricName == "disk_bandwidth_consumed_percentage", Average, 0.0))
+    by bin(TimeGenerated, 1m)
+| render timechart 
+    with (title="Disk Throughput (MB/s) - P70: 500 MB/s max")
+
+# 5. Connection Statistics
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName in ("active_connections", "connections_failed")
+| where TimeGenerated > ago(1h)
+| summarize 
+    Active = avg(iif(MetricName == "active_connections", Average, 0.0)),
+    Failed = sum(iif(MetricName == "connections_failed", Total, 0.0))
+    by bin(TimeGenerated, 1m)
+| render timechart 
+    with (title="Database Connections")
+
+# 6. Replication Lag (HA Standby)
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName == "physical_replication_delay_in_seconds"
+| where TimeGenerated > ago(1h)
+| summarize ReplicationLag_Seconds = max(Maximum) by bin(TimeGenerated, 1m)
+| render timechart 
+    with (title="Replication Lag (Seconds)")
+
+# 7. Performance Summary - Last 5 Minutes
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where TimeGenerated > ago(5m)
+| summarize 
+    Avg_TPS = round(avgif(Average, MetricName == "xact_commit"), 2),
+    Avg_CPU_Pct = round(avgif(Average, MetricName == "cpu_percent"), 2),
+    Avg_Memory_Pct = round(avgif(Average, MetricName == "memory_percent"), 2),
+    Avg_IOPS_Pct = round(avgif(Average, MetricName == "disk_iops_consumed_percentage"), 2),
+    Avg_Active_Connections = round(avgif(Average, MetricName == "active_connections"), 0),
+    Max_Replication_Lag = round(maxif(Maximum, MetricName == "physical_replication_delay_in_seconds"), 2)
+| project 
+    TPS = Avg_TPS,
+    CPU_Percent = Avg_CPU_Pct,
+    Memory_Percent = Avg_Memory_Pct,
+    IOPS_Consumed_Percent = Avg_IOPS_Pct,
+    Active_Connections = Avg_Active_Connections,
+    Max_Replication_Lag_Seconds = Max_Replication_Lag
+
+# 8. WAL (Write-Ahead Log) Generation Rate
+# ────────────────────────────────────────────────────────────────
+# Note: WAL metrics require pg_stat_wal extension and query to pg_stat_wal view
+# This query shows write throughput as a proxy for WAL activity
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName == "write_throughput"
+| where TimeGenerated > ago(1h)
+| extend WAL_MB_s = Average / 1024.0 / 1024.0
+| summarize Avg_WAL_Write_MB_s = avg(WAL_MB_s) by bin(TimeGenerated, 1m)
+| render timechart 
+    with (title="WAL Write Rate (MB/s estimate)")
+
+# 9. Peak Performance Detection (Alert Candidates)
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where TimeGenerated > ago(1h)
+| where MetricName in ("cpu_percent", "memory_percent", "disk_iops_consumed_percentage")
+| where Average > 80  // Alert threshold
+| summarize 
+    MaxValue = max(Average),
+    AvgValue = avg(Average),
+    Count = count()
+    by MetricName, bin(TimeGenerated, 5m)
+| where Count > 2  // Multiple occurrences in 5-minute window
+| order by TimeGenerated desc
+
+# 10. Failover Detection (Replication Lag Spike)
+# ────────────────────────────────────────────────────────────────
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.DBFORPOSTGRESQL"
+| where Resource == "psql-saifpg-10081025"
+| where MetricName == "physical_replication_delay_in_seconds"
+| where TimeGenerated > ago(24h)
+| where Maximum > 5  // Lag > 5 seconds indicates potential issues
+| summarize 
+    MaxLag = max(Maximum),
+    AvgLag = avg(Average),
+    TimeAboveThreshold = count()
+    by bin(TimeGenerated, 1m)
+| order by TimeGenerated desc
+

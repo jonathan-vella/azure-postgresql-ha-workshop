@@ -414,7 +414,7 @@ type: Microsoft.ContainerInstance/containerGroups
                                 command = @(
                                     "/bin/bash"
                                     "-c"
-                                    "set -e && echo 'Installing dotnet-script...' && dotnet tool install -g dotnet-script && export PATH=`$PATH:/root/.dotnet/tools && echo 'Creating LoadGenerator.csx...' && mkdir -p /app && echo `${SCRIPT_CONTENT_B64} | base64 -d > /app/LoadGenerator.csx && ls -lh /app/LoadGenerator.csx && echo 'Starting load generator...' && cd /app && dotnet script LoadGenerator.csx"
+                                    "set -e && echo 'Installing dotnet-script...' && dotnet tool install -g dotnet-script && echo 'Creating LoadGenerator.csx...' && mkdir -p /app && echo `${SCRIPT_CONTENT_B64} | base64 -d > /app/LoadGenerator.csx && ls -lh /app/LoadGenerator.csx && echo 'Starting load generator...' && cd /app && /root/.dotnet/tools/dotnet-script LoadGenerator.csx"
                                 )
                             }
                         }
