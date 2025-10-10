@@ -11,7 +11,7 @@ This document summarizes all documentation changes made to reference the new hig
 - Added **Option 2: C# Script (Azure Cloud Shell)** to the "Failover Testing" section
 - Highlighted **200-500 TPS** capability vs PowerShell's 12-13 TPS
 - Added performance comparison table
-- Referenced new [CLOUD-SHELL-GUIDE.md](scripts/CLOUD-SHELL-GUIDE.md)
+- Referenced cloud shell testing capabilities
 - Emphasized Cloud Shell as **RECOMMENDED FOR HIGH THROUGHPUT** ⭐
 
 **Section Updated**: "Performance Benchmarks → Failover Testing"
@@ -27,7 +27,7 @@ This document summarizes all documentation changes made to reference the new hig
 **Changes Made**:
 - Added new entry for **High-Performance C# Failover Testing**
 - Listed features: 200-500 TPS, parallel async workers, real-time UI, P50/P95 metrics
-- Referenced [CLOUD-SHELL-GUIDE.md](scripts/CLOUD-SHELL-GUIDE.md)
+- Referenced cloud shell testing guide
 - Updated Performance Metrics section with comparison:
   - Docker: 0.7 TPS
   - PowerShell + Npgsql: 12-13 TPS (1,614% improvement)
@@ -47,7 +47,7 @@ This document summarizes all documentation changes made to reference the new hig
 - Added **Option A: Local Execution (PowerShell)** and **Option B: Cloud Shell Execution (C#)**
 - Created performance comparison table showing TPS, setup time, and best use cases
 - Added Cloud Shell quick start commands (5-minute setup)
-- Referenced [CLOUD-SHELL-GUIDE.md](../../scripts/CLOUD-SHELL-GUIDE.md)
+- Referenced cloud shell testing capabilities
 - Updated automatic dependency management explanation for both scripts
 
 #### Running the Failover Test Section
@@ -77,7 +77,7 @@ This document summarizes all documentation changes made to reference the new hig
 #### Quick Start Section
 - Split "Test High Availability" into **Option 1** (Cloud Shell, recommended) and **Option 2** (Local PowerShell)
 - Added Cloud Shell command example
-- Referenced [CLOUD-SHELL-GUIDE.md](CLOUD-SHELL-GUIDE.md)
+- Referenced cloud shell testing guide
 
 #### Detailed Script Documentation
 - Added complete new section for **Test-PostgreSQL-Failover.csx**
@@ -115,8 +115,8 @@ This document summarizes all documentation changes made to reference the new hig
 
 ---
 
-### 6. ✅ CLOUD-SHELL-GUIDE.md
-**Location**: `c:\Repos\SAIF\SAIF-pgsql\scripts\CLOUD-SHELL-GUIDE.md`
+### 6. ✅ Cloud Shell Testing Guide
+**Location**: `scripts/` directory
 
 **Type**: Comprehensive setup and usage guide
 
@@ -141,26 +141,18 @@ All updated documents now properly cross-reference each other:
 ```
 README.md
   ├─→ docs/v1.0.0/failover-testing-guide.md
-  └─→ scripts/CLOUD-SHELL-GUIDE.md
+  └─→ scripts/
 
 CHANGELOG.md
-  └─→ scripts/CLOUD-SHELL-GUIDE.md
+  └─→ scripts/
 
 docs/v1.0.0/failover-testing-guide.md
-  ├─→ scripts/CLOUD-SHELL-GUIDE.md
   ├─→ scripts/Test-PostgreSQL-Failover.csx
   └─→ scripts/Test-PostgreSQL-Failover.ps1
 
 scripts/README.md
-  ├─→ scripts/CLOUD-SHELL-GUIDE.md
   ├─→ scripts/Test-PostgreSQL-Failover.csx
   └─→ scripts/Test-PostgreSQL-Failover.ps1
-
-scripts/CLOUD-SHELL-GUIDE.md
-  ├─→ README.md
-  ├─→ docs/v1.0.0/failover-testing-guide.md
-  ├─→ scripts/Test-PostgreSQL-Failover.ps1
-  └─→ database/
 ```
 
 ---
@@ -221,7 +213,7 @@ Get-ChildItem -Recurse -Filter "*.md" | ForEach-Object {
 # Check all referenced scripts
 Test-Path "scripts/Test-PostgreSQL-Failover.csx"      # Should be True
 Test-Path "scripts/Test-PostgreSQL-Failover.ps1"     # Should be True
-Test-Path "scripts/CLOUD-SHELL-GUIDE.md"             # Should be True
+Test-Path "scripts/CLOUD-SHELL-GUIDE.md"             # Check if exists
 ```
 
 ---
@@ -229,7 +221,7 @@ Test-Path "scripts/CLOUD-SHELL-GUIDE.md"             # Should be True
 ## Next Steps for Users
 
 ### For Cloud Shell Users:
-1. Read [CLOUD-SHELL-GUIDE.md](../scripts/CLOUD-SHELL-GUIDE.md)
+1. Read cloud shell testing documentation
 2. Open Azure Cloud Shell (https://shell.azure.com)
 3. Install dotnet-script (one-time)
 4. Clone repository

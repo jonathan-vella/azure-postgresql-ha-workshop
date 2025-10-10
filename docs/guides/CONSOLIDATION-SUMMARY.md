@@ -244,16 +244,16 @@ Get-ChildItem docs\*.md -Recurse | Select-String -Pattern "failover"
 
 ### Documentation Locations
 
-- **Main Index**: [docs/README.md](docs/README.md)
-- **Troubleshooting**: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-- **Deployment**: [docs/v1.0.0/deployment-guide.md](docs/v1.0.0/deployment-guide.md)
-- **Quick Reference**: [docs/v1.0.0/quick-reference.md](docs/v1.0.0/quick-reference.md)
+- **Main Index**: [../README.md](../README.md)
+- **Troubleshooting**: [../TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
+- **Deployment**: [../v1.0.0/deployment-guide.md](../v1.0.0/deployment-guide.md)
+- **Quick Reference**: [../v1.0.0/quick-reference.md](../v1.0.0/quick-reference.md)
 
 ### Quick Links
 
-- Project README: [README.md](../README.md)
-- Architecture: [docs/v1.0.0/architecture.md](docs/v1.0.0/architecture.md)
-- Failover Testing: [docs/v1.0.0/failover-testing-guide.md](docs/v1.0.0/failover-testing-guide.md)
+- Project README: [../../README.md](../../README.md)
+- Architecture: [../v1.0.0/architecture.md](../v1.0.0/architecture.md)
+- Failover Testing: [../v1.0.0/failover-testing-guide.md](../v1.0.0/failover-testing-guide.md)
 
 ---
 

@@ -55,7 +55,7 @@
 
 ## Database Schema Architecture
 
-**See full schema in [init-db.sql](init-db.sql)**
+**See full schema in database/init-db.sql**
 
 8 Tables: customers, merchants, payment_methods, transactions, orders, order_items, transaction_logs  
 2 Views: merchant_transaction_summary  

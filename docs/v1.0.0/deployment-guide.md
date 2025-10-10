@@ -864,4 +864,4 @@ az group delete --name $resourceGroupName --yes --no-wait
 
 ---
 
-**Questions or Issues?** Check the [README.md](README.md) or create a GitHub issue.
+**Questions or Issues?** Check the [main README](../../README.md) or [documentation index](../README.md) or create a GitHub issue.

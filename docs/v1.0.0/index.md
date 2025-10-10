@@ -10,7 +10,7 @@
    - Cost estimates
    - Feature comparison with Azure SQL version
 
-2. **[Quick Start](quickstart.md)** - Quick reference card
+2. **[Quick Reference](quick-reference.md)** - Quick reference card
    - Essential commands
    - Common workflows
    - Troubleshooting tips
@@ -57,7 +57,7 @@
    - Vulnerability endpoints (educational)
 
 ### Code & Infrastructure
-8. **[Database Schema](../../init-db.sql)** - Database schema
+8. **[Database Schema](../../database/init-db.sql)** - Database schema
    - Complete table definitions
    - Foreign key relationships
    - Indexes and constraints
@@ -86,7 +86,7 @@
     - HA status tracking
     - Performance metrics
 
-13. **[Update-SAIF-Containers-PostgreSQL.ps1](../../scripts/Update-SAIF-Containers-PostgreSQL.ps1)**
+13. **[Update-SAIF-Containers-PostgreSQL.ps1](../../scripts/archive/Update-SAIF-Containers-PostgreSQL.ps1)**
     - Container update automation
     - Selective rebuild options
 

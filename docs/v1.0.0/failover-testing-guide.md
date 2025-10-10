@@ -1818,7 +1818,7 @@ Keep Burstable tier year-round, test quarterly:
 ### SAIF-PostgreSQL Documentation
 
 - [Deployment Guide](deployment-guide.md) - Complete setup instructions
-- [Quick Start](quickstart.md) - Fast reference guide
+- [Quick Reference](quick-reference.md) - Fast reference guide
 - [Architecture](architecture.md) - System architecture details
 - [Implementation Summary](implementation-summary.md) - Technical specifications
 - [README](../../README.md) - Project overview
@@ -1851,7 +1851,7 @@ Keep Burstable tier year-round, test quarterly:
 1. **Check documentation**:
    - [Troubleshooting](#troubleshooting) section in this guide
    - [Deployment Guide troubleshooting](deployment-guide.md#troubleshooting)
-   - [Quick Start FAQ](quickstart.md#faq)
+    - [Quick Reference FAQ](quick-reference.md#faq)
 
 2. **Review Azure resources**:
    - Azure Portal → Resource health

@@ -10,8 +10,6 @@ This directory contains versioned documentation for the SAIF-PostgreSQL project 
 
 ### Current Version: v1.0.0 (Latest)
 
-
-
 **[→ View v1.0.0 Documentation](v1.0.0/index.md)**
 
 **Release Date**: 2025-10-09  
@@ -50,6 +48,8 @@ This directory contains versioned documentation for the SAIF-PostgreSQL project 
 | [**Failover Testing**](v1.0.0/failover-testing-guide.md) | HA testing with native Npgsql (12-13 TPS) | Testing resilience |
 | [**Container Builds**](guides/BUILD-CONTAINERS-GUIDE.md) | Container build procedures | Building/updating containers |
 | [**Database Setup**](guides/container-initialization-guide.md) | Database initialization (3 methods) | First deployment |
+
+---
 
 ## 📖 Reference Documentation
 
@@ -103,6 +103,11 @@ Procedural guides for day-to-day operations:
 2. Detailed guide: [Container Build Guide](guides/BUILD-CONTAINERS-GUIDE.md)
 3. Run: `scripts/Rebuild-SAIF-Containers.ps1`
 
+#### Understand the System
+1. Read [Architecture Documentation](v1.0.0/architecture.md)
+2. Review [Implementation Summary](v1.0.0/implementation-summary.md)
+3. Check [Project Structure in Main README](../README.md#project-structure)
+
 ---
 
 ## 🔄 Version History
@@ -113,152 +118,80 @@ Procedural guides for day-to-day operations:
 
 ---
 
-## 📖 Documentation Structure
+## 📁 Documentation Structure
 
 ```
 docs/
-├── README.md                    # This file - documentation index
-├── TROUBLESHOOTING.md           # Common issues and solutions
-├── architecture/                # Technical architecture docs
+├── README.md (this file)                         # Documentation index
+├── TROUBLESHOOTING.md                            # Complete troubleshooting guide
+├── architecture/                                 # Technical architecture docs
 │   ├── ACR-BUILD-UNICODE-FIX.md
 │   └── BUILD-AUTOMATION-SUMMARY.md
-├── guides/                      # Operational guides
+├── guides/                                       # Operational guides
 │   ├── README.md
 │   ├── BUILD-CONTAINERS-GUIDE.md
 │   ├── BUILD-CONTAINERS-QUICK-REF.md
 │   ├── container-initialization-guide.md
 │   └── CONSOLIDATION-SUMMARY.md
-└── v1.0.0/                      # Version 1.0.0 documentation
-
-3. Use [Quick Reference](v1.0.0/quick-reference.md) for commands    ├── index.md                 # Documentation navigation
-
-    ├── quickstart.md            # Quick reference card
-
-#### Update Application Code    ├── deployment-guide.md      # Complete deployment guide
-
-1. Use [Deployment Guide - Container Rebuild](v1.0.0/deployment-guide.md#rebuild-containers-only)    ├── architecture.md          # System architecture
-
-2. Reference [Quick Reference](v1.0.0/quick-reference.md) for fast commands    ├── implementation-summary.md # Technical implementation details
-
-    └── checklist.md             # Project completion checklist
-
-#### Understand the System```
-
-1. Read [Architecture Documentation](v1.0.0/architecture.md)
-
-2. Review [Implementation Summary](v1.0.0/implementation-summary.md)---
-
-3. Check [Project Structure in README](../README.md#project-structure)
-
-## 🎯 Finding the Right Documentation
+└── v1.0.0/                                       # Version-specific docs
+    ├── index.md                                  # Documentation navigation
+    ├── quick-reference.md                        # Quick reference card
+    ├── deployment-guide.md                       # Complete deployment guide
+    ├── architecture.md                           # System architecture
+    ├── failover-testing-guide.md                 # HA testing procedures
+    ├── implementation-summary.md                 # Technical implementation
+    ├── CHANGELOG.md                              # Version history
+    └── checklist.md                              # Project completion checklist
+```
 
 ---
 
+## 🎯 Finding the Right Documentation
+
 ### I want to...
 
-## 📁 Documentation Structure- **Get started quickly** → [quickstart.md](v1.0.0/quickstart.md)
+- **Get started quickly** → [Quick Reference](v1.0.0/quick-reference.md)
+- **Deploy to Azure** → [Deployment Guide](v1.0.0/deployment-guide.md)
+- **Understand the architecture** → [Architecture](v1.0.0/architecture.md)
+- **See all available docs** → [Index](v1.0.0/index.md)
+- **Check project completion** → [Checklist](v1.0.0/checklist.md)
+- **Get implementation details** → [Implementation Summary](v1.0.0/implementation-summary.md)
 
-- **Deploy to Azure** → [deployment-guide.md](v1.0.0/deployment-guide.md)
+---
 
-```- **Understand the architecture** → [architecture.md](v1.0.0/architecture.md)
+## 📝 Semantic Versioning
 
-docs/- **See all available docs** → [index.md](v1.0.0/index.md)
+This documentation follows [Semantic Versioning 2.0.0](https://semver.org/):
 
-├── README.md (this file)                         # Documentation index- **Check project completion** → [checklist.md](v1.0.0/checklist.md)
+- **Major version (X.0.0)** - Breaking changes (incompatible API/infrastructure changes)
+- **Minor version (0.X.0)** - New features (backward-compatible additions)
+- **Patch version (0.0.X)** - Bug fixes and clarifications (no functional changes)
 
-├── TROUBLESHOOTING.md                            # 🔥 Complete troubleshooting guide- **Get implementation details** → [implementation-summary.md](v1.0.0/implementation-summary.md)
-
-├── container-initialization-guide.md             # Database setup (3 methods)
-
-│---
-
-└── v1.0.0/                                       # Version-specific docs
-
-    ├── architecture.md                           # System architecture## 📝 Semantic Versioning
-
-    ├── CHANGELOG.md                              # Version history
-
-    ├── checklist.md                              # Deployment checklistThis documentation follows [Semantic Versioning 2.0.0](https://semver.org/):
-
-    ├── deployment-guide.md                       # 📘 Complete deployment guide
-
-    ├── failover-testing-guide.md                 # HA testing procedures- **Major version (X.0.0)** - Breaking changes (incompatible API/infrastructure changes)
-
-    ├── implementation-summary.md                 # Technical deep dive- **Minor version (0.X.0)** - New features (backward-compatible additions)
-
-    ├── index.md                                  # Version documentation index- **Patch version (0.0.X)** - Bug fixes and clarifications (no functional changes)
-
-    └── quick-reference.md                        # ⚡ Commands cheat sheet
-
-```### When to use which version?
+### When to use which version?
 
 - **Latest version (v1.0.0)** - Recommended for new deployments
+- **Previous versions** - Use if you have existing deployments on that version
 
----- **Previous versions** - Use if you have existing deployments on that version
+---
 
+## 🚀 Contributing to Documentation
 
+When updating documentation:
 
-## 🔍 Key Features Documented---
-
-
-
-### Deployment## 🚀 Contributing to Documentation
-
-- ✅ Automated Azure infrastructure deployment (Bicep)
-
-- ✅ Zone-Redundant PostgreSQL HA configurationWhen updating documentation:
-
-- ✅ Container builds and App Service deployment
-
-- ✅ Database initialization with Docker (no local psql needed)1. **Bug fixes/clarifications** - Update current version (patch increment)
-
+1. **Bug fixes/clarifications** - Update current version (patch increment)
 2. **New features** - Create new minor version (e.g., v1.1.0)
+3. **Breaking changes** - Create new major version (e.g., v2.0.0)
 
-### Troubleshooting3. **Breaking changes** - Create new major version (e.g., v2.0.0)
+### Documentation Standards
 
-- ✅ 9 root causes documented with solutions
-
-- ✅ Azure PostgreSQL uuid-ossp extension requirements### Documentation Standards
-
-- ✅ API/Frontend contract mismatches- Use Markdown format
-
-- ✅ Browser caching issues- Include code examples with syntax highlighting
-
-- ✅ Database connection problems- Provide command-line examples for PowerShell
-
-- ✅ Container deployment issues- Link between related documents
-
+- Use Markdown format
+- Include code examples with syntax highlighting
+- Provide command-line examples for PowerShell
+- Link between related documents
 - Keep language clear and concise
+- Include diagrams where helpful
 
-### High Availability- Include diagrams where helpful
-
-- ✅ Zone-redundant HA setup (Zone 1 + Zone 2)
-
-- ✅ Automated failover testing (RTO: 60-120s, RPO: 0s)---
-
-- ✅ Real-time monitoring dashboard
-
-- ✅ SLA compliance validation (99.99% uptime)## 📞 Need Help?
-
-
-
-### Security (Educational)- **Documentation issues** - Check the [index.md](v1.0.0/index.md) for navigation
-
-- ⚠️ **Intentional vulnerabilities** for learning:- **Deployment problems** - See [deployment-guide.md](v1.0.0/deployment-guide.md) troubleshooting section
-
-  - SQL injection demonstrations- **Quick answers** - Try the [quickstart.md](v1.0.0/quickstart.md) reference card
-
-  - SSRF testing endpoints
-
-  - Information disclosure examples---
-
-- 🚫 **DO NOT USE IN PRODUCTION**
-
-**Documentation Repository Version**: 1.0.0  
-
----**Last Updated**: 2025-10-09  
-
-**Maintained by**: SAIF Project Team
+---
 
 ## 📊 Documentation Statistics
 
@@ -294,7 +227,38 @@ Get-Content docs\TROUBLESHOOTING.md | Select-String -Pattern "uuid-ossp"
 
 ---
 
-## 📞 Support
+## 🔍 Key Features Documented
+
+### Deployment
+- ✅ Automated Azure infrastructure deployment (Bicep)
+- ✅ Zone-Redundant PostgreSQL HA configuration
+- ✅ Container builds and App Service deployment
+- ✅ Database initialization with Docker (no local psql needed)
+
+### Troubleshooting
+- ✅ 9 root causes documented with solutions
+- ✅ Azure PostgreSQL uuid-ossp extension requirements
+- ✅ API/Frontend contract mismatches
+- ✅ Browser caching issues
+- ✅ Database connection problems
+- ✅ Container deployment issues
+
+### High Availability
+- ✅ Zone-redundant HA setup (Zone 1 + Zone 2)
+- ✅ Automated failover testing (RTO: 60-120s, RPO: 0s)
+- ✅ Real-time monitoring dashboard
+- ✅ SLA compliance validation (99.99% uptime)
+
+### Security (Educational)
+- ⚠️ **Intentional vulnerabilities** for learning:
+  - SQL injection demonstrations
+  - SSRF testing endpoints
+  - Information disclosure examples
+- 🚫 **DO NOT USE IN PRODUCTION**
+
+---
+
+## 📞 Need Help?
 
 ### Having Issues?
 1. **Check TROUBLESHOOTING.md first** - Covers 9 common issues

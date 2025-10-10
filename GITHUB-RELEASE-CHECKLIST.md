@@ -161,7 +161,7 @@ cd azure-postgresql-ha-workshop
 ./scripts/Deploy-SAIF-PostgreSQL.ps1 -location swedencentral -autoApprove
 ```
 
-[Full documentation →](./DEPLOY.md)
+[Full documentation →](./docs/v1.0.0/deployment-guide.md)
 
 ## 📖 Workshop Structure
 
@@ -172,7 +172,7 @@ cd azure-postgresql-ha-workshop
 5. **Challenge 05**: Identify security vulnerabilities (30 min)
 6. **Challenge 06**: Implement secure authentication (40 min)
 
-[Full workshop guide →](./docs/hackathon/)
+[Full workshop guide →](./docs/v1.0.0/index.md)
 
 ## 🎓 Learning Outcomes
 
@@ -195,7 +195,7 @@ cd azure-postgresql-ha-workshop
 
 ## 🤝 Contributing
 
-Contributions welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md)
+Contributions welcome! See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 
 ## 📄 License
 
