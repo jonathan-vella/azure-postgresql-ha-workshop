@@ -1,7 +1,7 @@
 
 # Azure PostgreSQL High Availability Workshop
 
-**Last Updated:** 2025-10-09
+**Last Updated:** 2025-10-10
 
 > **⚠️ SECURITY NOTICE**: This repository contains intentional security vulnerabilities for training purposes. DO NOT use in production!
 
@@ -12,16 +12,20 @@
 
 ## 🎯 Purpose
 
-Hands-on workshop for learning **Azure PostgreSQL Flexible Server Zone-Redundant High Availability**, failover testing, and database security concepts through a deliberately vulnerable payment gateway application.
+Hands-on workshop for learning **Azure PostgreSQL Flexible Server Zone-Redundant High Availability**, failover testing, and database security concepts. Supports two workflows:
+
+1. **SAIF Security Demo** - Vulnerable payment gateway application for security training
+2. **High-Performance Load Testing** - 8000+ TPS PostgreSQL HA testing and validation
 
 ## 📚 What You'll Learn
 
 - Deploy Zone-Redundant HA PostgreSQL Flexible Server
 - Measure RTO (Recovery Time Objective) and RPO (Recovery Point Objective)
-- Test failover scenarios with high-performance load testing (1000+ TPS capable)
+- **High-performance load testing** (8000+ TPS validated, 12,000+ TPS capable)
+- Test failover scenarios under sustained load
 - Identify and fix common security vulnerabilities
 - Implement secure database patterns
-- Performance testing methodologies
+- Performance monitoring with Azure Workbooks
 
 ## 💰 Estimated Costs
 
@@ -236,20 +240,56 @@ CREATE TABLE transactions (
 
 ## 📊 Performance Benchmarks
 
-Validated performance metrics from the C# failover testing script running in Azure Cloud Shell:
+### Production Load Testing (LoadGenerator.csx on Azure Container Instances)
+- **Validated TPS**: **12,600+ TPS sustained** (October 10, 2025 test)
+- **Total Transactions**: 3,892,380 transactions in 309 seconds
+- **Success Rate**: 100% (zero failures)
+- **Infrastructure**: D16ds_v5 (16 vCPU, 64 GB RAM) + P60 storage (8TB, 16K IOPS)
+- **Target Capability**: 8000-15000 TPS range (proven)
 
-### Measured Transaction Performance
-- **Peak TPS**: 314 TPS (tested with 10 workers)
+### Failover Testing Performance
+- **Peak TPS**: 314 TPS (Cloud Shell-based C# script with 10 workers)
 - **Sustained TPS**: 200-312 TPS (Cloud Shell: 1-2 CPU, 1.7-4GB RAM)
-- **Scalability**: 1000+ TPS capable (requires 35-40 workers, 8+ vCore database)
 - **Failover RTO**: 16-18 seconds (Zone-Redundant HA automatic failover)
 - **Failover RPO**: 0 seconds (zero data loss with synchronous replication)
 - **Success Rate**: 99.26% (during active testing with failover events)
 
-### Failover Testing Scripts
-The workshop includes **two failover testing options**:
+> 📖 **Quick Start**: See [Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md) for complete 8K TPS testing guide
 
-#### Option 1: PowerShell Script (Local Execution)
+### Load Testing & Failover Testing
+
+The workshop includes **three testing approaches**:
+
+#### Option 1: Production Load Testing ⭐ **RECOMMENDED FOR HIGH THROUGHPUT**
+```powershell
+# Deploy 8000 TPS load test to Azure Container Instances
+cd scripts
+.\Deploy-LoadGenerator-ACI.ps1 -Action Deploy `
+  -ResourceGroup "rg-saif-pgsql-swc-01" `
+  -PostgreSQLServer "psql-saifpg-XXXXXXXX" `
+  -DatabaseName "saifdb" `
+  -AdminUsername "saifadmin" `
+  -PostgreSQLPassword $securePassword `
+  -TargetTPS 8000 `
+  -WorkerCount 200 `
+  -TestDuration 300
+
+# Monitor test execution
+.\Monitor-LoadGenerator-Resilient.ps1 -ResourceGroup "rg-saif-pgsql-swc-01" -ContainerName "aci-loadgen-XXXXXXXX"
+```
+
+**Use Case**: Production-grade performance validation, sustained high load  
+**Throughput**: **8000-12000+ TPS** (proven with D16ds_v5 + P60 storage)  
+**Features**:
+- Azure Container Instances (scalable: 4-16 vCPU, 8-32 GB RAM)
+- Configurable worker count and duration
+- Real-time database metrics monitoring
+- Azure Workbook visualization
+- Zero infrastructure management
+
+> 📖 **Complete Guide**: [Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md) - 5-minute quickstart
+
+#### Option 2: PowerShell Script (Local Execution)
 ```powershell
 # Run basic failover test (12-13 TPS)
 cd scripts
@@ -259,32 +299,21 @@ cd scripts
 **Use Case**: Quick validation, local testing, learning basics  
 **Throughput**: 12-13 TPS (PowerShell loop overhead)
 
-#### Option 2: C# Script (Azure Cloud Shell) ⭐ **RECOMMENDED FOR WORKSHOP**
+#### Option 3: C# Script (Azure Cloud Shell)
 ```bash
-# Run high-performance failover test (300+ TPS, 1000+ TPS capable)
+# Run high-performance failover test (300+ TPS)
 dotnet script scripts/Test-PostgreSQL-Failover.csx -- \
   "Host=your-server.postgres.database.azure.com;Database=saifdb;Username=user;Password=pass;SSL Mode=Require" \
   10 \
   5
 ```
 
-**Use Case**: Performance testing, RTO/RPO measurement, realistic load simulation  
-**Throughput**: 
-- **Current**: 312 TPS peak with 10 workers (Cloud Shell constraints)
-- **Capable**: 1000+ TPS with 35-40 workers (requires dedicated VM or more powerful environment)
-- **Database Scaling**: 8+ vCores recommended for 1000+ TPS target
-
-**Features**:
-- Parallel async workers with persistent connections
-- Millisecond-precision RTO/RPO measurement
-- Real-time statistics (P50, P95, P99 latency, peak TPS)
-- Automatic reconnection with exponential backoff
-- Failover detection and recovery validation
-- Best for: High-throughput testing, production-grade validation
+**Use Case**: Cloud Shell testing, RTO/RPO measurement  
+**Throughput**: 200-314 TPS (Cloud Shell: 1-2 CPU, 1.7-4GB RAM)
 
 > 📖 **Guides**: 
 > - [Failover Testing Guide](docs/v1.0.0/failover-testing-guide.md) - Comprehensive testing procedures
-> - [Cloud Shell Quick Start](scripts/CLOUD-SHELL-GUIDE.md) - Azure Cloud Shell setup (5 minutes)
+> - [Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md) - 8K TPS quickstart (NEW)
 
 ## Security Considerations
 
@@ -301,60 +330,102 @@ This is an **educational environment** with intentional vulnerabilities. For pro
 ## Project Structure
 
 ```
-SAIF-pgsql/
-├── api/                          # Python FastAPI application
-├── web/                          # PHP frontend
-├── infra/                        # Infrastructure as Code (Bicep templates)
-│   ├── main.bicep               # Main template
-│   ├── main.parameters.json     # Parameters
+azure-postgresql-ha-workshop/
+├── 📁 infra/                          # Infrastructure as Code (Bicep templates)
+│   ├── main.bicep                     # Main deployment template
+│   ├── main.parameters.json           # Deployment parameters
 │   └── modules/
 │       ├── database/
-│       │   └── postgresql.bicep # PostgreSQL HA module
+│       │   └── postgresql.bicep       # PostgreSQL HA module
 │       └── keyvault/
-│           └── keyvault.bicep   # Key Vault module
-├── database/                     # Database scripts
-│   ├── README.md                # Database documentation
-│   ├── init-db.sql              # Schema initialization
-│   ├── cleanup-db.sql           # Database cleanup procedures
-│   └── enable-uuid.sql          # UUID extension enablement
-├── scripts/                      # Deployment & testing automation
-│   ├── README.md                # Scripts documentation
-│   ├── Deploy-SAIF.ps1          # Main deployment script
-│   ├── Quick-Deploy-SAIF.ps1    # Simplified deployment
-│   ├── Initialize-Database.ps1  # Database initialization
-│   ├── Test-PostgreSQL-Failover.ps1  # HA failover testing (12-13 TPS)
-│   ├── Monitor-PostgreSQL-HA.ps1     # HA status monitoring
-│   ├── libs/                    # Auto-installed Npgsql dependencies
-│   ├── archive/                 # Historical failover test iterations
-│   └── utils/                   # Diagnostic utilities
-├── docs/                         # Documentation (organized)
-│   ├── README.md                # Documentation index
-│   ├── TROUBLESHOOTING.md       # Common issues & solutions
-│   ├── guides/                  # Operational guides
+│           └── keyvault.bicep         # Key Vault secrets management
+│
+├── 📁 database/                       # Database initialization scripts
+│   ├── init-db.sql                    # Schema creation (customers, merchants, transactions)
+│   ├── enable-uuid.sql                # UUID extension setup
+│   ├── cleanup-db.sql                 # Database cleanup utilities
+│   └── README.md                      # Database documentation
+│
+├── 📁 web/                            # SAIF PHP Web Application (security demos)
+├── 📁 api/                            # SAIF Python FastAPI (security demos)
+├── 📄 docker-compose.yml              # Local SAIF development environment
+│
+├── 📁 scripts/                        # Operational scripts (17 files)
+│   ├── 🚀 Deploy-SAIF-PostgreSQL.ps1  # Full infrastructure deployment
+│   ├── 🚀 Quick-Deploy-SAIF.ps1       # Simplified deployment wrapper
+│   ├── 🌐 Rebuild-SAIF-Containers.ps1 # SAIF app container rebuild
+│   ├── 🌐 Test-SAIFLocal.ps1          # Local SAIF testing
+│   ├── 💾 Initialize-Database.ps1     # Database initialization
+│   ├── 🧪 LoadGenerator.csx            # High-performance load generator (8K+ TPS)
+│   ├── 🧪 Deploy-LoadGenerator-ACI.ps1 # Deploy load test to Azure Container Instances
+│   ├── 📊 Monitor-LoadGenerator-Resilient.ps1  # Load test monitoring
+│   ├── 📊 Monitor-PostgreSQL-Realtime.ps1      # Real-time metrics (10s refresh)
+│   ├── 📊 Monitor-PostgreSQL-HA.ps1            # HA status monitoring
+│   ├── 🔄 Test-PostgreSQL-Failover.ps1         # Failover testing (PowerShell)
+│   ├── 🔄 Measure-Connection-RTO.ps1           # RTO measurement
+│   ├── 🔄 Monitor-Failover-Azure.ps1           # Failover monitoring
+│   ├── ✅ Check-WAL-Settings.ps1               # WAL configuration validator
+│   ├── 📖 CONNECTION-RTO-GUIDE.md              # RTO measurement guide
+│   ├── 📖 MONITOR-FAILOVER-GUIDE.md            # Failover monitoring guide
+│   ├── 📖 README.md                            # Scripts documentation
+│   ├── utils/
+│   │   └── Build-SAIF-Containers.ps1           # SAIF container build utility
+│   └── archive/                                # Historical scripts
+│
+├── 📁 azure-workbooks/                # Azure Portal monitoring
+│   ├── PostgreSQL-HA-Performance-Workbook.json # Pre-configured workbook (6 charts)
+│   └── IMPORT-GUIDE.md                         # 30-second import guide
+│
+├── 📁 docs/                           # Documentation
+│   ├── v1.0.0/                        # Version 1.0.0 documentation
+│   │   ├── deployment-guide.md        # Complete deployment guide
+│   │   ├── failover-testing-guide.md  # HA failover testing procedures
+│   │   ├── quick-reference.md         # Command cheat sheet
+│   │   ├── architecture.md            # System architecture
+│   │   └── checklist.md               # Workshop checklist
+│   ├── guides/                        # Operational guides
+│   │   ├── LOAD-TEST-QUICK-REF.md     # ⭐ 8K TPS load test quickstart (NEW)
+│   │   ├── BUILD-CONTAINERS-GUIDE.md  # SAIF container build guide
+│   │   ├── BUILD-CONTAINERS-QUICK-REF.md
 │   │   └── container-initialization-guide.md
-│   ├── architecture/            # Architecture documentation
-│   └── v1.0.0/                  # Version 1.0.0 documentation
-│       ├── deployment-guide.md  # Complete deployment guide
-│       ├── failover-testing-guide.md # HA failover testing
-│       └── ...                  # Additional versioned docs
-└── docker-compose.yml           # Local development
+│   ├── README.md                      # Documentation index
+│   └── TROUBLESHOOTING.md             # Common issues & solutions
+│
+└── 📁 archive/                        # Archived files (historical reference)
+    ├── deprecated-approaches/         # Old testing methods
+    ├── documentation/                 # Development diaries
+    ├── duplicates/                    # Removed duplicates
+    ├── generated-outputs/             # Test artifacts
+    └── README.md                      # Archive documentation
 ```
 
 ## 📚 Documentation
 
 **[📖 Complete Documentation Index](docs/README.md)** - Start here for all documentation
 
-### Essential Guides
+### 🚀 Quick Start Guides
 
-- **[🔥 TROUBLESHOOTING](docs/TROUBLESHOOTING.md)** - Common issues & solutions (9 issues covered)
+- **[⚡ Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md)** - ⭐ **NEW**: 8K TPS testing in 5 minutes
 - **[📘 Deployment Guide](docs/v1.0.0/deployment-guide.md)** - Complete step-by-step deployment
 - **[⚡ Quick Reference](docs/v1.0.0/quick-reference.md)** - Commands cheat sheet
-- **[🗄️ Database Initialization](docs/guides/container-initialization-guide.md)** - Setup procedures (3 methods)
+- **[🔥 TROUBLESHOOTING](docs/TROUBLESHOOTING.md)** - Common issues & solutions (9 issues covered)
 
-### Deep Dive
+### 🧪 Testing & Monitoring
+
+- **[🧪 Failover Testing](docs/v1.0.0/failover-testing-guide.md)** - HA testing and RTO/RPO measurement
+- **[📊 Azure Workbook Import](azure-workbooks/IMPORT-GUIDE.md)** - 30-second performance dashboard setup
+- **[📖 RTO Measurement](scripts/CONNECTION-RTO-GUIDE.md)** - Connection RTO testing guide
+- **[📖 Failover Monitoring](scripts/MONITOR-FAILOVER-GUIDE.md)** - Monitor failover events
+
+### 🗄️ Database & SAIF Application
+
+- **[🗄️ Database Initialization](docs/guides/container-initialization-guide.md)** - Setup procedures (3 methods)
+- **[🐳 Container Build Guide](docs/guides/BUILD-CONTAINERS-GUIDE.md)** - SAIF app container builds
+- **[🐳 Container Quick Reference](docs/guides/BUILD-CONTAINERS-QUICK-REF.md)** - Quick commands
+
+### 📐 Architecture & Deep Dive
 
 - **[🏗️ Architecture](docs/v1.0.0/architecture.md)** - System design & components
-- **[🧪 Failover Testing](docs/v1.0.0/failover-testing-guide.md)** - HA testing and RTO/RPO measurement
 - **[💻 Implementation Summary](docs/v1.0.0/implementation-summary.md)** - Technical deep dive
 - **[✅ Checklist](docs/v1.0.0/checklist.md)** - Project completion checklist
 - **[📝 CHANGELOG](docs/v1.0.0/CHANGELOG.md)** - Version history
@@ -397,3 +468,15 @@ Built for Microsoft Azure training workshops and hackathons.
 - [Azure Well-Architected Framework](https://learn.microsoft.com/azure/architecture/framework/)
 - [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Security vulnerability reference
+
+---
+
+## 📦 Repository Organization
+
+This repository was reorganized on **October 10, 2025** (v2.0.0) to streamline workflows and improve maintainability:
+
+- **Core operational files**: Infrastructure, deployment, load testing, monitoring (35 files)
+- **Archived files**: Historical artifacts preserved in `/archive/` (44 files)
+- **Two workflows supported**: SAIF security demos + High-performance load testing
+
+See [REORGANIZATION-SUMMARY.md](REORGANIZATION-SUMMARY.md) for complete reorganization details.
