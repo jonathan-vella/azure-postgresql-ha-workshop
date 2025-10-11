@@ -77,32 +77,55 @@ This workshop uses **Azure Database for PostgreSQL Flexible Server** with **Zone
 
 ## Architecture
 
+```mermaid
+graph TB
+    subgraph Azure["Azure Region (Sweden Central / Germany West Central)"]
+        subgraph Zone1["Availability Zone 1"]
+            PG_Primary[(Primary<br/>PostgreSQL<br/>Flexible Server)]
+            AppSvc[App Services<br/>Web + API]
+        end
+        
+        subgraph Zone2["Availability Zone 2"]
+            PG_Standby[(Standby<br/>PostgreSQL<br/>Flexible Server)]
+        end
+        
+        subgraph Shared["Shared Services (Zone-Redundant)"]
+            ACR[Container Registry<br/>ACR]
+            KV[Key Vault<br/>Secrets]
+            AI[Application Insights<br/>Monitoring]
+            LA[Log Analytics<br/>Workspace]
+        end
+        
+        PG_Primary <-->|Synchronous<br/>Replication<br/>RPO = 0| PG_Standby
+        AppSvc -->|Read/Write| PG_Primary
+        AppSvc -.->|Automatic<br/>Failover<br/>RTO = 60-120s| PG_Standby
+        AppSvc -->|Pull Images| ACR
+        AppSvc -->|Read Secrets| KV
+        AppSvc -->|Telemetry| AI
+        PG_Primary -->|Metrics| AI
+        PG_Standby -->|Metrics| AI
+        AI -->|Logs| LA
+    end
+    
+    User([Users]) -->|HTTPS| AppSvc
+    LoadGen[Load Generator<br/>ACI<br/>8K-12K TPS] -.->|Load Test| PG_Primary
+    
+    style PG_Primary fill:#0078d4,stroke:#003f6b,stroke-width:3px,color:#fff
+    style PG_Standby fill:#50e6ff,stroke:#0078d4,stroke-width:2px,color:#000
+    style AppSvc fill:#7fba00,stroke:#3d5a00,stroke-width:2px,color:#fff
+    style LoadGen fill:#ff6b00,stroke:#c43e00,stroke-width:2px,color:#fff
+    style Zone1 fill:#e6f3ff,stroke:#0078d4,stroke-width:2px
+    style Zone2 fill:#e6f3ff,stroke:#0078d4,stroke-width:2px
+    style Shared fill:#fff4e6,stroke:#ff6b00,stroke-width:2px
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     Azure Region                         │
-│              (Sweden Central / Germany West Central)     │
-│                                                          │
-│  ┌──────────────┐              ┌──────────────┐        │
-│  │  Zone 1      │              │  Zone 2      │        │
-│  │              │              │              │        │
-│  │  ┌────────┐  │  Sync Rep   │  ┌────────┐  │        │
-│  │  │Primary │◄─┼──────────────┼─►│Standby │  │        │
-│  │  │PostgreSQL│ │              │  │PostgreSQL│ │        │
-│  │  └────────┘  │              │  └────────┘  │        │
-│  │              │              │              │        │
-│  │  ┌────────┐  │              │              │        │
-│  │  │App     │  │              │              │        │
-│  │  │Services│  │              │              │        │
-│  │  └────────┘  │              │              │        │
-│  └──────────────┘              └──────────────┘        │
-│                                                          │
-│  ┌──────────────────────────────────────────┐          │
-│  │  Container Registry (ACR)                 │          │
-│  │  Key Vault (Secrets Management)           │          │
-│  │  Application Insights (Monitoring)        │          │
-│  └──────────────────────────────────────────┘          │
-└─────────────────────────────────────────────────────────┘
-```
+
+**Architecture Highlights:**
+- **Zone-Redundant HA**: Primary (Zone 1) + Standby (Zone 2) with synchronous replication
+- **RPO = 0**: Zero data loss with synchronous commit
+- **RTO = 60-120s**: Automatic failover between zones
+- **SLA = 99.99%**: Zone-redundant deployment guarantee
+- **Shared Services**: ACR, Key Vault, and monitoring are zone-redundant
+- **Load Testing**: Optional ACI deployment for 8K-12K TPS validation
 
 ## Key Features
 
