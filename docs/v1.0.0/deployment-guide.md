@@ -1,6 +1,10 @@
 # SAIF-PostgreSQL Deployment Guide
 
+**Last Updated:** October 11, 2025 | **Version:** 2.0.0
+
 Complete deployment guide for the SAIF Payment Gateway with Azure PostgreSQL Zone-Redundant High Availability.
+
+> **📦 Repository Update**: This guide reflects the v2.0.0 repository reorganization (October 10, 2025). See [REORGANIZATION-SUMMARY.md](../../REORGANIZATION-SUMMARY.md) for details.
 
 ## Table of Contents
 
@@ -45,11 +49,12 @@ Complete deployment guide for the SAIF Payment Gateway with Azure PostgreSQL Zon
 - Active Azure subscription with sufficient quota
 - Contributor or Owner role on subscription or resource group
 - Available quota for:
-  - Azure Database for PostgreSQL Flexible Server
-  - App Services (B1 or higher)
-  - Azure Container Registry
+  - Azure Database for PostgreSQL Flexible Server (D-series or E-series)
+  - App Services (Premium V3 tier - P1v3 or higher)
+  - Azure Container Registry (Standard tier)
   - Key Vault
   - Application Insights
+  - Azure Container Instances (optional, for load testing)
 
 ### Supported Regions
 
@@ -71,7 +76,8 @@ az vm list-skus --location swedencentral --zone --output table
 
 1. **Clone and Navigate**
    ```powershell
-   cd c:\Repos\SAIF\SAIF-pgsql
+   git clone https://github.com/jonathan-vella/azure-postgresql-ha-workshop.git
+   cd azure-postgresql-ha-workshop
    ```
 
 2. **Start Services**
@@ -130,7 +136,7 @@ This script:
 Use the comprehensive deployment script:
 
 ```powershell
-cd c:\Repos\SAIF\SAIF-pgsql\scripts
+cd azure-postgresql-ha-workshop\scripts
 
 # Basic deployment (will prompt for password)
 .\Deploy-SAIF-PostgreSQL.ps1 -location "swedencentral"
@@ -163,7 +169,7 @@ The deployment script performs the following steps automatically:
 2. **Creates Resource Group** - Sets up or validates the target resource group
 3. **Deploys Infrastructure** - Uses Bicep templates to create all Azure resources (10-15 minutes)
 4. **Retrieves Outputs** - Extracts deployment details with retry logic and timeout handling
-5. **Initializes Database** - Creates schema and tables using `init-db.sql`
+5. **Initializes Database** - Creates schema and tables using `database/init-db.sql`
 6. **Builds Containers** - Builds and pushes API and Web containers to ACR (10-15 minutes)
 7. **Restarts App Services** - Pulls new container images and starts the applications
 8. **Validates Deployment** - Tests API and Web endpoints to confirm everything works
@@ -274,7 +280,7 @@ az group create `
 #### Step 2: Deploy Infrastructure
 
 ```powershell
-cd c:\Repos\SAIF\SAIF-pgsql
+cd azure-postgresql-ha-workshop
 
 # Set PostgreSQL password
 $postgresPassword = Read-Host "Enter PostgreSQL password" -AsSecureString
@@ -332,12 +338,17 @@ $webAppName = $outputs.webAppName.value
 #### Step 4: Initialize Database
 
 ```powershell
-# Using psql
+# Using psql (from repository root)
 $env:PGPASSWORD = $postgresPasswordText
 psql -h $postgresServerFqdn `
      -U saifadmin `
      -d saifdb `
-     -f init-db.sql
+     -f database\init-db.sql
+
+# Or use the automated script
+.\scripts\Initialize-Database.ps1 `
+  -serverName $postgresServerFqdn `
+  -adminPassword $postgresPasswordText
 
 # Clear password
 $env:PGPASSWORD = $null
@@ -384,6 +395,64 @@ Start-Process $webUrl
 
 ---
 
+## Load Testing & Performance Validation
+
+### Option 1: Production Load Testing (8000+ TPS) ⭐ **RECOMMENDED**
+
+For high-throughput performance testing and validation:
+
+```powershell
+cd azure-postgresql-ha-workshop\scripts
+
+# Deploy load generator to Azure Container Instances
+.\Deploy-LoadGenerator-ACI.ps1 -Action Deploy `
+  -ResourceGroup "rg-saif-pgsql-swc-01" `
+  -PostgreSQLServer "psql-saifpg-XXXXXXXX" `
+  -DatabaseName "saifdb" `
+  -AdminUsername "saifadmin" `
+  -PostgreSQLPassword $securePassword `
+  -TargetTPS 8000 `
+  -WorkerCount 200 `
+  -TestDuration 300
+
+# Monitor load test execution
+.\Monitor-LoadGenerator-Resilient.ps1 `
+  -ResourceGroup "rg-saif-pgsql-swc-01" `
+  -ContainerName "aci-loadgen-XXXXXXXX"
+```
+
+**Validated Performance:**
+- **12,600+ TPS sustained** (October 10, 2025 test)
+- 3,892,380 transactions in 309 seconds
+- 100% success rate (zero failures)
+- Infrastructure: D16ds_v5 (16 vCPU, 64 GB RAM) + P60 storage (8TB, 16K IOPS)
+
+**Use Case:** Production-grade performance validation, sustained high load  
+**Throughput:** 8000-12000+ TPS (proven capability)
+
+**Features:**
+- ✅ Azure Container Instances (scalable: 4-16 vCPU, 8-32 GB RAM)
+- ✅ Configurable worker count and duration
+- ✅ Real-time database metrics monitoring
+- ✅ Azure Workbook visualization (6 charts)
+- ✅ Zero infrastructure management
+
+> 📖 **Complete Guide**: See [Load Test Quick Reference](../guides/LOAD-TEST-QUICK-REF.md) for detailed 5-minute quickstart
+
+### Option 2: Basic Failover Testing (12-13 TPS)
+
+For quick validation and learning:
+
+```powershell
+cd azure-postgresql-ha-workshop\scripts
+.\Test-PostgreSQL-Failover.ps1 -ResourceGroupName "rg-saif-pgsql-swc-01"
+```
+
+**Use Case:** Quick validation, local testing, learning basics  
+**Throughput:** 12-13 TPS (PowerShell loop overhead)
+
+---
+
 ## Failover Testing
 
 ### Automated Failover Test
@@ -391,7 +460,7 @@ Start-Process $webUrl
 Use the comprehensive failover testing script:
 
 ```powershell
-cd c:\Repos\SAIF\SAIF-pgsql\scripts
+cd azure-postgresql-ha-workshop\scripts
 .\Test-PostgreSQL-Failover.ps1 -ResourceGroupName "rg-saif-pgsql-swc-01"
 ```
 
@@ -470,12 +539,43 @@ Watch the monitoring dashboard for:
 
 ## Monitoring
 
-### Real-Time Dashboard
+### Azure Workbook (Recommended)
 
-Start the PowerShell monitoring dashboard:
+**Pre-configured performance dashboard with 6 charts:**
 
 ```powershell
-.\scripts\Monitor-PostgreSQL-HA.ps1 -ResourceGroupName "rg-saif-pgsql-swc-01"
+# Import the workbook JSON to Azure Portal
+# Location: azure-workbooks/PostgreSQL-HA-Performance-Workbook.json
+```
+
+**Features:**
+- 🚀 **TPS Chart**: Transactions per second with comma separators (e.g., 12,600 TPS)
+- 💾 **IOPS Chart**: Absolute Read/Write IOPS values (P60: 16,000 IOPS max)
+- 🖥️ **CPU & Memory**: Utilization percentages
+- 📈 **Throughput**: Disk bandwidth (P60: 500 MB/s max)
+- 🔌 **Connections**: Active connections and failed attempts
+- ⚡ **Replication Lag**: HA standby synchronization status
+
+**Import Guide:** See [Azure Workbook Import Guide](../../azure-workbooks/IMPORT-GUIDE.md) - 30-second setup
+
+**Performance Targets:**
+- TPS: ≥ 8,000 (12,600+ validated)
+- IOPS: < 12,000 (75% of 16K P60 capacity)
+- CPU: 50-70% (optimal range)
+- Memory: < 60% (no pressure)
+- Replication Lag: < 1 second (ready for failover)
+
+### Real-Time PowerShell Dashboard
+
+For terminal-based monitoring:
+
+```powershell
+# Real-time metrics (10-second refresh)
+cd azure-postgresql-ha-workshop\scripts
+.\Monitor-PostgreSQL-Realtime.ps1 -ResourceGroupName "rg-saif-pgsql-swc-01"
+
+# HA status monitoring
+.\Monitor-PostgreSQL-HA.ps1 -ResourceGroupName "rg-saif-pgsql-swc-01"
 ```
 
 **Features:**
@@ -486,6 +586,7 @@ Start the PowerShell monitoring dashboard:
 - Active connections
 - Transaction throughput (TPS)
 - SLA metrics (RPO/RTO)
+- IOPS and throughput metrics (absolute values)
 
 Press `Ctrl+C` to exit.
 
@@ -537,7 +638,7 @@ If you need to update application code without redeploying infrastructure:
 
 ```powershell
 # Use the dedicated container rebuild script
-cd c:\Repos\SAIF\SAIF-pgsql\scripts
+cd azure-postgresql-ha-workshop\scripts
 .\Rebuild-SAIF-Containers.ps1 -resourceGroupName "rg-saif-pgsql-swc-01"
 ```
 
@@ -564,7 +665,7 @@ az webapp restart --name $webAppName --resource-group "rg-saif-pgsql-swc-01"
 For rapid deployment of a complete environment:
 
 ```powershell
-cd c:\Repos\SAIF\SAIF-pgsql\scripts
+cd azure-postgresql-ha-workshop\scripts
 
 # Use the quick-start script
 .\Quick-Deploy-SAIF.ps1 `
@@ -584,7 +685,7 @@ This script automates:
 To update just the infrastructure (no container rebuild):
 
 ```powershell
-cd c:\Repos\SAIF\SAIF-pgsql\scripts
+cd azure-postgresql-ha-workshop\scripts
 
 $password = ConvertTo-SecureString "YourExistingPassword123!" -AsPlainText -Force
 .\Deploy-SAIF-PostgreSQL.ps1 `
@@ -716,7 +817,7 @@ The deployment script builds containers AFTER creating App Services. If the scri
 az acr repository list --name <acrName> --output table
 
 # Method 2: If containers missing, build them manually
-cd c:\Repos\SAIF\SAIF-pgsql
+cd azure-postgresql-ha-workshop
 
 az acr build --registry <acrName> --image saif/api:latest --file api\Dockerfile api\
 az acr build --registry <acrName> --image saif/web:latest --file web\Dockerfile web\
@@ -774,9 +875,24 @@ az monitor activity-log list `
 
 #### 5. High Costs
 
-**Expected Costs:**
-- **Development**: ~$250/month (HA disabled, B-series compute)
-- **Production**: ~$910/month (Zone-redundant HA, D4ds_v5 compute)
+**Expected Costs (as of October 2025):**
+
+**Default Configuration:**
+- PostgreSQL: Standard_D4ds_v5 (4 vCores, 16 GB RAM) + Zone-Redundant HA
+- Storage: 128 GB Premium SSD
+- App Service: P1v3 (2 vCPU, 8 GB RAM, Linux)
+- **Total: ~$675/month** (Zone-Redundant HA setup)
+
+**High-Performance Configuration:**
+- PostgreSQL: Standard_D16ds_v5 (16 vCores, 64 GB RAM) + Zone-Redundant HA
+- Storage: 8 TB (P60 - 16K IOPS, 500 MB/s)
+- App Service: P1v3 (2 vCPU, 8 GB RAM, Linux)
+- Load Testing: ACI (transient, pay-per-second)
+- **Total: ~$2,705/month** (High-performance setup)
+
+**Workshop Cost:**
+- 2-4 hour workshop: **~$3.60 total**
+- 8K TPS load test (5-10 minutes): **~$0.62 per test**
 
 **Cost Optimization:**
 
@@ -861,6 +977,29 @@ az group delete --name $resourceGroupName --yes --no-wait
 - [Bicep Language Reference](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [PostgreSQL 16 Documentation](https://www.postgresql.org/docs/16/)
+- [Load Test Quick Reference](../guides/LOAD-TEST-QUICK-REF.md) - 8K TPS testing guide
+- [Azure Workbook Import Guide](../../azure-workbooks/IMPORT-GUIDE.md) - Performance monitoring setup
+- [Repository Reorganization Summary](../../REORGANIZATION-SUMMARY.md) - v2.0.0 changes
+
+---
+
+## Repository Structure Notes
+
+**Post-v2.0.0 Reorganization (October 10, 2025):**
+
+- ✅ **Core Scripts**: 17 operational scripts in `/scripts/`
+- ✅ **SAIF Application**: `/web/` and `/api/` preserved for demos
+- ✅ **Monitoring**: Azure Workbook JSON in `/azure-workbooks/`
+- ✅ **Database**: SQL files in `/database/` folder
+- ✅ **Archive**: Historical files in `/archive/` (44 files preserved)
+- ✅ **Documentation**: Version-specific docs in `/docs/v1.0.0/`
+
+**Key Changes:**
+- Repository path changed from `c:\Repos\SAIF\SAIF-pgsql` to `azure-postgresql-ha-workshop`
+- Database files moved to `/database/` folder
+- Load testing capabilities expanded (12,600+ TPS validated)
+- Azure Workbook added for performance monitoring
+- Two workflows supported: SAIF security demos + High-performance load testing
 
 ---
 
