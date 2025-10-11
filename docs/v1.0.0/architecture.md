@@ -2,56 +2,72 @@
 
 ## System Architecture Overview
 
+```mermaid
+graph TB
+    subgraph Azure["☁️ Azure Cloud - Sweden Central"]
+        subgraph Zone1["🔵 Availability Zone 1"]
+            Web["🌐 Web App Service<br/>(PHP/Apache)<br/>Port 80"]
+            API["⚡ API App Service<br/>(FastAPI)<br/>Port 8000"]
+            PrimaryDB["🗄️ PostgreSQL Primary<br/>Standard_D4ds_v5<br/>Port 5432<br/>128GB Premium SSD"]
+            Monitor["📊 Application Insights<br/>& Log Analytics"]
+        end
+        
+        subgraph Zone2["🔷 Availability Zone 2"]
+            StandbyDB["🗄️ PostgreSQL Standby<br/>Hot Standby (Read Replica)<br/>Synchronous Replication"]
+        end
+        
+        subgraph Support["🛠️ Supporting Services"]
+            KeyVault["🔐 Azure Key Vault<br/>(Secrets & Creds)"]
+            ACR["📦 Azure Container Registry<br/>(Docker Images)"]
+            Backup["💾 Azure Backup<br/>(7-day retention)"]
+        end
+        
+        LoadGen["🔄 Load Generator<br/>(Optional - ACI)<br/>12,600+ TPS Capacity"]
+    end
+    
+    Users["👥 End Users<br/>(Web Browsers)"]
+    
+    Users -->|"HTTPS (443)"| Web
+    Web -->|"HTTP (8000)"| API
+    API -->|"PostgreSQL (5432)"| PrimaryDB
+    LoadGen -.->|"Load Testing"| API
+    
+    PrimaryDB ==>|"Synchronous Replication<br/>RPO = 0 (Zero Data Loss)"| StandbyDB
+    PrimaryDB -->|"Telemetry"| Monitor
+    API -->|"Telemetry"| Monitor
+    Web -->|"Telemetry"| Monitor
+    
+    StandbyDB -.->|"Automatic Failover<br/>RTO: 60-120s"| PrimaryDB
+    
+    PrimaryDB -.->|"Get Secrets"| KeyVault
+    API -.->|"Get Secrets"| KeyVault
+    Web -.->|"Pull Images"| ACR
+    API -.->|"Pull Images"| ACR
+    PrimaryDB -.->|"Automated Backups"| Backup
+    
+    classDef primary fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    classDef standby fill:#87CEEB,stroke:#4A90E2,stroke-width:2px,color:#000
+    classDef app fill:#52C41A,stroke:#389E0D,stroke-width:2px,color:#fff
+    classDef support fill:#FFA940,stroke:#D46B08,stroke-width:2px,color:#fff
+    classDef monitor fill:#722ED1,stroke:#531DAB,stroke-width:2px,color:#fff
+    classDef users fill:#F5222D,stroke:#A8071A,stroke-width:2px,color:#fff
+    classDef loadgen fill:#FA8C16,stroke:#D46B08,stroke-width:2px,color:#fff
+    
+    class PrimaryDB primary
+    class StandbyDB standby
+    class Web,API app
+    class KeyVault,ACR,Backup support
+    class Monitor monitor
+    class Users users
+    class LoadGen loadgen
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Azure Cloud - Sweden Central                        │
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                        Availability Zone 1                              │ │
-│  │  ┌──────────────────┐    ┌──────────────────┐    ┌─────────────────┐  │ │
-│  │  │  Web App Service │    │  API App Service │    │   PostgreSQL    │  │ │
-│  │  │   (PHP/Apache)   │───▶│   (FastAPI)      │───▶│  Primary Server │  │ │
-│  │  │   Port 80        │    │   Port 8000      │    │   Port 5432     │  │ │
-│  │  └──────────────────┘    └──────────────────┘    └─────────────────┘  │ │
-│  │           │                       │                        │            │ │
-│  │           │                       │                        │            │ │
-│  │           ▼                       ▼                        ▼            │ │
-│  │  ┌────────────────────────────────────────────────────────────────┐    │ │
-│  │  │              Application Insights & Log Analytics              │    │ │
-│  │  └────────────────────────────────────────────────────────────────┘    │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                    │                                         │
-│                                    │ Synchronous                             │
-│                                    │ Replication                             │
-│                                    │ (RPO = 0)                               │
-│                                    ▼                                         │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                        Availability Zone 2                              │ │
-│  │  ┌─────────────────┐                                                    │ │
-│  │  │   PostgreSQL    │                                                    │ │
-│  │  │ Standby Server  │  Automatic Failover (RTO: 60-120s)                │ │
-│  │  │   Hot Standby   │  Zero Data Loss (RPO: 0)                          │ │
-│  │  └─────────────────┘                                                    │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                      Supporting Services                                │ │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                 │ │
-│  │  │ Azure Key    │  │   Azure      │  │  Azure       │                 │ │
-│  │  │   Vault      │  │  Container   │  │  Backup      │                 │ │
-│  │  │  (Secrets)   │  │  Registry    │  │  (7-day)     │                 │ │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘                 │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    ▲
-                                    │
-                                    │ HTTPS
-                                    │
-                            ┌───────┴────────┐
-                            │   End Users    │
-                            │   (Browsers)   │
-                            └────────────────┘
-```
+
+**Architecture Highlights:**
+- **Zone-Redundant HA**: Primary (Zone 1) and Standby (Zone 2) for 99.99% SLA
+- **Zero Data Loss**: Synchronous replication ensures RPO = 0
+- **Automatic Failover**: RTO of 60-120 seconds with DNS update
+- **Load Testing**: Optional ACI-based load generator (12,600+ TPS validated)
+- **Monitoring**: Centralized telemetry with Application Insights
 
 ## Database Schema Architecture
 
