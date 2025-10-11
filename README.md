@@ -79,48 +79,67 @@ This workshop uses **Azure Database for PostgreSQL Flexible Server** with **Zone
 
 ```mermaid
 graph TB
-    subgraph Azure["Azure Region (Sweden Central / Germany West Central)"]
-        subgraph Zone1["Availability Zone 1"]
-            PG_Primary[(Primary<br/>PostgreSQL<br/>Flexible Server)]
-            AppSvc[App Services<br/>Web + API]
-        end
-        
-        subgraph Zone2["Availability Zone 2"]
-            PG_Standby[(Standby<br/>PostgreSQL<br/>Flexible Server)]
-        end
-        
-        subgraph Shared["Shared Services (Zone-Redundant)"]
-            ACR[Container Registry<br/>ACR]
-            KV[Key Vault<br/>Secrets]
-            AI[Application Insights<br/>Monitoring]
-            LA[Log Analytics<br/>Workspace]
-        end
-        
-        PG_Primary <-->|Synchronous<br/>Replication<br/>RPO = 0| PG_Standby
-        AppSvc -->|Read/Write| PG_Primary
-        AppSvc -.->|Automatic<br/>Failover<br/>RTO = 60-120s| PG_Standby
-        AppSvc -->|Pull Images| ACR
-        AppSvc -->|Read Secrets| KV
-        AppSvc -->|Telemetry| AI
-        PG_Primary -->|Metrics| AI
-        PG_Standby -->|Metrics| AI
-        AI -->|Logs| LA
+  subgraph Azure["☁️ Azure Cloud - Sweden Central"]
+    subgraph Zone1["🔵 Availability Zone 1"]
+      Web["🌐 Web App Service<br/>(PHP/Apache)<br/>Port 80<br/>(Zonal)"]
+      API["⚡ API App Service<br/>(FastAPI)<br/>Port 8000<br/>(Zonal)"]
+      PrimaryDB["🗄️ PostgreSQL Primary<br/>Standard_D4ds_v5<br/>Port 5432<br/>128GB Premium SSD"]
+      Monitor["📊 Application Insights<br/>& Log Analytics"]
     end
+        
+    subgraph Zone2["🔷 Availability Zone 2"]
+      StandbyDB["🗄️ PostgreSQL Standby<br/>Hot Standby (Read Replica)<br/>Synchronous Replication"]
+    end
+        
+    subgraph Support["🛠️ Supporting Services"]
+      KeyVault["🔐 Azure Key Vault<br/>(Secrets & Creds)"]
+      ACR["📦 Azure Container Registry<br/>(Docker Images)"]
+      Backup["💾 Azure Backup<br/>(7-day retention)"]
+    end
+        
+    LoadGen["🔄 Load Generator<br/>(Optional - ACI)<br/>12,600+ TPS Capacity"]
+  end
     
-    User([Users]) -->|HTTPS| AppSvc
-    LoadGen[Load Generator<br/>ACI<br/>8K-12K TPS] -.->|Load Test| PG_Primary
+  Users["👥 End Users<br/>(Web Browsers)"]
     
-    style PG_Primary fill:#0078d4,stroke:#003f6b,stroke-width:3px,color:#fff
-    style PG_Standby fill:#50e6ff,stroke:#0078d4,stroke-width:2px,color:#000
-    style AppSvc fill:#7fba00,stroke:#3d5a00,stroke-width:2px,color:#fff
-    style LoadGen fill:#ff6b00,stroke:#c43e00,stroke-width:2px,color:#fff
-    style Zone1 fill:#e6f3ff,stroke:#0078d4,stroke-width:2px
-    style Zone2 fill:#e6f3ff,stroke:#0078d4,stroke-width:2px
-    style Shared fill:#fff4e6,stroke:#ff6b00,stroke-width:2px
+  Users -->|"HTTPS (443)"| Web
+  Web -->|"HTTP (8000)"| API
+  API -->|"PostgreSQL (5432)"| PrimaryDB
+  LoadGen -.->|"Load Testing"| API
+    
+  PrimaryDB ==>|"Synchronous Replication<br/>RPO = 0 (Zero Data Loss)"| StandbyDB
+  PrimaryDB -->|"Telemetry"| Monitor
+  API -->|"Telemetry"| Monitor
+  Web -->|"Telemetry"| Monitor
+    
+  StandbyDB -.->|"Automatic Failover<br/>RTO: 60-120s"| PrimaryDB
+    
+  PrimaryDB -.->|"Get Secrets"| KeyVault
+  API -.->|"Get Secrets"| KeyVault
+  Web -.->|"Pull Images"| ACR
+  API -.->|"Pull Images"| ACR
+  PrimaryDB -.->|"Automated Backups"| Backup
+    
+  classDef primary fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+  classDef standby fill:#87CEEB,stroke:#4A90E2,stroke-width:2px,color:#000
+  classDef app fill:#52C41A,stroke:#389E0D,stroke-width:2px,color:#fff
+  classDef support fill:#FFA940,stroke:#D46B08,stroke-width:2px,color:#fff
+  classDef monitor fill:#722ED1,stroke:#531DAB,stroke-width:2px,color:#fff
+  classDef users fill:#F5222D,stroke:#A8071A,stroke-width:2px,color:#fff
+  classDef loadgen fill:#FA8C16,stroke:#D46B08,stroke-width:2px,color:#fff
+    
+  class PrimaryDB primary
+  class StandbyDB standby
+  class Web,API app
+  class KeyVault,ACR,Backup support
+  class Monitor monitor
+  class Users users
+  class LoadGen loadgen
 ```
 
 **Architecture Highlights:**
-- **Zone-Redundant HA**: Primary (Zone 1) + Standby (Zone 2) with synchronous replication
+- **App Service is Zonal**: Web/API App Service is deployed in a single zone (Zone 1) for lowest latency
+- **Zone-Redundant HA for PostgreSQL**: Primary (Zone 1) and Standby (Zone 2) with synchronous replication
 - **RPO = 0**: Zero data loss with synchronous commit
 - **RTO = 60-120s**: Automatic failover between zones
 - **SLA = 99.99%**: Zone-redundant deployment guarantee

@@ -6,8 +6,8 @@
 graph TB
     subgraph Azure["☁️ Azure Cloud - Sweden Central"]
         subgraph Zone1["🔵 Availability Zone 1"]
-            Web["🌐 Web App Service<br/>(PHP/Apache)<br/>Port 80"]
-            API["⚡ API App Service<br/>(FastAPI)<br/>Port 8000"]
+            Web["🌐 Web App Service<br/>(PHP/Apache)<br/>Port 80<br/>(Zonal)"]
+            API["⚡ API App Service<br/>(FastAPI)<br/>Port 8000<br/>(Zonal)"]
             PrimaryDB["🗄️ PostgreSQL Primary<br/>Standard_D4ds_v5<br/>Port 5432<br/>128GB Premium SSD"]
             Monitor["📊 Application Insights<br/>& Log Analytics"]
         end
@@ -63,7 +63,8 @@ graph TB
 ```
 
 **Architecture Highlights:**
-- **Zone-Redundant HA**: Primary (Zone 1) and Standby (Zone 2) for 99.99% SLA
+- **App Service is Zonal**: Web/API App Service is deployed in a single zone (Zone 1) for lowest latency
+- **Zone-Redundant HA for PostgreSQL**: Primary (Zone 1) and Standby (Zone 2) for 99.99% SLA
 - **Zero Data Loss**: Synchronous replication ensures RPO = 0
 - **Automatic Failover**: RTO of 60-120 seconds with DNS update
 - **Load Testing**: Optional ACI-based load generator (12,600+ TPS validated)
