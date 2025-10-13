@@ -472,30 +472,28 @@ azure-postgresql-ha-workshop/
 
 ### 🚀 Quick Start Guides
 
-- **[⚡ Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md)** - ⭐ **NEW**: 8K TPS testing in 5 minutes
-- **[📘 Deployment Guide](docs/v1.0.0/deployment-guide.md)** - Complete step-by-step deployment
-- **[⚡ Quick Reference](docs/v1.0.0/quick-reference.md)** - Commands cheat sheet
-- **[🔥 TROUBLESHOOTING](docs/TROUBLESHOOTING.md)** - Common issues & solutions (9 issues covered)
+- **[📘 Deployment Guide](docs/deployment-guide.md)** - Complete step-by-step deployment
+- **[🧪 Testing Guide](docs/testing-guide.md)** - Load testing (8K TPS) + Failover testing
+- **[🏗️ Architecture](docs/architecture.md)** - System design and components
+- **[🔥 Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues & solutions
 
 ### 🧪 Testing & Monitoring
 
-- **[🧪 Failover Testing](docs/v1.0.0/failover-testing-guide.md)** - HA testing and RTO/RPO measurement
+- **[🧪 Testing Guide](docs/testing-guide.md)** - Complete load testing (8K TPS) + failover testing
 - **[📊 Azure Workbook Import](azure-workbooks/IMPORT-GUIDE.md)** - 30-second performance dashboard setup
 - **[📖 RTO Measurement](scripts/CONNECTION-RTO-GUIDE.md)** - Connection RTO testing guide
 - **[📖 Failover Monitoring](scripts/MONITOR-FAILOVER-GUIDE.md)** - Monitor failover events
 
 ### 🗄️ Database & SAIF Application
 
-- **[🗄️ Database Initialization](docs/guides/container-initialization-guide.md)** - Setup procedures (3 methods)
-- **[🐳 Container Build Guide](docs/guides/BUILD-CONTAINERS-GUIDE.md)** - SAIF app container builds
-- **[🐳 Container Quick Reference](docs/guides/BUILD-CONTAINERS-QUICK-REF.md)** - Quick commands
+- **[🗄️ Database Initialization](archive/docs-v1.0.0/guides/container-initialization-guide.md)** - Setup procedures (archived)
+- **[🐳 Container Build Guide](archive/docs-v1.0.0/guides/BUILD-CONTAINERS-GUIDE.md)** - SAIF app container builds (archived)
 
 ### 📐 Architecture & Deep Dive
 
-- **[🏗️ Architecture](docs/v1.0.0/architecture.md)** - System design & components
-- **[💻 Implementation Summary](docs/v1.0.0/implementation-summary.md)** - Technical deep dive
-- **[✅ Checklist](docs/v1.0.0/checklist.md)** - Project completion checklist
-- **[📝 CHANGELOG](docs/v1.0.0/CHANGELOG.md)** - Version history
+- **[🏗️ Architecture](docs/architecture.md)** - System design & components
+- **[💻 Implementation Details](archive/docs-v1.0.0/architecture/IMPLEMENTATION-COMPLETE.md)** - Technical deep dive (archived)
+- **[📝 Changelog](docs/CHANGELOG.md)** - Version history
 
 > 💡 **Tip**: Having issues? Check [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) first!
 
