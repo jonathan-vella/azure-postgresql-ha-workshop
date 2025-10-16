@@ -31,6 +31,12 @@ scripts/tests/*performance*.json
 *-test-results.txt
 failover-*.log
 
+# Failover test metrics and results
+failover_metrics_*.csv
+failover_metrics_*_summary.json
+scripts/loadtesting/failover_metrics_*.csv
+scripts/loadtesting/failover_metrics_*_summary.json
+
 # ============================================
 # Environment & Secrets
 # ============================================

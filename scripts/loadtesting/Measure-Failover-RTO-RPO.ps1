@@ -56,6 +56,9 @@ param(
     [int]$BaselineSeconds = 30,
     
     [Parameter(Mandatory=$false)]
+    [int]$MaxMonitoringSeconds = 90,
+    
+    [Parameter(Mandatory=$false)]
     [string]$OutputCsv = "./failover_metrics_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
 )
 
@@ -241,7 +244,20 @@ if (-not $baseline) {
     exit 1
 }
 
-$baselineTps = [math]::Round($baseline.transactionsCompleted / $baseline.uptime.TotalSeconds, 2)
+$baselineTps = 0
+try {
+    $baselineUptimeSpan = if ($baseline.uptime -is [string]) {
+        [TimeSpan]::Parse($baseline.uptime)
+    } else {
+        $baseline.uptime
+    }
+    
+    if ($baselineUptimeSpan.TotalSeconds -gt 0) {
+        $baselineTps = [math]::Round($baseline.transactionsCompleted / $baselineUptimeSpan.TotalSeconds, 2)
+    }
+} catch {
+    $baselineTps = 0
+}
 $baselineDbCount = Get-DatabaseTransactionCount -ConnectionString $ConnectionString
 
 Write-Host "  ✅ Baseline established" -ForegroundColor Green
@@ -325,11 +341,22 @@ while (-not $recovered) {
     $appCount = if ($appConnected) { $appStatus.transactionsCompleted } else { $null }
     $appErrors = if ($appConnected) { $appStatus.errors } else { $null }
     
-    # Calculate TPS
-    $currentTps = if ($appConnected -and $appStatus.uptime.TotalSeconds -gt 0) {
-        [math]::Round($appStatus.transactionsCompleted / $appStatus.uptime.TotalSeconds, 0)
-    } else {
-        0
+    # Calculate TPS (parse uptime string to TimeSpan first)
+    $currentTps = 0
+    if ($appConnected) {
+        try {
+            $uptimeSpan = if ($appStatus.uptime -is [string]) {
+                [TimeSpan]::Parse($appStatus.uptime)
+            } else {
+                $appStatus.uptime
+            }
+            
+            if ($uptimeSpan.TotalSeconds -gt 0) {
+                $currentTps = [math]::Round($appStatus.transactionsCompleted / $uptimeSpan.TotalSeconds, 0)
+            }
+        } catch {
+            $currentTps = 0
+        }
     }
     
     # Track connection loss
@@ -378,13 +405,20 @@ while (-not $recovered) {
             
             Write-Host "$($now.ToString('HH:mm:ss'))  $($elapsed.ToString('F1'))s     " -NoNewline
             Write-Host "OK        OK         " -ForegroundColor Green -NoNewline
-            Write-Host "$($appCount.ToString('N0').PadLeft(9))   $($dbCount.ToString('N0').PadLeft(9))   $($currentTps.ToString('N0').PadLeft(5))   " -NoNewline
+            $dbCountStr = if ($null -ne $dbCount) { $dbCount.ToString('N0').PadLeft(9) } else { "─────────" }
+            Write-Host "$($appCount.ToString('N0').PadLeft(9))   $dbCountStr   $($currentTps.ToString('N0').PadLeft(5))   " -NoNewline
             Write-Host $statusText -ForegroundColor $statusColor
         }
         
-        # Check if fully recovered (TPS back to threshold)
-        if ($null -ne $connectionRestoredTime -and $currentTps -ge ($baselineTps * $RecoveryThreshold)) {
-            $recovered = $true
+        # Check if fully recovered (TPS back to threshold OR max monitoring time reached)
+        if ($null -ne $connectionRestoredTime) {
+            if ($currentTps -ge ($baselineTps * $RecoveryThreshold) -or $elapsed -ge $MaxMonitoringSeconds) {
+                $recovered = $true
+                if ($elapsed -ge $MaxMonitoringSeconds) {
+                    Write-Host ""
+                    Write-Host "⏱️  Max monitoring duration ($MaxMonitoringSeconds seconds) reached. Completing test." -ForegroundColor Yellow
+                }
+            }
         }
     }
     
@@ -400,7 +434,7 @@ while (-not $recovered) {
         Errors = $appErrors
     }
     
-    # Safety timeout (5 minutes)
+    # Safety timeout (5 minutes maximum regardless of settings)
     if ($elapsed -gt 300) {
         Write-Host ""
         Write-Host "⚠️  Safety timeout reached (5 minutes). Ending measurement." -ForegroundColor Yellow
@@ -492,13 +526,29 @@ Write-Host ""
 Write-Host "📈 PERFORMANCE METRICS" -ForegroundColor Cyan
 Write-Host "─────────────────────────────────────────────────────────────────" -ForegroundColor Gray
 Write-Metric "Baseline TPS" $baselineTps
-$finalTps = if ($finalStatus -and $finalStatus.uptime.TotalSeconds -gt 0) {
-    [math]::Round($finalStatus.transactionsCompleted / $finalStatus.uptime.TotalSeconds, 2)
-} else {
-    0
+$finalTps = 0
+if ($finalStatus) {
+    try {
+        $finalUptimeSpan = if ($finalStatus.uptime -is [string]) {
+            [TimeSpan]::Parse($finalStatus.uptime)
+        } else {
+            $finalStatus.uptime
+        }
+        
+        if ($finalUptimeSpan.TotalSeconds -gt 0) {
+            $finalTps = [math]::Round($finalStatus.transactionsCompleted / $finalUptimeSpan.TotalSeconds, 2)
+        }
+    } catch {
+        $finalTps = 0
+    }
 }
 Write-Metric "Final TPS" $finalTps
-Write-Metric "TPS Recovery" "$([math]::Round(($finalTps / $baselineTps) * 100, 2))%"
+$tpsRecoveryPct = if ($baselineTps -gt 0) {
+    "$([math]::Round(($finalTps / $baselineTps) * 100, 2))%"
+} else {
+    "N/A (baseline TPS was 0)"
+}
+Write-Metric "TPS Recovery" $tpsRecoveryPct
 Write-Metric "Total Errors" $finalErrors
 
 Write-Host ""
