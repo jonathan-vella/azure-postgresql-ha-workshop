@@ -6,8 +6,8 @@ This folder contains all scripts and resources for App Service-based load testin
 
 **Start here for complete guides:**
 
-- **[Load Testing Guide](../../docs/v1.0.0/load-testing-guide.md)** - Comprehensive guide for App Service load testing
-- **[Failover Testing Quick Reference](../../docs/v1.0.0/failover-testing-quick-reference.md)** - RTO/RPO measurement guide
+- **[Load Testing Guide](../../docs/load-testing-guide.md)** - Comprehensive guide for App Service load testing
+- **[Failover Testing Quick Reference](../../docs/failover-testing-guide.md)** - RTO/RPO measurement guide
 
 ## 📁 File Structure
 
@@ -139,7 +139,7 @@ See `LoadGenerator-Config.ps1` for all configurable parameters:
 
 For complete step-by-step instructions, troubleshooting, and advanced usage:
 
-1. **[Load Testing Guide](../../docs/v1.0.0/load-testing-guide.md)** (~1000 lines)
+1. **[Load Testing Guide](../../docs/load-testing-guide.md)** (~1600 lines)
    - Prerequisites
    - Deployment steps
    - Running tests
@@ -148,7 +148,7 @@ For complete step-by-step instructions, troubleshooting, and advanced usage:
    - Troubleshooting
    - Configuration reference
 
-2. **[Failover Testing Quick Reference](../../docs/v1.0.0/failover-testing-quick-reference.md)** (~300 lines)
+2. **[Failover Testing Quick Reference](../../docs/failover-testing-guide.md)** (~300 lines)
    - Quick start
    - Manual failover methods
    - Script parameters

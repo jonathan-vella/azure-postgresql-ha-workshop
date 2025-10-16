@@ -1,5 +1,9 @@
 # PostgreSQL HA Workshop - Quick Reference Cheat Sheet
 
+**Version**: 1.0.0  
+**Last Updated**: October 16, 2025  
+**Status**: Current
+
 Quick commands for load testing, failover testing, and monitoring your PostgreSQL High Availability setup.
 
 ## 🚀 Load Testing Commands

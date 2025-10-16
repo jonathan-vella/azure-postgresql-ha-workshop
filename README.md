@@ -1,11 +1,11 @@
 
 # Azure PostgreSQL High Availability Workshop
 
-**Last Updated:** 2025-10-10
+**Last Updated:** 2025-10-16
 
 > **⚠️ SECURITY NOTICE**: This repository contains intentional security vulnerabilities for training purposes. DO NOT use in production!
 
-[![Documentation Version](https://img.shields.io/badge/docs-v1.0.0-blue.svg)](docs/v1.0.0/)
+[![Documentation Version](https://img.shields.io/badge/docs-v1.1.0-blue.svg)](docs/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![Azure](https://img.shields.io/badge/Azure-Zone--Redundant%20HA-0089D6.svg)](https://azure.microsoft.com/en-us/products/postgresql/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -73,7 +73,7 @@ This workshop uses **Azure Database for PostgreSQL Flexible Server** with **Zone
 - **RTO = 60-120 seconds** (Automatic failover)
 - **SLA = 99.99%** (Zone-redundant deployment)
 
-> 📚 **Documentation**: This README provides a quick overview. For comprehensive documentation, see the [docs/v1.0.0/](docs/v1.0.0/) directory.
+> 📚 **Documentation**: This README provides a quick overview. For comprehensive documentation, see the [docs/](docs/) directory.
 
 ## Architecture
 
@@ -178,7 +178,7 @@ graph TB
 - PowerShell 7+ or Azure Cloud Shell
 - Docker Desktop (optional, for local testing)
 
-> 📖 For detailed prerequisites and setup instructions, see the [Deployment Guide](docs/v1.0.0/deployment-guide.md).
+> 📖 For detailed prerequisites and setup instructions, see the [Deployment Guide](docs/deployment-guide.md).
 
 ### Deploy (5 minutes)
 
@@ -191,7 +191,7 @@ cd azure-postgresql-ha-workshop
 ./scripts/Deploy-SAIF-PostgreSQL.ps1 -location swedencentral -autoApprove
 ```
 
-[Full documentation →](docs/v1.0.0/deployment-guide.md)
+[Full documentation →](docs/deployment-guide.md)
 
 ### Deployment Options
 
@@ -379,7 +379,7 @@ dotnet script scripts/Test-PostgreSQL-Failover.csx -- \
 **Throughput**: 200-314 TPS (Cloud Shell: 1-2 CPU, 1.7-4GB RAM)
 
 > 📖 **Guides**: 
-> - [Failover Testing Guide](docs/v1.0.0/failover-testing-guide.md) - Comprehensive testing procedures
+> - [Failover Testing Guide](docs/failover-testing-guide.md) - Comprehensive testing procedures
 > - [Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md) - 8K TPS quickstart (NEW)
 
 ## Security Considerations

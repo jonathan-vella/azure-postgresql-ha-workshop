@@ -428,11 +428,10 @@ az role assignment list --assignee $(az account show --query user.name -o tsv)
 
 ## 📚 Additional Documentation
 
-- **Deployment Guide:** `../docs/v1.0.0/deployment-guide.md`
-- **Quick Reference:** `../docs/v1.0.0/quick-reference.md`
-- **Enhancement Summary:** `../docs/v1.0.0/deployment-enhancements-summary.md`
-- **Migration Guide:** `../docs/v1.0.0/migration-guide.md`
-- **Failover Testing:** `../docs/v1.0.0/failover-testing-guide.md`
+- **Deployment Guide:** `../docs/deployment-guide.md`
+- **Failover Testing:** `../docs/failover-testing-guide.md`
+- **Load Testing Guide:** `../docs/load-testing-guide.md`
+- **Architecture:** `../docs/architecture.md`
 
 ---
 

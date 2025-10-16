@@ -104,7 +104,7 @@ Copy-Item "archive\<script-name>.ps1" "..\<script-name>.ps1"
 
 ## October 2025 Cleanup - App Service Load Testing Migration
 
-The following files were archived on **2025-10-16** as part of the migration to the new App Service-based load testing solution documented in `docs/v1.0.0/load-testing-guide.md` and `docs/v1.0.0/failover-testing-quick-reference.md`.
+The following files were archived on **2025-10-16** as part of the migration to the new App Service-based load testing solution documented in `docs/load-testing-guide.md` and `docs/failover-testing-guide.md`.
 
 ### Superseded Scripts
 
@@ -124,7 +124,7 @@ The following files were archived on **2025-10-16** as part of the migration to 
 | `Monitor-Transactions-Docker.ps1` | Old monitoring script | `Monitor-AppService-Logs.ps1` |
 | `Test-PostgreSQL-Failover.ps1` | Old failover test | `Measure-Failover-RTO-RPO.ps1` |
 | `Validate-Transactions.ps1` | Utility script | Database queries in documentation |
-| `APPSERVICE-LOADTESTING-GUIDE.md` | Draft guide | `docs/v1.0.0/load-testing-guide.md` |
+| `APPSERVICE-LOADTESTING-GUIDE.md` | Draft guide | `docs/load-testing-guide.md` |
 
 ### Current Production Files (October 2025)
 
@@ -159,8 +159,8 @@ The following files remain in active use:
 
 ### Documentation References
 
-- **Load Testing Guide**: `docs/v1.0.0/load-testing-guide.md`
-- **Failover Testing Guide**: `docs/v1.0.0/failover-testing-quick-reference.md`
+- **Load Testing Guide**: `docs/load-testing-guide.md`
+- **Failover Testing Guide**: `docs/failover-testing-guide.md`
 
 ---
 

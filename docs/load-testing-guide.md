@@ -1,5 +1,9 @@
 # Load Testing Guide - Azure App Service with Application Insights
 
+**Version**: 1.1.0  
+**Last Updated**: October 16, 2025  
+**Status**: Current
+
 Complete guide for deploying and running the PostgreSQL load testing solution using Azure App Service with immediate Application Insights logging.
 
 ## Table of Contents

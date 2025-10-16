@@ -1,5 +1,9 @@
 # Changelog
 
+**Version**: 2.2.0  
+**Last Updated**: October 16, 2025  
+**Status**: Current
+
 All notable changes to the Azure PostgreSQL HA Workshop will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -78,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### From v2.0.0 to v2.1.0
 - **Documentation Links**: Update any bookmarks to new `/docs/` structure
 - **Testing Workflows**: Use new consolidated `docs/testing-guide.md`
-- **Architecture References**: Use `docs/architecture.md` (moved from `docs/v1.0.0/`)
+- **Architecture References**: Use `docs/architecture.md`
 
 ### From v1.0.0 to v2.0.0+
 - **Repository Structure**: See `REORGANIZATION-SUMMARY.md` for complete changes

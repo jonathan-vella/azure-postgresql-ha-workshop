@@ -1,5 +1,9 @@
 # Failover Testing Quick Reference
 
+**Version**: 1.0.0  
+**Last Updated**: October 16, 2025  
+**Status**: Current
+
 ## Measure RTO and RPO During Manual Failover
 
 ### Quick Start
@@ -302,7 +306,7 @@ if ($LASTEXITCODE -eq 0) {
 
 ### Related Documentation
 
-- Main Load Testing Guide: `docs/v1.0.0/load-testing-guide.md`
+- Main Load Testing Guide: `docs/load-testing-guide.md`
 - App Service Deployment: `scripts/loadtesting/Deploy-LoadGenerator-AppService.ps1`
 - Container Build: `scripts/loadtesting/Build-LoadGenerator-Docker.ps1`
 - Configuration: `scripts/loadtesting/LoadGenerator-Config.ps1`

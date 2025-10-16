@@ -149,7 +149,7 @@ done
 
 ## Deployment
 
-See the main [Deployment Guide](../docs/v1.0.0/deployment-guide.md) for complete deployment instructions.
+See the main [Deployment Guide](../docs/deployment-guide.md) for complete deployment instructions.
 
 ## License
 

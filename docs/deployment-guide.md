@@ -1,6 +1,8 @@
 # Azure PostgreSQL HA Deployment Guide
 
-**Last Updated:** October 13, 2025 | **Version:** 2.1.0
+**Version**: 2.1.0  
+**Last Updated**: October 16, 2025  
+**Status**: Current
 
 Complete deployment guide for the SAIF Payment Gateway with Azure PostgreSQL Zone-Redundant High Availability.
 
@@ -992,7 +994,7 @@ az group delete --name $resourceGroupName --yes --no-wait
 - ✅ **Monitoring**: Azure Workbook JSON in `/azure-workbooks/`
 - ✅ **Database**: SQL files in `/database/` folder
 - ✅ **Archive**: Historical files in `/archive/` (44 files preserved)
-- ✅ **Documentation**: Version-specific docs in `/docs/v1.0.0/`
+- ✅ **Documentation**: Streamlined docs in `/docs/`
 
 **Key Changes:**
 - Repository path changed from `c:\Repos\SAIF\SAIF-pgsql` to `azure-postgresql-ha-workshop`

@@ -1,6 +1,8 @@
 # Azure PostgreSQL HA Architecture
 
-**Last Updated:** October 13, 2025 | **Version:** 2.1.0
+**Version**: 2.0.0  
+**Last Updated**: October 16, 2025  
+**Status**: Current
 
 ## System Architecture Overview
 
