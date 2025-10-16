@@ -102,4 +102,66 @@ Copy-Item "archive\<script-name>.ps1" "..\<script-name>.ps1"
 
 ---
 
-*Last Updated: 2025-10-09*
+## October 2025 Cleanup - App Service Load Testing Migration
+
+The following files were archived on **2025-10-16** as part of the migration to the new App Service-based load testing solution documented in `docs/v1.0.0/load-testing-guide.md` and `docs/v1.0.0/failover-testing-quick-reference.md`.
+
+### Superseded Scripts
+
+| File | Reason | Replaced By |
+|------|--------|-------------|
+| `Deploy-LoadGenerator-ACI.ps1` | Old Azure Container Instances deployment | `Deploy-LoadGenerator-AppService.ps1` |
+| `Run-LoadGenerator-Local.ps1` | Old local testing approach | App Service with HTTP API endpoints |
+| `LoadGenerator.csx` | Old C# script version | `Program.cs` (compiled .NET 8.0 app) |
+| `LoadGeneratorWeb.csx` | Old C# script web version | `Program.cs` (compiled .NET 8.0 app) |
+| `entrypoint.sh` | Shell entrypoint for script execution | Dockerfile uses `dotnet LoadGeneratorWeb.dll` |
+| `Check-WAL-Settings.ps1` | Utility script | Not needed in standard workflow |
+| `Measure-Connection-RTO.ps1` | Simple RTO measurement | `Measure-Failover-RTO-RPO.ps1` (comprehensive RTO+RPO) |
+| `Monitor-Failover-Azure.ps1` | Old monitoring script | `Monitor-AppService-Logs.ps1` |
+| `Monitor-LoadGenerator-Resilient.ps1` | Old monitoring script | `Monitor-AppService-Logs.ps1` |
+| `Monitor-PostgreSQL-HA.ps1` | Old monitoring script | `Monitor-AppService-Logs.ps1` |
+| `Monitor-PostgreSQL-Realtime.ps1` | Old monitoring script | `Monitor-AppService-Logs.ps1` |
+| `Monitor-Transactions-Docker.ps1` | Old monitoring script | `Monitor-AppService-Logs.ps1` |
+| `Test-PostgreSQL-Failover.ps1` | Old failover test | `Measure-Failover-RTO-RPO.ps1` |
+| `Validate-Transactions.ps1` | Utility script | Database queries in documentation |
+| `APPSERVICE-LOADTESTING-GUIDE.md` | Draft guide | `docs/v1.0.0/load-testing-guide.md` |
+
+### Current Production Files (October 2025)
+
+The following files remain in active use:
+
+| File | Purpose |
+|------|---------|
+| `Build-LoadGenerator-Docker.ps1` | Build and push container to ACR |
+| `Deploy-LoadGenerator-AppService.ps1` | Deploy/update/delete App Service |
+| `Monitor-AppService-Logs.ps1` | Stream App Service container logs |
+| `Measure-Failover-RTO-RPO.ps1` | Measure RTO and RPO during failover |
+| `LoadGenerator-Config.ps1` | Centralized configuration |
+| `Program.cs` | ASP.NET Core minimal API application |
+| `LoadGeneratorWeb.csproj` | .NET 8.0 project file |
+| `Dockerfile` | Multi-stage container build |
+
+### Key Architecture Changes
+
+**Before (ACI + Scripts)**:
+- Azure Container Instances
+- C# scripts executed with `dotnet-script`
+- .NET 6.0
+- Console application (exits after execution)
+- 5-10 minute delay for Log Analytics
+
+**After (App Service + Compiled App)**:
+- Azure App Service on Linux
+- Compiled .NET 8.0 web application
+- ASP.NET Core minimal API
+- Long-running web service with HTTP endpoints
+- Immediate Application Insights telemetry
+
+### Documentation References
+
+- **Load Testing Guide**: `docs/v1.0.0/load-testing-guide.md`
+- **Failover Testing Guide**: `docs/v1.0.0/failover-testing-quick-reference.md`
+
+---
+
+*Last Updated: 2025-10-16*
