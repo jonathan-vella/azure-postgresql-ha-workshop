@@ -307,80 +307,96 @@ CREATE TABLE transactions (
 
 ## 📊 Performance Benchmarks
 
-### Production Load Testing (LoadGenerator.csx on Azure Container Instances)
-- **Validated TPS**: **12,600+ TPS sustained** (October 10, 2025 test)
-- **Total Transactions**: 3,892,380 transactions in 309 seconds
-- **Success Rate**: 100% (zero failures)
-- **Infrastructure**: D16ds_v5 (16 vCPU, 64 GB RAM) + P60 storage (8TB, 16K IOPS)
-- **Target Capability**: 8000-15000 TPS range (proven)
+### App Service Load Testing (Current)
+- **Validated TPS**: **1,000-2,000+ TPS per instance** (immediate App Insights logging)
+- **Scaling**: Supports multiple App Service instances for higher throughput
+- **Response Time**: Immediate telemetry (no Log Analytics delays)
+- **Infrastructure**: P0v3 App Service Plan (standard) to P1v3 (upgrade for higher TPS)
+- **Monitoring**: Real-time HTTP status endpoints + Application Insights dashboard
 
-### Failover Testing Performance
-- **Peak TPS**: 314 TPS (Cloud Shell-based C# script with 10 workers)
-- **Sustained TPS**: 200-312 TPS (Cloud Shell: 1-2 CPU, 1.7-4GB RAM)
-- **Failover RTO**: 16-18 seconds (Zone-Redundant HA automatic failover)
-- **Failover RPO**: 0 seconds (zero data loss with synchronous replication)
-- **Success Rate**: 99.26% (during active testing with failover events)
+### Failover Testing Performance (RTO/RPO)
+- **Measured RTO**: **16-25 seconds** (Zone-Redundant HA automatic failover)
+- **Measured RPO**: **0 transactions** (zero data loss with synchronous replication)
+- **Test Method**: App Service load test + manual failover trigger + Measure-Failover-RTO-RPO.ps1
+- **Success Rate**: 100% data consistency (all transactions persisted before failover)
+- **Monitoring**: Real-time probes (1-second intervals), detailed CSV reports
 
-> 📖 **Quick Start**: See [Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md) for complete 8K TPS testing guide
+> 📖 **Quick Start**: See [Load Testing Guide](docs/load-testing-guide.md) for complete deployment and monitoring
+
+### Legacy Benchmarks (ACI - Archived)
+- **8000-12,600+ TPS** (Azure Container Instances, archived approach)
+- **Succeeded**: October 10, 2025 test with D16ds_v5 + P60 storage
+- **Reference**: [Archive benchmarks](archive/) for historical context
 
 ### Load Testing & Failover Testing
 
-The workshop includes **three testing approaches**:
+The workshop includes **two testing approaches**:
 
-#### Option 1: Production Load Testing ⭐ **RECOMMENDED FOR HIGH THROUGHPUT**
+#### Option 1: App Service Load Testing ⭐ **RECOMMENDED - IMMEDIATE MONITORING**
 ```powershell
-# Deploy 8000 TPS load test to Azure Container Instances
-cd scripts
-.\Deploy-LoadGenerator-ACI.ps1 -Action Deploy `
-  -ResourceGroup "rg-saif-pgsql-swc-01" `
-  -PostgreSQLServer "psql-saifpg-XXXXXXXX" `
+# Deploy load generator to App Service
+cd scripts/loadtesting
+.\Deploy-LoadGenerator-AppService.ps1 `
+  -Action "Deploy" `
+  -ResourceGroup "rg-pgv2-usc01" `
+  -AppServiceName "app-loadgen" `
+  -PostgreSQLServer "pg-cus.postgres.database.azure.com" `
   -DatabaseName "saifdb" `
-  -AdminUsername "saifadmin" `
-  -PostgreSQLPassword $securePassword `
-  -TargetTPS 8000 `
-  -WorkerCount 200 `
-  -TestDuration 300
+  -AdminUsername "jonathan"
 
-# Monitor test execution
-.\Monitor-LoadGenerator-Resilient.ps1 -ResourceGroup "rg-saif-pgsql-swc-01" -ContainerName "aci-loadgen-XXXXXXXX"
+# Start load test via HTTP API
+$url = "https://app-loadgen.azurewebsites.net/start"
+curl -X POST $url | ConvertFrom-Json
+
+# Monitor in real-time
+.\Monitor-AppService-Logs.ps1 -ResourceGroup "rg-pgv2-usc01" -AppServiceName "app-loadgen"
+
+# Check status
+curl https://app-loadgen.azurewebsites.net/status | ConvertFrom-Json | Format-List
 ```
 
-**Use Case**: Production-grade performance validation, sustained high load  
-**Throughput**: **8000-12000+ TPS** (proven with D16ds_v5 + P60 storage)  
+**Use Case**: Production-grade load testing with immediate Application Insights monitoring  
+**Throughput**: **1,000-2,000+ TPS** per App Service instance (scalable)  
 **Features**:
-- Azure Container Instances (scalable: 4-16 vCPU, 8-32 GB RAM)
-- Configurable worker count and duration
-- Real-time database metrics monitoring
-- Azure Workbook visualization
-- Zero infrastructure management
+- HTTP API endpoints (`/start`, `/status`, `/health`, `/logs`)
+- Real-time Application Insights telemetry (no delays)
+- Container-based .NET 8.0 application
+- Automatic database transaction logging
+- Easy scaling via App Service plan upgrade
 
-> 📖 **Complete Guide**: [Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md) - 5-minute quickstart
+> 📖 **Complete Guide**: [Load Testing Guide](docs/load-testing-guide.md) - Comprehensive deployment & monitoring
 
-#### Option 2: PowerShell Script (Local Execution)
+#### Option 2: RTO/RPO Failover Testing ⭐ **MEASURE RECOVERY METRICS**
 ```powershell
-# Run basic failover test (12-13 TPS)
-cd scripts
-.\Test-PostgreSQL-Failover.ps1
+# Start failover measurement with running load test
+cd scripts/loadtesting
+.\Measure-Failover-RTO-RPO.ps1 `
+  -AppServiceUrl "https://app-loadgen-6wuso.azurewebsites.net" `
+  -ResourceGroup "rg-pgv2-usc01" `
+  -ServerName "pg-cus" `
+  -DatabaseName "saifdb" `
+  -AdminUsername "jonathan" `
+  -MaxMonitoringSeconds 90
+
+# Then trigger manual failover in Azure Portal:
+# 1. PostgreSQL Flexible Server > High Availability blade
+# 2. Click "Forced failover"
+# 3. Confirm action
+# Script will measure RTO and RPO
 ```
 
-**Use Case**: Quick validation, local testing, learning basics  
-**Throughput**: 12-13 TPS (PowerShell loop overhead)
+**Use Case**: Measure recovery time and data loss during failover  
+**RTO**: 16-25 seconds (measured in October 2025)  
+**RPO**: 0 transactions (zero data loss with synchronous replication)  
+**Features**:
+- Real-time monitoring during failover
+- Connection loss detection (1-second probes)
+- Database transaction count verification
+- TPS recovery tracking
+- CSV report generation with detailed metrics
 
-#### Option 3: C# Script (Azure Cloud Shell)
-```bash
-# Run high-performance failover test (300+ TPS)
-dotnet script scripts/Test-PostgreSQL-Failover.csx -- \
-  "Host=your-server.postgres.database.azure.com;Database=saifdb;Username=user;Password=pass;SSL Mode=Require" \
-  10 \
-  5
-```
-
-**Use Case**: Cloud Shell testing, RTO/RPO measurement  
-**Throughput**: 200-314 TPS (Cloud Shell: 1-2 CPU, 1.7-4GB RAM)
-
-> 📖 **Guides**: 
-> - [Failover Testing Guide](docs/failover-testing-guide.md) - Comprehensive testing procedures
-> - [Load Test Quick Reference](docs/guides/LOAD-TEST-QUICK-REF.md) - 8K TPS quickstart (NEW)
+> 📖 **Complete Guide**: [Failover Testing Guide](docs/failover-testing-guide.md) - RTO/RPO measurement procedures
+> 📖 **Cheat Sheet**: [Load Testing Cheat Sheet](docs/load-testing-cheat-sheet.md) - Quick commands reference
 
 ## Security Considerations
 
@@ -417,46 +433,47 @@ azure-postgresql-ha-workshop/
 ├── 📁 api/                            # SAIF Python FastAPI (security demos)
 ├── 📄 docker-compose.yml              # Local SAIF development environment
 │
-├── 📁 scripts/                        # Operational scripts (17 files)
+├── 📁 scripts/                        # Operational scripts
 │   ├── 🚀 Deploy-SAIF-PostgreSQL.ps1  # Full infrastructure deployment
 │   ├── 🚀 Quick-Deploy-SAIF.ps1       # Simplified deployment wrapper
 │   ├── 🌐 Rebuild-SAIF-Containers.ps1 # SAIF app container rebuild
 │   ├── 🌐 Test-SAIFLocal.ps1          # Local SAIF testing
 │   ├── 💾 Initialize-Database.ps1     # Database initialization
-│   ├── 🧪 LoadGenerator.csx            # High-performance load generator (8K+ TPS)
-│   ├── 🧪 Deploy-LoadGenerator-ACI.ps1 # Deploy load test to Azure Container Instances
-│   ├── 📊 Monitor-LoadGenerator-Resilient.ps1  # Load test monitoring
-│   ├── 📊 Monitor-PostgreSQL-Realtime.ps1      # Real-time metrics (10s refresh)
-│   ├── 📊 Monitor-PostgreSQL-HA.ps1            # HA status monitoring
-│   ├── 🔄 Test-PostgreSQL-Failover.ps1         # Failover testing (PowerShell)
-│   ├── 🔄 Measure-Connection-RTO.ps1           # RTO measurement
-│   ├── 🔄 Monitor-Failover-Azure.ps1           # Failover monitoring
-│   ├── ✅ Check-WAL-Settings.ps1               # WAL configuration validator
-│   ├── 📖 CONNECTION-RTO-GUIDE.md              # RTO measurement guide
-│   ├── 📖 MONITOR-FAILOVER-GUIDE.md            # Failover monitoring guide
-│   ├── 📖 README.md                            # Scripts documentation
+│   ├── 📖 README.md                    # Scripts documentation
+│   │
+│   ├── 📁 loadtesting/                # Load testing & failover testing scripts (current)
+│   │   ├── 🧪 Program.cs              # .NET 8.0 load generator web app
+│   │   ├── 🧪 Dockerfile              # Multi-stage container build
+│   │   ├── � Deploy-LoadGenerator-AppService.ps1 # Deploy to App Service
+│   │   ├── � Monitor-AppService-Logs.ps1         # Stream container logs
+│   │   ├── 🔄 Measure-Failover-RTO-RPO.ps1       # RTO/RPO measurement
+│   │   ├── � LoadGenerator-Config.ps1  # Centralized configuration
+│   │   ├── 📖 README.md                 # Load testing documentation (v1.0.0)
+│   │   └── archive/                     # Archived testing approaches
+│   │
 │   ├── utils/
-│   │   └── Build-SAIF-Containers.ps1           # SAIF container build utility
-│   └── archive/                                # Historical scripts
+│   │   └── Build-SAIF-Containers.ps1   # SAIF container build utility
+│   └── archive/                        # Archived scripts (historical)
 │
 ├── 📁 azure-workbooks/                # Azure Portal monitoring
 │   ├── PostgreSQL-HA-Performance-Workbook.json # Pre-configured workbook (6 charts)
 │   └── IMPORT-GUIDE.md                         # 30-second import guide
 │
-├── 📁 docs/                           # Documentation
-│   ├── v1.0.0/                        # Version 1.0.0 documentation
-│   │   ├── deployment-guide.md        # Complete deployment guide
-│   │   ├── failover-testing-guide.md  # HA failover testing procedures
-│   │   ├── quick-reference.md         # Command cheat sheet
-│   │   ├── architecture.md            # System architecture
-│   │   └── checklist.md               # Workshop checklist
-│   ├── guides/                        # Operational guides
-│   │   ├── LOAD-TEST-QUICK-REF.md     # ⭐ 8K TPS load test quickstart (NEW)
-│   │   ├── BUILD-CONTAINERS-GUIDE.md  # SAIF container build guide
-│   │   ├── BUILD-CONTAINERS-QUICK-REF.md
-│   │   └── container-initialization-guide.md
+├── 📁 docs/                           # Documentation (v1.1.0+)
+│   ├── architecture.md                # System architecture & design (v2.0.0)
+│   ├── CHANGELOG.md                   # Documentation version history (v2.2.0)
+│   ├── deployment-guide.md            # Complete deployment guide (v2.1.0)
+│   ├── failover-testing-guide.md      # RTO/RPO measurement procedures (v1.0.0)
+│   ├── load-testing-guide.md          # App Service load testing guide (v1.1.0)
+│   ├── load-testing-cheat-sheet.md    # Quick reference commands (v1.0.0)
 │   ├── README.md                      # Documentation index
-│   └── TROUBLESHOOTING.md             # Common issues & solutions
+│   ├── VERSIONING-UPDATE-PLAN.md      # Semantic versioning migration plan
+│   ├── VERSIONING-UPDATE-SUMMARY.md   # Implementation summary
+│   │
+│   └── archive/ (v1.0.0 docs - deprecated)
+│       ├── index.md, quick-reference.md, checklist.md
+│       ├── guides/ (container, initialization procedures)
+│       └── architecture/ (detailed implementations)
 │
 └── 📁 archive/                        # Archived files (historical reference)
     ├── deprecated-approaches/         # Old testing methods
