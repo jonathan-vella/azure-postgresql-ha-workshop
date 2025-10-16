@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "dgSpecHash": "fygIORn0Gpo=",
+  "success": true,
+  "projectFilePath": "C:\\Repos\\azure-postgresql-ha-workshop\\scripts\\loadtesting\\LoadGeneratorWeb.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jovella\\.nuget\\packages\\npgsql\\8.0.0\\npgsql.8.0.0.nupkg.sha512",
+    "C:\\Users\\jovella\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.18\\microsoft.netcore.app.ref.8.0.18.nupkg.sha512",
+    "C:\\Users\\jovella\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.18\\microsoft.windowsdesktop.app.ref.8.0.18.nupkg.sha512",
+    "C:\\Users\\jovella\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.18\\microsoft.aspnetcore.app.ref.8.0.18.nupkg.sha512",
+    "C:\\Users\\jovella\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.18\\microsoft.netcore.app.host.win-x64.8.0.18.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Npgsql' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x9vc-6hfv-hg8c",
+      "projectPath": "C:\\Repos\\azure-postgresql-ha-workshop\\scripts\\loadtesting\\LoadGeneratorWeb.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Repos\\azure-postgresql-ha-workshop\\scripts\\loadtesting\\LoadGeneratorWeb.csproj",
+      "libraryId": "Npgsql",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}

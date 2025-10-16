@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  loadgen-local:
+    build:
+      context: ../..
+      dockerfile: scripts/loadtesting/Dockerfile.local
+    container_name: loadgen-local
+    ports:
+      - "8080:80"
+    environment:
+      # PostgreSQL Configuration
+      POSTGRESQL_SERVER: ${POSTGRESQL_SERVER:-pg-cus.postgres.database.azure.com}
+      POSTGRESQL_PORT: ${POSTGRESQL_PORT:-5432}
+      POSTGRESQL_DATABASE: ${POSTGRESQL_DATABASE:-saifdb}
+      POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME:-jonathan}
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+      
+      # Load Test Configuration
+      TARGET_TPS: ${TARGET_TPS:-1000}
+      WORKER_COUNT: ${WORKER_COUNT:-5}
+      TEST_DURATION: ${TEST_DURATION:-300}
+      
+      # Application settings
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:80
+      PORT: "80"
+    
+    # Resource limits to throttle local execution
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Logging configuration for local development
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=loadgen-local"
+
+# Volumes for persistent data if needed
+volumes:
+  loadgen-data:
