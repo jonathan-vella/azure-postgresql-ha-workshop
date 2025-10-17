@@ -286,6 +286,42 @@ Real-time monitoring to ensure SLA compliance:
 
 The deployment follows a phased approach with clear milestones and deliverables. Each phase includes validation gates before proceeding to the next.
 
+```mermaid
+gantt
+    title 6-Week Azure PCI-Compliant Build PoC Timeline
+    dateFormat YYYY-MM-DD
+    section Week 0-1: Foundation
+    Landing Zone Setup           :active, foundation1, 2025-10-17, 7d
+    Hub-Spoke Networking         :foundation2, 2025-10-17, 7d
+    Azure Policy & Governance    :foundation3, 2025-10-20, 5d
+    Identity & Access Setup      :foundation4, 2025-10-22, 4d
+    section Week 1-2: Platform
+    CI/CD Pipeline Setup         :platform1, 2025-10-24, 7d
+    AKS/App Service Deploy       :platform2, 2025-10-25, 6d
+    Key Vault & Secret Mgmt      :platform3, 2025-10-26, 5d
+    Application Gateway & WAF    :platform4, 2025-10-27, 5d
+    section Week 2-3: Application
+    Microservices Deployment     :app1, 2025-10-31, 7d
+    PostgreSQL HA Setup          :crit, app2, 2025-10-31, 7d
+    API Management Config        :app3, 2025-11-02, 5d
+    Service Bus & Caching        :app4, 2025-11-03, 5d
+    section Week 3-4: Security
+    Penetration Testing          :security1, 2025-11-07, 7d
+    PCI Compliance Validation    :crit, security2, 2025-11-08, 6d
+    Sentinel & Monitoring        :security3, 2025-11-09, 5d
+    Audit Log Configuration      :security4, 2025-11-10, 4d
+    section Week 4-5: Validation
+    Load & Performance Testing   :crit, validation1, 2025-11-14, 7d
+    DR Drills & RTO/RPO Tests    :crit, validation2, 2025-11-15, 6d
+    Database Optimization        :validation3, 2025-11-17, 4d
+    Backup & Restore Testing     :validation4, 2025-11-18, 3d
+    section Week 5-6: Go-Live
+    Final KPI Review             :golive1, 2025-11-21, 4d
+    Runbook & Documentation      :golive2, 2025-11-21, 5d
+    Knowledge Transfer           :golive3, 2025-11-23, 4d
+    Go-Live Preparation          :crit, golive4, 2025-11-25, 3d
+```
+
 #### **Week 0-1 – Landing Zone Foundation**
 
 **Objective**: Establish the Azure foundation with governance, networking, and security baselines.
