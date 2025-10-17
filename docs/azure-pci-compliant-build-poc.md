@@ -361,12 +361,12 @@ gantt
     Gate 4: Application Deployed & Functional :milestone, gate4, 2025-11-14, 0d
     
     section Validation Gates
-    Gate 5: Security & Compliance Validated :crit, milestone, gate5, 2025-11-18, 0d
-    Gate 6: Performance & Resiliency Proven :crit, milestone, gate6, 2025-11-21, 0d
+    Gate 5: Security & Compliance Validated :milestone, gate5, 2025-11-18, 0d
+    Gate 6: Performance & Resiliency Proven :milestone, gate6, 2025-11-21, 0d
     
     section Final Decision
-    Gate 7: PoC Success Criteria Met :crit, milestone, gate7, 2025-11-25, 0d
-    Executive Review & Approval :crit, milestone, gate8, 2025-11-28, 0d
+    Gate 7: PoC Success Criteria Met :milestone, gate7, 2025-11-25, 0d
+    Executive Review & Approval :milestone, gate8, 2025-11-28, 0d
 ```
 
 ### Testing & Validation Timeline
