@@ -70,29 +70,35 @@ This document outlines the plan to deliver a greenfield Azure Build-Out PoC for 
 
 ## Deployment & Operations Plan
 
-1. **Foundation (Weeks 0-3)**
-   - Landing zone deployment (CAF enterprise-scale template, identity integration, management groups).
-   - Network provisioning (hub, DDoS, firewall, private DNS, vWAN if required).
-   - Governance baseline (Azure Policy assignments, Defender plans, tagging standards).
+1. **Week 0-1 – Landing Zone Foundation**
+   - Deploy CAF enterprise-scale landing zone (management groups, identity integration, logging, monitoring).
+   - Establish hub-spoke networking with DDoS Protection, Azure Firewall/WAF, private DNS, and baseline policies.
+   - Configure governance guardrails (Azure Policy assignments, Defender plan enablement, tagging standards).
 
-2. **Platform Enablement (Weeks 3-6)**
-   - CI/CD pipelines (GitHub Actions/Azure DevOps) with IaC (Bicep/Terraform) and security gates.
-   - AKS/App Service environment with deployment slots, ACR integration, managed identities.
-   - Key Vault, Managed HSM, and certificate management processes.
+2. **Week 1-2 – Platform Enablement**
+   - Stand up CI/CD pipelines (GitHub Actions/Azure DevOps) with IaC (Bicep/Terraform) and security gates.
+   - Provision AKS/App Service environments with deployment slots, managed identities, and ACR integration.
+   - Implement Key Vault/Managed HSM, certificate lifecycle, and secret rotation automation.
 
-3. **Application & Data Build (Weeks 6-10)**
-   - Deploy payment microservices, API Management, Azure Service Bus, and caching layers.
-   - Provision PostgreSQL Flexible Server with HA; implement data encryption, auditing, and masking policies.
-   - Implement logging, telemetry, and alerting baselines; integrate with SIEM.
+3. **Week 2-3 – Application & Data Build**
+   - Deploy payment microservices, API Management, Azure Service Bus, and caching layers into lower environments.
+   - Provision PostgreSQL Flexible Server with zone-redundant HA; enable encryption, auditing, and masking policies.
+   - Integrate logging, telemetry, and SIEM connectors; baseline alert rules for critical events.
 
-4. **Validation & Hardening (Weeks 10-12)**
-   - Penetration testing, PCI readiness assessment, compliance documentation.
-   - Load testing to validate performance, TPS targets, and failover automation.
-   - DR drill to prove RTO/RPO objectives; update runbooks.
+4. **Week 3-4 – Security & Compliance Hardening**
+   - Execute penetration testing, code scanning, and PCI readiness checks; remediate high findings.
+   - Validate policy compliance, secure score improvements, and finalize evidence catalog for QSA review.
+   - Complete threat modeling, runbook creation, and break-glass access reviews.
 
-5. **Go-Live & Knowledge Transfer (Weeks 12-14)**
-   - Final executive review against KPIs.
-   - Operational runbooks, handover workshops, and governance compliance sign-off.
+5. **Week 4-5 – Resiliency & Performance Validation**
+   - Conduct load testing to confirm TPS, latency targets, and autoscaling behavior.
+   - Execute HA/DR drills (zonal and regional) to prove RTO ≤ 30s and RPO ≤ 5s; refine automation.
+   - Review backup/restore, data retention, and monitoring dashboards with operations team.
+
+6. **Week 5-6 – Go-Live Readiness & Knowledge Transfer**
+   - Final executive review against technical and business KPIs; document residual risks.
+   - Deliver operational runbooks, on-call training, and governance compliance sign-off.
+   - Schedule production go-live window and align post-launch support model.
 
 ## Success Criteria & KPIs
 
