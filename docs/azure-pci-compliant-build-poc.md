@@ -27,7 +27,7 @@
 
 > **⚠️ PROOF OF CONCEPT ENVIRONMENT - NOT FOR PRODUCTION USE**
 
-This document outlines the plan to deliver a greenfield Azure Build-Out **Proof of Concept (PoC)** for a **PCI DSS–compliant payment gateway** workload. This PoC establishes a **non-production evaluation environment** that demonstrates technical feasibility and validates architecture decisions independently from existing systems. The environment is designed to meet stringent objectives for validation purposes only:
+This document outlines the plan to deliver a greenfield Azure Build-Out **Proof of Concept (PoC)** for a **PCI DSS–compliant payment gateway** workload. This PoC establishes a **non-production evaluation environment** that demonstrates technical feasibility and validates architecture decisions independently from existing systems. The environment is designed to meet stringent validation objectives:
 
 - **PCI DSS v4.0 alignment** across people, process, and technology controls (demonstration of compliance readiness, not certification)
 - **Near-zero data loss** (Recovery Point Objective ≤ 5 seconds) with **downtime under 30 seconds** during failover events (Recovery Time Objective ≤ 30 seconds)
