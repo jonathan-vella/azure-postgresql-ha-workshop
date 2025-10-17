@@ -17,7 +17,7 @@
 - [Risks & Mitigations](#risks--mitigations-accelerated-context)
 - [Deliverables](#deliverables-same-as-full-length-poc)
 - [Acceleration Enablers](#acceleration-enablers)
-- [Next Steps](#next-steps-go-live-path)
+- [Next Steps](#next-steps-poc-validation-path)
 - [References](#references)
 
 ## Executive Summary
