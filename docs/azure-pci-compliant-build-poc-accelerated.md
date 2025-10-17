@@ -17,32 +17,74 @@
 - [Risks & Mitigations](#risks--mitigations-accelerated-context)
 - [Deliverables](#deliverables-same-as-full-length-poc)
 - [Acceleration Enablers](#acceleration-enablers)
-- [Next Steps](#next-steps-go-live-path)
+- [Next Steps](#next-steps-poc-validation-path)
 - [References](#references)
 
 ## Executive Summary
 
-This document outlines an **accelerated delivery plan** to deploy a greenfield Azure Build-Out PoC for a **PCI DSS–compliant payment gateway** workload in **2-3 weeks**. The PoC establishes a production-grade parallel environment with all original deliverables and scope compressed through parallel workstreams, pre-built templates, and focused prioritization.
+> **⚠️ PROOF OF CONCEPT ENVIRONMENT - NOT FOR PRODUCTION USE**
+>
+> **CRITICAL DISCLAIMER**: This document describes a **non-production proof of concept (PoC) environment** for evaluation and validation purposes ONLY. This accelerated PoC is **NOT intended for production deployment** or live transaction processing. Key limitations:
+>
+> - **No Production Data**: Do not import or process live payment data, production cardholder information, or real customer transactions
+> - **Isolated Evaluation**: This PoC operates as an isolated validation environment and must remain completely separate from production systems
+> - **Time-Limited**: PoC environment should be decommissioned or converted to dev/test after validation is complete
+> - **Not Production-Ready**: While PCI DSS controls are demonstrated for validation, full production hardening, QSA certification, and additional security measures are required before any live deployment
+> - **Compliance Status**: This PoC demonstrates compliance readiness concepts but does NOT constitute PCI DSS certification or production approval
+> - **Production Path**: Successful PoC validation must be followed by a separate, dedicated production deployment with comprehensive QSA assessment, security hardening, and formal certification processes
+>
+> **DO NOT** use this PoC environment for live transactions, production data, or customer-facing services.
+
+This document outlines an **accelerated delivery plan** to deploy a greenfield Azure Build-Out PoC for a **PCI DSS–compliant payment gateway** workload in **2-3 weeks**. The PoC establishes a non-production validation environment with all original deliverables and scope compressed through parallel workstreams, pre-built templates, and focused prioritization.
 
 > **Note**: For a more detailed, sequential approach with extended time for training and knowledge transfer, see the [standard 6-week PoC plan](./azure-pci-compliant-build-poc.md).
+
+### PoC vs Production Deployment Timeline
+
+This critical timeline visualization shows the complete journey from PoC to Production, emphasizing that the accelerated PoC is only the **first phase** of a larger deployment process.
+
+```mermaid
+gantt
+    title Complete Deployment Journey: PoC to Production (CRITICAL: TWO SEPARATE PHASES)
+    dateFormat YYYY-MM-DD
+    section Phase 1: PoC Validation (NON-PRODUCTION)
+    Accelerated PoC (2-3 weeks)      :done, poc1, 2025-10-17, 21d
+    PoC Validation & Closeout        :done, poc2, 2025-11-06, 2d
+    PoC Decommission/Convert         :done, poc3, 2025-11-08, 2d
+    section Phase 2: Production Planning
+    QSA Assessment & Gap Analysis    :prod1, 2025-11-10, 14d
+    Production Architecture Design   :prod2, 2025-11-10, 14d
+    Security Hardening Planning      :prod3, 2025-11-17, 14d
+    section Phase 3: Production Deployment
+    Production Environment Build     :crit, prod4, 2025-11-24, 21d
+    Production Security Testing      :crit, prod5, 2025-12-08, 14d
+    PCI DSS Certification            :crit, prod6, 2025-12-15, 14d
+    Production Go-Live               :milestone, prod7, 2025-12-29, 0d
+```
+
+**Key Takeaway**: The PoC (Phase 1) is **NON-PRODUCTION ONLY** and must be followed by separate production planning and deployment phases (Phases 2-3) before any live transaction processing.
 
 ### Accelerated vs. Standard Timeline Comparison
 
 | Aspect | Accelerated (2-3 Weeks) | Standard (6 Weeks) |
 |--------|------------------------|-------------------|
+| **Environment Type** | **NON-PRODUCTION PoC** | **NON-PRODUCTION PoC** |
 | **Team Commitment** | 100% dedicated, 5.5 FTE | Partial allocation, 6-8 FTE |
 | **Workstream Model** | Parallel execution from Day 1 | Sequential with some overlap |
 | **Pre-Built Assets** | Required (templates, policies, reference architectures) | Helpful but not mandatory |
 | **Training & Knowledge Transfer** | Minimal, assumes existing Azure expertise | Comprehensive, includes skill development |
 | **Risk Tolerance** | Higher, requires experienced team | Lower, allows for learning curve |
 | **Decision Velocity** | Daily steering committee, <4 hour approvals | Weekly reviews, standard approvals |
-| **Ideal For** | Experienced Azure teams, urgent business needs | First Azure workload, skill development focus |
+| **Ideal For** | Experienced Azure teams, urgent **validation** needs | First Azure workload, skill development focus |
+| **Post-Completion** | **Decommission or convert to dev/test** | **Decommission or convert to dev/test** |
 
 ### Key Success Factors
-- **PCI DSS v4.0 alignment** across people, process, and technology controls.
-- **Near-zero data loss** (Recovery Point Objective ≤ 5 seconds) with **downtime under 30 seconds** during failover events (Recovery Time Objective ≤ 30 seconds).
-- **Azure-first landing zone** built according to the **Microsoft Cloud Adoption Framework (CAF)** and **Azure Well-Architected Framework (WAF)**.
-- Accelerated delivery through **parallel workstreams, pre-configured templates, and MVP-focused scope**.
+- **Non-Production PoC Environment**: All objectives are for validation purposes only, not production deployment
+- **PCI DSS v4.0 alignment** across people, process, and technology controls (demonstration of compliance readiness concepts)
+- **Near-zero data loss** (Recovery Point Objective ≤ 5 seconds) with **downtime under 30 seconds** during failover events (Recovery Time Objective ≤ 30 seconds) in PoC validation environment
+- **Azure-first landing zone** built according to the **Microsoft Cloud Adoption Framework (CAF)** and **Azure Well-Architected Framework (WAF)**
+- Accelerated delivery through **parallel workstreams, pre-configured templates, and MVP-focused scope**
+- **Clear separation** from production systems with documented decommissioning or conversion plan
 
 ## Scope and Context
 
@@ -65,14 +107,21 @@ Before starting this accelerated PoC, ensure the following prerequisites are met
 
 ### Project Scope
 
+> **⚠️ NON-PRODUCTION POC SCOPE REMINDER**
+>
+> This is a **validation and evaluation environment ONLY**. Do not confuse PoC completion with production readiness. A separate production deployment project is required after PoC validation.
+
 | Dimension | Details |
 |-----------|---------|
-| Deployment Strategy | Parallel Azure build, no data synchronization with on-premises, no cutover. |
-| Data Handling | Greenfield databases; no seed data import. |
-| Go-Live Model | Full workload go-live when PoC acceptance criteria are met. |
-| On-Premises Future | On-premises remains in production as an independent platform. |
-| Landing Zone | First Azure workload; landing zone must be created during this engagement. |
+| **Environment Type** | **NON-PRODUCTION Proof of Concept for Evaluation Only** |
+| Deployment Strategy | Isolated Azure PoC build, no data synchronization with production systems, no cutover to live environment. |
+| Data Handling | Greenfield databases with **synthetic/test data only** - absolutely NO production data import. |
+| PoC Completion Model | Validation and acceptance criteria verification only - **NOT a production go-live**. |
+| Production Deployment | **Separate production deployment required** after PoC validation and QSA certification. |
+| On-Premises Systems | Remain unchanged; PoC operates as isolated validation environment. |
+| Landing Zone | First Azure workload; landing zone created for PoC validation purposes. |
 | **Acceleration Method** | **Parallel workstreams, enterprise-scale templates, pre-built compliance baselines, and focused MVP scope.** |
+| **Post-PoC Action** | Environment decommissioned or converted to dev/test after validation - **NOT promoted to production**. |
 
 ## Accelerated Delivery Strategy
 
@@ -98,6 +147,95 @@ The traditional 6-week sequential plan is compressed into three parallel tracks:
 - Runbook library for failover, backup/restore, and incident response
 
 ## Compressed Timeline: 2-3 Weeks
+
+> **⚠️ TIMELINE DISCLAIMER**: This accelerated timeline is for **PoC validation purposes only**. Do not use this schedule as a production deployment timeline. Production deployments require additional time for comprehensive security hardening, QSA certification, load testing, and operational readiness that are beyond the scope of this PoC.
+
+### Overall Timeline Visualization
+
+The following Gantt chart provides a high-level view of the entire 2-3 week accelerated PoC timeline, showing how parallel workstreams enable rapid delivery. Note that this is a **non-production validation environment** with compressed timelines not suitable for production deployment.
+
+```mermaid
+gantt
+    title 2-3 Week Accelerated Azure PCI PoC Timeline (NON-PRODUCTION VALIDATION ONLY)
+    dateFormat YYYY-MM-DD
+    section Week 1: Foundation & Platform
+    Landing Zone Deployment          :crit, foundation1, 2025-10-17, 2d
+    Hub-Spoke Networking             :crit, foundation2, 2025-10-17, 2d
+    Azure Policy & Governance        :foundation3, 2025-10-17, 3d
+    CI/CD Pipeline Setup             :platform1, 2025-10-17, 2d
+    AKS/App Service Provisioning     :platform2, 2025-10-18, 2d
+    Identity & Access (Entra ID)     :foundation4, 2025-10-19, 3d
+    PostgreSQL HA Provisioning       :crit, data1, 2025-10-19, 3d
+    Key Vault & Secrets              :platform3, 2025-10-19, 2d
+    section Week 2: Application & Security
+    Microservices Deployment         :app1, 2025-10-22, 3d
+    API Management Config            :app2, 2025-10-22, 3d
+    Security Scanning                :security1, 2025-10-22, 3d
+    Compliance Evidence Collection   :security2, 2025-10-23, 3d
+    Observability & Alerting         :platform4, 2025-10-24, 2d
+    DR & Failover Automation         :data2, 2025-10-24, 2d
+    Defender for Cloud Hardening     :security3, 2025-10-24, 2d
+    section Week 3: Validation & Closeout
+    Performance & Load Testing       :crit, validation1, 2025-10-26, 3d
+    HA/DR Drills                     :crit, validation2, 2025-10-26, 3d
+    PCI Compliance Finalization      :crit, security4, 2025-10-27, 2d
+    QSA Readiness Review             :security5, 2025-10-28, 2d
+    Go-Live Readiness Review         :golive1, 2025-10-29, 2d
+    Knowledge Transfer               :golive2, 2025-10-29, 2d
+    PoC Closeout & Decommission Plan :crit, golive3, 2025-10-30, 1d
+```
+
+### Parallel Workstream Visualization
+
+This chart shows how the four parallel tracks (Foundation, Platform, Application, and Validation) execute simultaneously to achieve the accelerated timeline. This aggressive parallelization is only appropriate for **PoC validation environments** with experienced teams.
+
+```mermaid
+gantt
+    title Parallel Workstreams - Accelerated PoC (NON-PRODUCTION)
+    dateFormat YYYY-MM-DD
+    section Track A: Foundation
+    Landing Zone & Networking        :active, trackA1, 2025-10-17, 5d
+    Identity & Governance Hardening  :trackA2, 2025-10-19, 5d
+    section Track B: Platform
+    CI/CD & Container Platform       :trackB1, 2025-10-17, 5d
+    Observability & DR Automation    :trackB2, 2025-10-24, 3d
+    section Track C: Application
+    Data Platform Provisioning       :trackC1, 2025-10-19, 3d
+    Microservices Deployment         :trackC2, 2025-10-22, 5d
+    DR & Failover Testing            :trackC3, 2025-10-24, 3d
+    section Track D: Validation
+    Security Scanning (Continuous)   :trackD1, 2025-10-22, 7d
+    Performance Testing              :crit, trackD2, 2025-10-26, 3d
+    Compliance & QSA Readiness       :crit, trackD3, 2025-10-27, 3d
+```
+
+### Critical Milestones & Decision Gates
+
+This timeline visualizes critical milestones and decision gates throughout the PoC. Each gate requires explicit approval before proceeding to the next phase, ensuring stakeholders understand this is a **non-production validation environment**.
+
+```mermaid
+gantt
+    title Critical Decision Gates - Accelerated PoC (NON-PRODUCTION VALIDATION)
+    dateFormat YYYY-MM-DD
+    section Gates & Milestones
+    Gate 0: PoC Kickoff & Scope Confirmation        :milestone, gate0, 2025-10-17, 0d
+    Gate 1: Foundation Ready (Week 1 End)           :milestone, gate1, 2025-10-21, 0d
+    Gate 2: Application Deployed (Week 2 End)       :milestone, gate2, 2025-10-25, 0d
+    Gate 3: Validation Complete (Week 3 Mid)        :milestone, gate3, 2025-10-28, 0d
+    Gate 4: PoC Closeout (NOT Production Go-Live)   :crit, milestone, gate4, 2025-10-30, 0d
+    section Validation Activities
+    Week 1 Foundation Build                         :foundation, 2025-10-17, 5d
+    Week 2 Application & Security                   :application, 2025-10-22, 4d
+    Week 3 Testing & Validation                     :crit, validation, 2025-10-26, 4d
+    PoC Decommission Planning                       :crit, decom, 2025-10-30, 1d
+```
+
+**Decision Gate Criteria**:
+- **Gate 0**: Executive approval, team availability, pre-built assets validated, **PoC scope confirmed as non-production**
+- **Gate 1**: Landing zone operational, CI/CD functional, data platform ready, **clear separation from production systems**
+- **Gate 2**: Microservices deployed, security scans complete, observability enabled, **synthetic data only**
+- **Gate 3**: Performance validated, DR drills passed, compliance evidence collected, **PoC objectives met**
+- **Gate 4**: **PoC validation complete** - closeout report delivered, decommission/conversion plan approved, **production deployment project separately initiated**
 
 ### Week 1: Foundation & Platform Enablement (Parallel)
 
@@ -143,6 +281,30 @@ The traditional 6-week sequential plan is compressed into three parallel tracks:
 - CI/CD pipeline tested and ready for deployments
 - Data platform ready to ingest microservices
 - All identity and access controls baseline-configured
+
+#### **Week 1 Detailed Timeline Visualization**
+
+This detailed Gantt chart shows the day-by-day activities during Week 1, highlighting the intensive parallel execution required for accelerated PoC delivery.
+
+```mermaid
+gantt
+    title Week 1 Detailed Timeline - Foundation & Platform (NON-PRODUCTION POC)
+    dateFormat YYYY-MM-DD
+    section Day 1-2: Kickoff
+    Landing Zone Deployment          :crit, day1a, 2025-10-17, 2d
+    Hub-Spoke Network Setup          :crit, day1b, 2025-10-17, 2d
+    CI/CD Pipeline Template Deploy   :day1c, 2025-10-17, 2d
+    Container Registry Setup         :day1d, 2025-10-17, 2d
+    section Day 3-5: Hardening
+    Azure AD Integration             :day3a, 2025-10-19, 3d
+    PIM & Conditional Access         :day3b, 2025-10-19, 3d
+    Azure Policy Compliance          :day3c, 2025-10-19, 3d
+    PostgreSQL Flexible Server HA    :crit, day3d, 2025-10-19, 3d
+    AKS/App Service Deployment       :day3e, 2025-10-19, 3d
+    Key Vault Configuration          :day3f, 2025-10-19, 2d
+    section Milestone
+    Week 1 Checkpoint Review         :milestone, checkpoint1, 2025-10-21, 0d
+```
 
 ---
 
@@ -199,6 +361,35 @@ The traditional 6-week sequential plan is compressed into three parallel tracks:
 - Observability and alerting fully operational
 - DR automation tested in non-prod environment
 
+#### **Week 2 Detailed Timeline Visualization**
+
+Week 2 focuses on application deployment and security hardening with continuous validation. This visualization shows the overlapping activities that enable rapid progress in the **PoC validation environment**.
+
+```mermaid
+gantt
+    title Week 2 Detailed Timeline - Application & Security (NON-PRODUCTION POC)
+    dateFormat YYYY-MM-DD
+    section Day 6-8: Application
+    Payment Microservices Deploy     :app1, 2025-10-22, 3d
+    API Management Layer             :app2, 2025-10-22, 3d
+    Service Bus & Event Grid         :app3, 2025-10-22, 3d
+    Database Integration             :app4, 2025-10-22, 3d
+    section Day 6-8: Security
+    Container Image Scanning         :sec1, 2025-10-22, 3d
+    IaC Security Scanning            :sec2, 2025-10-22, 3d
+    SAST in CI/CD Pipeline           :sec3, 2025-10-22, 3d
+    PCI Control Evidence Capture     :sec4, 2025-10-23, 3d
+    section Day 9-10: Operations
+    Azure Monitor Configuration      :ops1, 2025-10-24, 2d
+    Log Analytics Queries            :ops2, 2025-10-24, 2d
+    Sentinel Integration             :ops3, 2025-10-24, 2d
+    KPI Dashboard Creation           :ops4, 2025-10-24, 2d
+    DR Failover Runbooks             :ops5, 2025-10-24, 2d
+    Defender for Cloud Hardening     :ops6, 2025-10-24, 2d
+    section Milestone
+    Week 2 Checkpoint Review         :milestone, checkpoint2, 2025-10-25, 0d
+```
+
 ---
 
 ### Week 3: Validation, Testing & Go-Live Readiness
@@ -251,14 +442,49 @@ The traditional 6-week sequential plan is compressed into three parallel tracks:
 - **Deliverable**: PoC Closeout Report, operational runbooks, go-live checklist
 
 #### **End of Week 3 Checkpoint**
-- All technical KPIs validated and met
-- Compliance evidence 95%+ complete; QSA-ready
-- DR drills passed with proven RTO/RPO targets
-- Go-live approval obtained; production deployment scheduled
+- All technical KPIs validated and met in **PoC environment**
+- Compliance evidence 95%+ complete; QSA-ready **for PoC assessment**
+- DR drills passed with proven RTO/RPO targets **in validation environment**
+- PoC validation complete; **separate production deployment project** can be initiated
+
+> **⚠️ IMPORTANT**: Week 3 completion marks the end of **PoC VALIDATION ONLY**. This is NOT a production go-live. A separate production deployment project with full QSA certification is required before any live transaction processing.
+
+#### **Week 3 Detailed Timeline Visualization**
+
+Week 3 is the critical validation phase where all PoC objectives are tested and verified. This chart shows the intensive testing and validation activities required to complete the **non-production PoC**.
+
+```mermaid
+gantt
+    title Week 3 Detailed Timeline - Validation & Closeout (NON-PRODUCTION POC)
+    dateFormat YYYY-MM-DD
+    section Day 11-13: Testing
+    Load Testing Setup               :test1, 2025-10-26, 1d
+    TPS & Latency Validation         :crit, test2, 2025-10-26, 3d
+    Autoscaling Behavior Tests       :test3, 2025-10-27, 2d
+    Zonal Failover Drill             :crit, test4, 2025-10-26, 2d
+    Regional Failover Drill          :crit, test5, 2025-10-27, 2d
+    Backup & Restore Validation      :test6, 2025-10-28, 2d
+    section Day 11-13: Compliance
+    PCI Control Evidence Completion  :comp1, 2025-10-27, 2d
+    Network Security Documentation   :comp2, 2025-10-27, 2d
+    Data Protection Validation       :comp3, 2025-10-27, 2d
+    QSA Readiness Review             :crit, comp4, 2025-10-28, 2d
+    Gap Assessment                   :comp5, 2025-10-28, 2d
+    section Day 13-14: Closeout
+    Executive Steering Review        :close1, 2025-10-29, 2d
+    Operational Readiness Check      :close2, 2025-10-29, 2d
+    Knowledge Transfer               :close3, 2025-10-29, 2d
+    PoC Closeout Report              :crit, close4, 2025-10-30, 1d
+    Decommission Plan                :crit, close5, 2025-10-30, 1d
+    section Milestone
+    PoC Validation Complete          :milestone, checkpoint3, 2025-10-30, 0d
+```
 
 ---
 
 ## Success Criteria & KPIs (Compressed Validation)
+
+> **⚠️ POC VALIDATION TARGETS ONLY**: The KPIs below are **validation targets for the non-production PoC environment**. Production KPIs and SLAs will need to be separately defined, validated, and agreed upon before any production deployment. Meeting these PoC targets does NOT automatically qualify the environment for production use.
 
 ### Technical KPIs
 
@@ -339,6 +565,8 @@ The traditional 6-week sequential plan is compressed into three parallel tracks:
 
 ## Risks & Mitigations (Accelerated Context)
 
+> **⚠️ POC RISK CONTEXT**: The risks and mitigations below are specific to the **non-production PoC validation environment**. Production deployments will require additional risk assessment and mitigation strategies beyond what is described here.
+
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | **Compressed timeline delays foundational work** | Cascading schedule impact | Parallel workstreams; pre-built templates; daily standups; escalation to steering committee |
@@ -347,17 +575,21 @@ The traditional 6-week sequential plan is compressed into three parallel tracks:
 | **Security misconfiguration in rapid deployment** | Breach risk | Continuous policy enforcement, daily Defender for Cloud reviews, SAST in every commit |
 | **Skill gaps on Azure services** | Operational risk | Pre-PoC training; pair Azure specialists with on-prem SMEs; runbooks with detailed steps |
 | **DR drill failures** | Runbook ineffective | Conduct drills mid-Week 3 with time for refinement; schedule second drill if needed |
+| **PoC environment mistaken for production-ready** | Premature production deployment; security/compliance violations | Clear disclaimers in all documentation; separate PoC and production subscriptions; explicit decommission/conversion planning; executive steering committee reinforcement of PoC scope |
+| **Production data imported into PoC** | PCI compliance violation; security breach | Strict data handling policies; synthetic data only; automated scanning for sensitive data patterns; isolated network with no production connectivity |
 
 ---
 
 ## Deliverables (Same as Full-Length PoC)
 
-1. **Landing Zone Blueprint** aligned with CAF enterprise-scale architecture (Bicep templates + documentation).
-2. **Payment Gateway Reference Architecture** diagrams, IaC templates, and microservices codebase.
-3. **PCI DSS Control Implementation Guide** with automated evidence cataloging procedure and compliance dashboards.
-4. **Runbooks** for deployment, failover, incident response, backup/restore, and break-glass access.
-5. **KPI Dashboard** (Power BI or Azure Monitor Workbook) tracking real-time technical and business metrics.
-6. **PoC Closeout Report** summarizing outcomes, validation results, lessons learned, and production rollout recommendations.
+> **⚠️ POC DELIVERABLES DISCLAIMER**: All deliverables are scoped for **non-production PoC validation** purposes. These deliverables demonstrate concepts and feasibility but require significant enhancement, hardening, and validation before use in production environments. Production-ready versions of these deliverables must be developed as part of a separate production deployment project.
+
+1. **Landing Zone Blueprint** aligned with CAF enterprise-scale architecture (Bicep templates + documentation) - **PoC validation version only**.
+2. **Payment Gateway Reference Architecture** diagrams, IaC templates, and microservices codebase - **for evaluation purposes, not production deployment**.
+3. **PCI DSS Control Implementation Guide** with automated evidence cataloging procedure and compliance dashboards - **demonstrates compliance readiness concepts, not full certification**.
+4. **Runbooks** for deployment, failover, incident response, backup/restore, and break-glass access - **PoC validation procedures, require production hardening**.
+5. **KPI Dashboard** (Power BI or Azure Monitor Workbook) tracking real-time technical and business metrics - **configured for PoC validation targets**.
+6. **PoC Closeout Report** summarizing outcomes, validation results, lessons learned, and **recommendations for production deployment** - including clear separation between PoC achievements and production requirements.
 
 ---
 
@@ -481,15 +713,41 @@ Consider the **6-week standard PoC** if any of these apply:
 
 ---
 
-## Next Steps (Go-Live Path)
+## Next Steps (PoC Validation Path)
 
-1. **Secure executive sponsorship and fund 2-3 week PoC sprint** (immediate).
-2. **Confirm pre-built asset availability** (CAF templates, policy initiatives, reference architecture).
-3. **Assemble and kick off 5.5 FTE team** with parallel workstream assignments.
-4. **Execute Week 1 landing zone and platform enablement** in parallel.
-5. **Daily tracking of KPIs and risk mitigation**; steering committee escalation if schedule at risk.
-6. **Week 3 go-live approval** based on technical/business KPI validation and PCI readiness.
-7. **Schedule production deployment window** and finalize on-call support model.
+> **⚠️ CRITICAL: THESE ARE POC VALIDATION STEPS, NOT PRODUCTION DEPLOYMENT STEPS**
+>
+> The steps below outline the **proof of concept validation process** for a **non-production evaluation environment**. These steps do **NOT** constitute a production deployment path. After successful PoC completion, a separate production deployment project must be initiated with:
+>
+> - **Full QSA Assessment**: Complete PCI DSS v4.0 certification process with qualified security assessor
+> - **Production Security Hardening**: Additional security controls beyond PoC scope
+> - **Production Load Testing**: Comprehensive performance validation at production scale
+> - **Operational Readiness**: Complete runbooks, monitoring, incident response, and on-call procedures
+> - **Business Continuity**: Comprehensive DR planning and business continuity validation
+> - **Regulatory Approvals**: All necessary business and regulatory approvals for live transaction processing
+>
+> **Never proceed directly from PoC to production without these critical steps.**
+
+### PoC Validation Steps
+
+1. **Secure executive sponsorship and fund 2-3 week PoC sprint** (immediate) - clearly communicate this is for **evaluation purposes only**.
+2. **Confirm pre-built asset availability** (CAF templates, policy initiatives, reference architecture) - ensure all assets are marked as **PoC/evaluation templates**.
+3. **Assemble and kick off 5.5 FTE team** with parallel workstream assignments - set clear expectations this is a **non-production validation environment**.
+4. **Execute Week 1 landing zone and platform enablement** in parallel - deploy in **isolated PoC subscription/environment**.
+5. **Daily tracking of KPIs and risk mitigation**; steering committee escalation if schedule at risk - focus on **PoC validation objectives**.
+6. **Week 3 PoC validation completion** based on technical/business KPI validation and PCI readiness demonstration - **NOT a production go-live**.
+7. **PoC closeout and decommission/conversion planning** - decide whether to decommission or convert to dev/test environment.
+
+### Post-PoC: Production Deployment Planning
+
+After successful PoC validation, initiate a **separate production deployment project** that includes:
+
+1. **QSA Engagement**: Full PCI DSS v4.0 assessment and certification process
+2. **Production Architecture Review**: Refine PoC learnings into production-grade architecture
+3. **Security Hardening**: Additional controls, penetration testing, and vulnerability management
+4. **Operational Readiness**: Complete monitoring, alerting, incident response, and runbook development
+5. **Production Deployment**: Separate deployment to production environment with proper change management
+6. **Go-Live Readiness**: Final approvals, cutover planning, and business continuity validation
 
 ---
 
