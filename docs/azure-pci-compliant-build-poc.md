@@ -25,22 +25,26 @@
 
 ## Executive Summary
 
-This document outlines the plan to deliver a greenfield Azure Build-Out PoC for a **PCI DSS–compliant payment gateway** workload. The PoC establishes a production-grade parallel environment that operates independently from the existing on-premises system while meeting stringent objectives:
+> **⚠️ PROOF OF CONCEPT ENVIRONMENT - NOT FOR PRODUCTION USE**
 
-- **PCI DSS v4.0 alignment** across people, process, and technology controls
+This document outlines the plan to deliver a greenfield Azure Build-Out **Proof of Concept (PoC)** for a **PCI DSS–compliant payment gateway** workload. This PoC establishes a **non-production evaluation environment** that demonstrates technical feasibility and validates architecture decisions independently from existing systems. The environment is designed to meet stringent objectives for validation purposes only:
+
+- **PCI DSS v4.0 alignment** across people, process, and technology controls (demonstration of compliance readiness, not certification)
 - **Near-zero data loss** (Recovery Point Objective ≤ 5 seconds) with **downtime under 30 seconds** during failover events (Recovery Time Objective ≤ 30 seconds)
 - **Azure-first landing zone** built according to the **Microsoft Cloud Adoption Framework (CAF)** and **Azure Well-Architected Framework (WAF)**
 - Clear set of **technical and business KPIs** to prove success and inform the eventual production rollout
+- **Time-limited deployment** for validation only, with planned decommissioning after PoC completion
 
 ### Key Success Factors
 
 | Factor | Target |
 |--------|--------|
 | **Timeline** | 6 weeks (Week 0 through Week 6) |
-| **Deployment Model** | Greenfield parallel environment |
-| **Compliance** | PCI DSS v4.0 compliant |
-| **Availability** | 99.95%+ uptime |
-| **Performance** | ≥1,500 TPS with P99 latency ≤200ms |
+| **Deployment Model** | Greenfield PoC environment (non-production) |
+| **Compliance** | PCI DSS v4.0 compliance readiness demonstration |
+| **Availability** | 99.95%+ uptime (PoC validation target) |
+| **Performance** | ≥1,500 TPS with P99 latency ≤200ms (PoC validation target) |
+| **Environment Status** | **NON-PRODUCTION - Evaluation Only** |
 
 > **Note**: For an accelerated 2-3 week delivery option, see [azure-pci-compliant-build-poc-accelerated.md](./azure-pci-compliant-build-poc-accelerated.md)
 
@@ -50,13 +54,16 @@ This document outlines the plan to deliver a greenfield Azure Build-Out PoC for 
 
 | Dimension | Details |
 |-----------|---------|
-| **Deployment Strategy** | Parallel Azure build, no data synchronization with on-premises, no cutover |
-| **Data Handling** | Greenfield databases; no seed data import |
-| **Go-Live Model** | Full workload go-live when PoC acceptance criteria are met |
-| **On-Premises Future** | On-premises remains in production as an independent platform |
-| **Landing Zone** | First Azure workload; landing zone must be created during this engagement |
-| **Duration** | 6 weeks (includes planning, deployment, testing, and knowledge transfer) |
+| **Environment Type** | **NON-PRODUCTION Proof of Concept** |
+| **Deployment Strategy** | Isolated Azure PoC build, no data synchronization with production systems, no cutover |
+| **Data Handling** | Greenfield databases with **synthetic/test data only** - NO production data |
+| **PoC Completion Model** | Validation and acceptance criteria verification only - **NOT a production go-live** |
+| **Production Deployment** | Separate production deployment required after PoC validation and QSA certification |
+| **On-Premises Systems** | Remain unchanged; PoC operates as isolated validation environment |
+| **Landing Zone** | First Azure workload; landing zone created for PoC validation purposes |
+| **Duration** | 6 weeks (includes planning, deployment, testing, knowledge transfer, and decommission planning) |
 | **Team Size** | 6-8 FTE (Infrastructure, Security, Platform, Application, Database, QA) |
+| **Post-PoC Action** | Environment decommissioned or converted to dev/test after validation |
 
 ### Prerequisites
 
@@ -282,13 +289,26 @@ Real-time monitoring to ensure SLA compliance:
 
 ## Deployment & Operations Plan
 
+### ⚠️ PROOF OF CONCEPT DISCLAIMER
+
+> **IMPORTANT**: This is a Proof of Concept (PoC) environment designed for **evaluation and validation purposes only**. This deployment is **NOT intended for production use** or live transaction processing. Key considerations:
+>
+> - **No Production Data**: Do not import or process live payment data or production cardholder information
+> - **Isolated Environment**: This PoC operates independently and should remain isolated from production systems
+> - **Time-Limited**: PoC environment should be decommissioned after validation is complete
+> - **Security Posture**: While PCI DSS controls are implemented for validation, full production hardening and certification require additional steps
+> - **Compliance Status**: This PoC demonstrates compliance readiness but does not constitute PCI DSS certification
+> - **Next Steps**: Successful PoC validation should lead to a separate production deployment with full QSA assessment
+>
+> For production deployment planning, engage with your QSA and review production hardening requirements beyond this PoC scope.
+
 ### 6-Week Implementation Timeline
 
 The deployment follows a phased approach with clear milestones and deliverables. Each phase includes validation gates before proceeding to the next.
 
 ```mermaid
 gantt
-    title 6-Week Azure PCI-Compliant Build PoC Timeline
+    title 6-Week Azure PCI-Compliant Build PoC Timeline (NON-PRODUCTION)
     dateFormat YYYY-MM-DD
     section Week 0-1: Foundation
     Landing Zone Setup           :active, foundation1, 2025-10-17, 7d
@@ -315,11 +335,77 @@ gantt
     DR Drills & RTO/RPO Tests    :crit, validation2, 2025-11-15, 6d
     Database Optimization        :validation3, 2025-11-17, 4d
     Backup & Restore Testing     :validation4, 2025-11-18, 3d
-    section Week 5-6: Go-Live
+    section Week 5-6: PoC Completion
     Final KPI Review             :golive1, 2025-11-21, 4d
     Runbook & Documentation      :golive2, 2025-11-21, 5d
     Knowledge Transfer           :golive3, 2025-11-23, 4d
-    Go-Live Preparation          :crit, golive4, 2025-11-25, 3d
+    PoC Closeout & Decommission Plan :crit, golive4, 2025-11-25, 3d
+```
+
+### Key Milestones & Decision Gates
+
+The following timeline visualizes critical milestones and decision gates throughout the PoC. Each gate requires explicit approval before proceeding to the next phase.
+
+```mermaid
+gantt
+    title PoC Critical Milestones & Go/No-Go Decision Gates
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+    
+    section Foundation Gates
+    Gate 1: Landing Zone Ready :milestone, gate1, 2025-10-24, 0d
+    Gate 2: Network & Security Baseline :milestone, gate2, 2025-10-31, 0d
+    
+    section Application Gates
+    Gate 3: Platform Services Operational :milestone, gate3, 2025-11-07, 0d
+    Gate 4: Application Deployed & Functional :milestone, gate4, 2025-11-14, 0d
+    
+    section Validation Gates
+    Gate 5: Security & Compliance Validated :crit, milestone, gate5, 2025-11-18, 0d
+    Gate 6: Performance & Resiliency Proven :crit, milestone, gate6, 2025-11-21, 0d
+    
+    section Final Decision
+    Gate 7: PoC Success Criteria Met :crit, milestone, gate7, 2025-11-25, 0d
+    Executive Review & Approval :crit, milestone, gate8, 2025-11-28, 0d
+```
+
+### Testing & Validation Timeline
+
+This timeline shows the parallel testing activities and their dependencies, emphasizing continuous validation throughout the PoC lifecycle.
+
+```mermaid
+gantt
+    title PoC Testing & Validation Activities (Non-Production Environment)
+    dateFormat YYYY-MM-DD
+    
+    section Continuous Testing
+    Security Scanning (Daily)      :testing1, 2025-10-20, 35d
+    Policy Compliance Checks       :testing2, 2025-10-20, 35d
+    Backup Validation (Weekly)     :testing3, 2025-10-24, 32d
+    
+    section Functional Testing
+    API Integration Tests          :testing4, 2025-10-31, 14d
+    End-to-End Workflow Tests      :testing5, 2025-11-03, 11d
+    Payment Flow Validation        :testing6, 2025-11-05, 9d
+    
+    section Non-Functional Testing
+    Load Testing Cycles            :crit, testing7, 2025-11-14, 7d
+    Stress Testing                 :crit, testing8, 2025-11-16, 5d
+    Chaos Engineering Tests        :testing9, 2025-11-17, 4d
+    
+    section Resiliency Validation
+    Zone Failover Drill            :crit, testing10, 2025-11-15, 1d
+    Region Failover Drill          :crit, testing11, 2025-11-17, 1d
+    DR Full Simulation             :crit, testing12, 2025-11-20, 1d
+    
+    section Security Validation
+    Penetration Testing            :crit, testing13, 2025-11-07, 7d
+    Vulnerability Assessment       :testing14, 2025-11-10, 4d
+    PCI Compliance Audit Prep      :crit, testing15, 2025-11-14, 7d
+    
+    section Final Validation
+    KPI Achievement Verification   :milestone, final1, 2025-11-24, 0d
+    PoC Acceptance Testing         :crit, final2, 2025-11-24, 2d
 ```
 
 #### **Week 0-1 – Landing Zone Foundation**
@@ -534,30 +620,32 @@ az load test create \
 
 ---
 
-#### **Week 5-6 – Go-Live Readiness & Knowledge Transfer**
+#### **Week 5-6 – PoC Completion & Knowledge Transfer**
 
-**Objective**: Final validation, documentation, and operational handoff.
+**Objective**: Final validation, documentation, operational handoff, and PoC decommission planning.
 
 **Activities**:
 - Final executive review against technical and business KPIs; document residual risks
-- Deliver operational runbooks, on-call training, and governance compliance sign-off
-- Schedule production go-live window and align post-launch support model
+- Deliver operational runbooks, training materials, and governance compliance documentation
+- Document PoC findings and recommendations for production deployment
 - Conduct knowledge transfer sessions with operations team
 - Create operational dashboards and alert response procedures
+- Plan PoC environment decommissioning or transition to dev/test
 
 **Key Deliverables**:
-- PoC closeout report
+- PoC closeout report with recommendations for production deployment
 - Complete runbook library
 - Operational training materials
-- Go-live checklist and rollback plan
-- Post-launch support agreement
+- PoC validation report and lessons learned
+- Production deployment roadmap (separate from PoC)
+- Decommission plan for PoC environment
 
 **Success Criteria**:
-- All KPIs met or exceeded
-- Operations team trained and ready
-- Executive sign-off obtained
-- Production go-live plan approved
-- Support model in place
+- All PoC KPIs met or exceeded
+- Operations team trained on architecture and patterns
+- Executive sign-off on PoC validation obtained
+- Production deployment recommendations documented
+- Clear separation between PoC validation and production deployment established
 
 ---
 
