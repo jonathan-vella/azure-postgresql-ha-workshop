@@ -66,10 +66,10 @@ Before starting this PoC, ensure the following prerequisites are met:
 - **Executive Sponsorship**: Confirmed executive sponsor and steering committee
 - **Budget Approval**: Approved budget for 6-week PoC and production deployment
 - **Team Availability**: Dedicated team members with allocated time for the engagement
-- **Access & Permissions**: Global Admin or Owner access to Azure subscription and Azure AD tenant
+- **Access & Permissions**: Global Admin or Owner access to Azure subscription and Microsoft Entra ID tenant
 - **Compliance Requirements**: PCI DSS v4.0 documentation and QSA engagement timeline confirmed
 - **Network Planning**: IP address ranges allocated for Azure Virtual Networks (hub and spoke)
-- **Identity Foundation**: Azure AD (Microsoft Entra ID) tenant available for integration
+- **Identity Foundation**: Microsoft Entra ID tenant available for integration
 
 ## Alignment with Microsoft Cloud Adoption Framework
 
@@ -120,11 +120,11 @@ The solution leverages a comprehensive set of Azure services to deliver a secure
    - Private DNS zones for Azure PaaS services
    - Azure DDoS Protection Standard for enhanced protection
 
-2. **Identity & Access Management**: Microsoft Entra ID (formerly Azure AD) with Conditional Access, Privileged Identity Management, and integration with Azure AD B2C for customer-facing flows.
+2. **Identity & Access Management**: Microsoft Entra ID (formerly Azure AD) with Conditional Access, Privileged Identity Management, and integration with Microsoft Entra External ID for customer-facing flows.
    - Conditional Access policies for location, device, and risk-based access
    - Privileged Identity Management (PIM) for just-in-time admin access
    - Managed identities for Azure service authentication
-   - Azure AD B2C for customer identity and access management
+   - Microsoft Entra External ID (formerly Azure AD B2C) for customer identity and access management
 
 3. **Application Tier**: Containerized microservices hosted on Azure Kubernetes Service (AKS) or Azure App Service with deployment slots for blue/green releases. Application Gateway (WAF v2) terminates TLS and routes to service mesh.
    - AKS with Azure CNI and Azure AD integration
@@ -180,7 +180,7 @@ The following table maps PCI DSS v4.0 requirements to specific Azure implementat
 |------------|-------------------------|----------------------|-------------------|
 | **Network Security** | Req 1: Install and maintain network security controls | Azure Firewall, NSGs, Application Gateway WAF, Private Link, DDoS Protection Standard | Azure Policy compliance, NSG flow logs, WAF logs |
 | **Data Protection** | Req 3: Protect stored account data; Req 4: Protect cardholder data with strong cryptography | Always Encrypted, TDE for databases, Key Vault HSM-backed keys, confidential VM/AKS nodes, immutable storage for logs | Encryption configuration audits, Key Vault access logs, compliance reports |
-| **Access Control** | Req 7: Restrict access to system components; Req 8: Identify users and authenticate access | Microsoft Entra ID Conditional Access, MFA, Privileged Identity Management, Just-in-Time VM access, managed identities | Azure AD sign-in logs, PIM audit reports, JIT access logs |
+| **Access Control** | Req 7: Restrict access to system components; Req 8: Identify users and authenticate access | Microsoft Entra ID Conditional Access, MFA, Privileged Identity Management, Just-in-Time VM access, managed identities | Microsoft Entra ID sign-in logs, PIM audit reports, JIT access logs |
 | **Monitoring & Logging** | Req 10: Log and monitor all access to system components | Azure Policy enforcement, Defender for Cloud alerts, Sentinel correlation, Log Analytics with 365-day retention, continuous export to immutable storage | Log Analytics queries, retention policies, audit reports |
 | **Vulnerability Management** | Req 6: Develop and maintain secure systems and software | Microsoft Defender for Cloud TVM, Azure Automation patch orchestration, container image scanning via ACR/Defender | Vulnerability assessment reports, patch compliance, container scan results |
 | **Incident Response** | Req 12: Support organizational security with policies and programs | Sentinel playbooks (Logic Apps), runbooks for payment fraud investigations, integration with SIEM/SOAR and ticketing tools | Incident response drills, playbook execution logs, MTTR metrics |
@@ -353,7 +353,7 @@ az policy state list \
 
 **Sample Commands**:
 ```bash
-# Create AKS cluster with Azure AD integration
+# Create AKS cluster with Microsoft Entra ID integration
 az aks create \
   --resource-group "rg-payment-gateway" \
   --name "aks-payment-prod" \
