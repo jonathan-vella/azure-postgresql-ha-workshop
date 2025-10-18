@@ -346,28 +346,16 @@ gantt
 
 The following timeline visualizes critical milestones and decision gates throughout the PoC. Each gate requires explicit approval before proceeding to the next phase.
 
-```mermaid
-gantt
-    title PoC Critical Milestones & Go/No-Go Decision Gates
-    dateFormat YYYY-MM-DD
-    axisFormat %b %d
-    
-    section Foundation Gates
-    Gate 1: Landing Zone Ready :milestone, gate1, 2025-10-24, 0d
-    Gate 2: Network & Security Baseline :milestone, gate2, 2025-10-31, 0d
-    
-    section Application Gates
-    Gate 3: Platform Services Operational :milestone, gate3, 2025-11-07, 0d
-    Gate 4: Application Deployed & Functional :milestone, gate4, 2025-11-14, 0d
-    
-    section Validation Gates
-    Gate 5: Security & Compliance Validated :milestone, gate5, 2025-11-18, 0d
-    Gate 6: Performance & Resiliency Proven :milestone, gate6, 2025-11-21, 0d
-    
-    section Final Decision
-    Gate 7: PoC Success Criteria Met :milestone, gate7, 2025-11-25, 0d
-    Executive Review & Approval :milestone, gate8, 2025-11-28, 0d
-```
+| Gate | Milestone | Target Date | Approval Required |
+|------|-----------|-------------|-------------------|
+| **Gate 1** | Landing Zone Ready | Week 1 (Oct 24) | Infrastructure Lead |
+| **Gate 2** | Network & Security Baseline | Week 2 (Oct 31) | Security Lead |
+| **Gate 3** | Platform Services Operational | Week 3 (Nov 7) | Platform Lead |
+| **Gate 4** | Application Deployed & Functional | Week 4 (Nov 14) | Application Lead |
+| **Gate 5** | Security & Compliance Validated | Week 5 (Nov 18) | CISO/Compliance |
+| **Gate 6** | Performance & Resiliency Proven | Week 5 (Nov 21) | Architecture Lead |
+| **Gate 7** | PoC Success Criteria Met | Week 6 (Nov 25) | Project Sponsor |
+| **Gate 8** | Executive Review & Approval | Week 6 (Nov 28) | Executive Steering Committee |
 
 ### Testing & Validation Timeline
 
