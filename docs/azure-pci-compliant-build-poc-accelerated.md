@@ -213,22 +213,19 @@ gantt
 
 This timeline visualizes critical milestones and decision gates throughout the PoC. Each gate requires explicit approval before proceeding to the next phase, ensuring stakeholders understand this is a **non-production validation environment**.
 
-```mermaid
-gantt
-    title Critical Decision Gates - Accelerated PoC (NON-PRODUCTION VALIDATION)
-    dateFormat YYYY-MM-DD
-    section Gates & Milestones
-    Gate 0: PoC Kickoff & Scope Confirmation        :milestone, gate0, 2025-10-17, 0d
-    Gate 1: Foundation Ready (Week 1 End)           :milestone, gate1, 2025-10-21, 0d
-    Gate 2: Application Deployed (Week 2 End)       :milestone, gate2, 2025-10-25, 0d
-    Gate 3: Validation Complete (Week 3 Mid)        :milestone, gate3, 2025-10-28, 0d
-    Gate 4: PoC Closeout (NOT Production Go-Live)   :crit, milestone, gate4, 2025-10-30, 0d
-    section Validation Activities
-    Week 1 Foundation Build                         :foundation, 2025-10-17, 5d
-    Week 2 Application & Security                   :application, 2025-10-22, 4d
-    Week 3 Testing & Validation                     :crit, validation, 2025-10-26, 4d
-    PoC Decommission Planning                       :crit, decom, 2025-10-30, 1d
-```
+| Gate | Milestone | Target Date | Phase | Status |
+|------|-----------|-------------|-------|--------|
+| **Gate 0** | PoC Kickoff & Scope Confirmation | Oct 17 (Thu) | Start | Executive approval required |
+| **Gate 1** | Foundation Ready (Week 1 End) | Oct 21 (Mon) | Foundation | Landing zone + CI/CD operational |
+| **Gate 2** | Application Deployed (Week 2 End) | Oct 25 (Fri) | Application | Microservices + security validated |
+| **Gate 3** | Validation Complete (Week 3 Mid) | Oct 28 (Mon) | Testing | Performance + DR drills passed |
+| **Gate 4** | PoC Closeout (NOT Production Go-Live) | Oct 30 (Wed) | **Closeout** | ⚠️ **NON-PRODUCTION VALIDATION ONLY** |
+
+**Validation Activities Timeline**:
+- **Week 1 (Oct 17-21)**: Foundation Build (landing zone, networking, CI/CD)
+- **Week 2 (Oct 22-25)**: Application & Security (deployment, scans, observability)
+- **Week 3 (Oct 26-30)**: Testing & Validation (performance, DR, compliance evidence)
+- **Oct 30+**: PoC Decommission Planning (separate production project initiation)
 
 **Decision Gate Criteria**:
 - **Gate 0**: Executive approval, team availability, pre-built assets validated, **PoC scope confirmed as non-production**
